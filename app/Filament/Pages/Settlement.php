@@ -13,6 +13,10 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Url;
 
+/**
+ * Monthly overview page: shows the live settlement for the selected month,
+ * its frozen snapshot once closed, and the action to close a month.
+ */
 class Settlement extends Page
 {
     protected string $view = 'filament.pages.settlement';
@@ -25,14 +29,23 @@ class Settlement extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHome;
 
+    /** Currently selected month (Y-m), kept in the URL query string. */
     #[Url]
     public string $month = '';
 
+    /**
+     * Default the view to the current month on first load.
+     */
     public function mount(): void
     {
         $this->month = $this->month ?: now()->format('Y-m');
     }
 
+    /**
+     * "Close month" action: freezes the settlement after a confirmation dialog.
+     *
+     * Validation problems are shown as a notification instead of an exception.
+     */
     public function closeMonthAction(): Action
     {
         return Action::make('closeMonth')->label('Monat abschließen')->icon('heroicon-o-lock-closed')
@@ -49,6 +62,12 @@ class Settlement extends Page
             });
     }
 
+    /**
+     * Provide the closing, the report (snapshot or live calculation) and an
+     * optional problem message to the view.
+     *
+     * @return array{closing: MonthlyClosing|null, report: array<string, mixed>|null, problem: string|null}
+     */
     protected function getViewData(): array
     {
         $closing = MonthlyClosing::where('month', $this->month)->whereNotNull('closed_at')->first();

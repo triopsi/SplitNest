@@ -2,11 +2,21 @@
 
 namespace App\Filament\Support;
 
+use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 
+/**
+ * Shared form fields for the schedule of recurring entries (amount,
+ * interval, first/last month), used by the expense and income forms.
+ */
 final class ScheduleFields
 {
+    /**
+     * Build the schedule form fields.
+     *
+     * @return array<int, Field>
+     */
     public static function make(): array
     {
         return [

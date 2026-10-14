@@ -9,6 +9,10 @@ use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Year planning page: lists all twelve months of the chosen year with their
+ * settlement (live or frozen snapshot) and closing state.
+ */
 class YearPlan extends Page
 {
     protected string $view = 'filament.pages.year-plan';
@@ -19,8 +23,22 @@ class YearPlan extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
-    public string $year = '2027';
+    /** Selected year for the planning view. */
+    public string $year = '';
 
+    /**
+     * Default the view to the current year on first load.
+     */
+    public function mount(): void
+    {
+        $this->year = $this->year ?: now()->format('Y');
+    }
+
+    /**
+     * Build one row per month for the selected year.
+     *
+     * @return array{rows: list<array{month: string, closed: bool, report: array<string, mixed>|null, error: string|null}>, problem: string|null}
+     */
     protected function getViewData(): array
     {
         $rows = [];

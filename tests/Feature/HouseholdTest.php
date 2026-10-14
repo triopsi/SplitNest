@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Filament\Pages\Settlement;
+use App\Filament\Pages\YearPlan;
 use App\Filament\Resources\Expenses\Pages\ManageExpenses;
 use App\Filament\Resources\Participants\Pages\ManageParticipants;
 use App\Models\Expense;
@@ -209,5 +210,12 @@ class HouseholdTest extends TestCase
         Filament::setCurrentPanel(Filament::getPanel('admin'));
         Livewire::test(ManageParticipants::class)
             ->assertActionDoesNotExist(TestAction::make('delete')->table($a));
+    }
+
+    public function test_year_plan_defaults_to_current_year(): void
+    {
+        $this->actingAs($this->admin());
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Livewire::test(YearPlan::class)->assertSet('year', now()->format('Y'));
     }
 }

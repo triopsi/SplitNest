@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
+/**
+ * Registers and boots application-wide services.
+ */
 class AppServiceProvider extends ServiceProvider
 {
     /**

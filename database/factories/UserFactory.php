@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
+ * Creates test users with a shared, pre-hashed default password.
+ *
  * @extends Factory<User>
  */
 class UserFactory extends Factory

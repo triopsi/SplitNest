@@ -10,8 +10,22 @@ use Brick\Math\BigInteger;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Calculates the monthly settlement: income-weighted expense shares per
+ * participant and the resulting balancing transfers between them.
+ */
 final class SettlementCalculator
 {
+    /**
+     * Calculate the full settlement for one month.
+     *
+     * Sums up incomes and expenses per participant, splits every expense
+     * according to its split mode and derives the balancing transfers.
+     *
+     * @return array{version: int, month: string, currency: string, participants: list<array{id: int, name: string, income_cents: int, paid_cents: int, share_cents: int, balance_cents: int, remaining_cents: int}>, incomes: list<array{name: string, participant_id: int, amount_cents: int}>, expenses: list<array{id: int, name: string, amount_cents: int, payer_id: int, split_mode: string, weights: array<int, int>, allocations: array<int, int>}>, total_expense_cents: int, total_income_cents: int, transfers: list<array{from_id: int, from_name: string, to_id: int, to_name: string, amount_cents: int}>}
+     *
+     * @throws ValidationException When the month is invalid, no participants exist or an expense cannot be allocated.
+     */
     public function calculate(string $month): array
     {
         Validator::make(['month' => $month], ['month' => ['required', 'date_format:Y-m']])->validate();
@@ -73,7 +87,16 @@ final class SettlementCalculator
         ];
     }
 
-    /** Largest remainder allocation: exact cents, stable participant-ID tie break. */
+    /**
+     * Split an amount into exact cents, proportional to the given weights.
+     *
+     * Largest remainder allocation: exact cents, stable participant-ID tie break.
+     *
+     * @param  array<int, int>  $weights  Participant ID => non-negative weight.
+     * @return array<int, int> Participant ID => allocated cents.
+     *
+     * @throws \InvalidArgumentException When the amount is negative or the weights are empty/negative.
+     */
     public function allocate(int $amount, array $weights): array
     {
         ksort($weights, SORT_NUMERIC);
@@ -99,6 +122,14 @@ final class SettlementCalculator
         return $allocations;
     }
 
+    /**
+     * Convert participant balances into a set of balancing transfers.
+     *
+     * Debtors pay creditors greedily; every transfer is as large as possible.
+     *
+     * @param  array<int, array{id: int, name: string, income_cents: int, paid_cents: int, share_cents: int, balance_cents: int, remaining_cents: int}>  $people
+     * @return list<array{from_id: int, from_name: string, to_id: int, to_name: string, amount_cents: int}>
+     */
     private function transfers(array $people): array
     {
         $creditors = $debtors = $transfers = [];

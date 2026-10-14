@@ -29,6 +29,9 @@ jobs:
       - name: Pint ausführen
         run: vendor/bin/pint --test
 
+      - name: PHPDocs prüfen
+        run: php scripts/check-phpdocs.php
+
   phpunit:
     name: Unit- & Feature-Tests
     runs-on: ubuntu-latest

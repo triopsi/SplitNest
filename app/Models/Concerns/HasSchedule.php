@@ -6,8 +6,16 @@ use App\Support\Money;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Validator;
 
+/**
+ * Shared schedule behaviour for recurring entries ({@see Expense}, {@see Income}):
+ * decimal-amount accessor backed by integer cents, schedule validation on save,
+ * and the check whether an entry applies to a given month.
+ */
 trait HasSchedule
 {
+    /**
+     * Validate the schedule fields (amount, months, interval) on every save.
+     */
     public static function bootHasSchedule(): void
     {
         static::saving(function ($record): void {
@@ -21,6 +29,9 @@ trait HasSchedule
         });
     }
 
+    /**
+     * Accessor/mutator pair mapping the decimal "amount" to integer "amount_cents".
+     */
     protected function amount(): Attribute
     {
         return Attribute::make(
@@ -29,6 +40,12 @@ trait HasSchedule
         );
     }
 
+    /**
+     * Determine whether this entry applies to the given month (Y-m).
+     *
+     * Checks the start/end boundaries first, then the interval rhythm
+     * (interval 0 means the entry applies to its start month only).
+     */
     public function appliesTo(string $month): bool
     {
         if ($month < $this->start_month || ($this->end_month && $month > $this->end_month)) {

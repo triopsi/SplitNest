@@ -21,8 +21,14 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
+/**
+ * Configures the "admin" Filament panel (the household back office).
+ */
 class AdminPanelProvider extends PanelProvider
 {
+    /**
+     * Build the panel: branding, discovery, user menu and middleware stack.
+     */
     public function panel(Panel $panel): Panel
     {
         return $panel
@@ -31,6 +37,10 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName(fn (): string => config('app.name'))
+            ->brandLogo(fn () => asset('brand/splitnest-logo-light.svg'))
+            ->darkModeBrandLogo(fn () => asset('brand/splitnest-logo-dark.svg'))
+            ->brandLogoHeight('2.5rem')
+            ->favicon(fn () => asset('favicon.svg'))
             ->font('Inter', url: asset('fonts/filament/filament/inter/index.css'), provider: LocalFontProvider::class)
             ->maxContentWidth('full')
             ->renderHook('panels::head.end', fn () => view('filament.household-style'))

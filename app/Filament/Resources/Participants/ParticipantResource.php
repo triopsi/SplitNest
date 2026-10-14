@@ -8,12 +8,19 @@ use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
+/**
+ * Filament resource for managing household participants.
+ *
+ * Participants cannot be deleted here on purpose: historical closings keep
+ * referring to them, so the table offers no delete action at all.
+ */
 class ParticipantResource extends Resource
 {
     protected static ?string $model = Participant::class;
@@ -28,6 +35,9 @@ class ParticipantResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    /**
+     * Define the create/edit form for a participant.
+     */
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -37,6 +47,9 @@ class ParticipantResource extends Resource
         ]);
     }
 
+    /**
+     * Define the participants table (edit only, no delete action).
+     */
     public static function table(Table $table): Table
     {
         return $table->columns([
@@ -45,6 +58,11 @@ class ParticipantResource extends Resource
         ])->recordActions([EditAction::make()]);
     }
 
+    /**
+     * Register the resource pages (single manage page).
+     *
+     * @return array<string, PageRegistration>
+     */
     public static function getPages(): array
     {
         return ['index' => ManageParticipants::route('/')];

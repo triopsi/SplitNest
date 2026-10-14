@@ -14,6 +14,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -23,6 +24,9 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Filament resource for managing household expenses and their allocation.
+ */
 class ExpenseResource extends Resource
 {
     protected static ?string $model = Expense::class;
@@ -37,6 +41,9 @@ class ExpenseResource extends Resource
 
     protected static ?int $navigationSort = 5;
 
+    /**
+     * Define the create/edit form for an expense.
+     */
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -72,6 +79,9 @@ class ExpenseResource extends Resource
         ]);
     }
 
+    /**
+     * Define the expenses table (columns and record actions).
+     */
     public static function table(Table $table): Table
     {
         return $table->columns([
@@ -88,6 +98,11 @@ class ExpenseResource extends Resource
         ])->recordActions([EditAction::make(), DeleteAction::make()]);
     }
 
+    /**
+     * Register the resource pages (single manage page).
+     *
+     * @return array<string, PageRegistration>
+     */
     public static function getPages(): array
     {
         return ['index' => ManageExpenses::route('/')];

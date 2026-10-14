@@ -11,6 +11,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -18,6 +19,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
+/**
+ * Filament resource for managing participant incomes.
+ */
 class IncomeResource extends Resource
 {
     protected static ?string $model = Income::class;
@@ -32,6 +36,9 @@ class IncomeResource extends Resource
 
     protected static ?int $navigationSort = 4;
 
+    /**
+     * Define the create/edit form for an income.
+     */
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -41,6 +48,9 @@ class IncomeResource extends Resource
         ]);
     }
 
+    /**
+     * Define the incomes table (columns, participant filter, record actions).
+     */
     public static function table(Table $table): Table
     {
         return $table->columns([
@@ -54,6 +64,11 @@ class IncomeResource extends Resource
             ->recordActions([EditAction::make(), DeleteAction::make()]);
     }
 
+    /**
+     * Register the resource pages (single manage page).
+     *
+     * @return array<string, PageRegistration>
+     */
     public static function getPages(): array
     {
         return ['index' => ManageIncomes::route('/')];

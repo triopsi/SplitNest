@@ -22,7 +22,14 @@ repos:
         language: system
         pass_filenames: false
 
-      # 3. Tests: komplette PHPUnit-Suite (SQLite :memory:, siehe phpunit.xml)
+      # 3. PHPDoc-Abdeckung: jede Klasse/Methode in app/ + database/ braucht einen Docblock
+      - id: phpdocs
+        name: PHPDocs – Vollständigkeit
+        entry: php scripts/check-phpdocs.php
+        language: system
+        pass_filenames: false
+
+      # 4. Tests: komplette PHPUnit-Suite (SQLite :memory:, siehe phpunit.xml)
       - id: phpunit
         name: PHPUnit – Tests
         entry: php artisan test
