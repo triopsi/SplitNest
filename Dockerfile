@@ -156,4 +156,4 @@ USER www-data
 
 # Liveness-Probe: Laravels Health-Route /up muss HTTP 200 liefern
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
-     CMD curl -fsS http://localhost:8080/up || exit 1
+    CMD curl -fsS http://localhost:8080/up || exit 1
