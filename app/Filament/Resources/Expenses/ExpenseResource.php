@@ -101,7 +101,8 @@ class ExpenseResource extends Resource
     {
         return $table->columns([
             TextColumn::make('name')->label('Bezeichnung')->searchable()->sortable(),
-            TextColumn::make('payer.name')->label('Bezahler')->sortable(),
+            TextColumn::make('payer.name')->label('Bezahler')->sortable()->html()
+                ->formatStateUsing(fn (Expense $record): string => view('components.person', ['name' => $record->payer->name, 'email' => $record->payer->email])->render()),
             TextColumn::make('amount_cents')->label('Betrag')->formatStateUsing(fn ($state) => Money::format($state))->sortable(),
             TextColumn::make('split_mode')->label('Aufteilung')->formatStateUsing(fn ($state) => Expense::MODES[$state])->badge(),
             TextColumn::make('start_month')->label('Ab')->sortable(),

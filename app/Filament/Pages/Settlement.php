@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\MonthlyClosing;
+use App\Models\Participant;
 use App\Services\CloseMonth;
 use App\Services\SettlementCalculator;
 use BackedEnum;
@@ -10,6 +11,7 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Url;
 
@@ -109,7 +111,7 @@ class Settlement extends Page
      * Provide the closing, the report (snapshot or live calculation) and an
      * optional problem message to the view.
      *
-     * @return array{closing: MonthlyClosing|null, report: array<string, mixed>|null, problem: string|null}
+     * @return array{closing: MonthlyClosing|null, report: array<string, mixed>|null, problem: string|null, emails: Collection<int, string|null>}
      */
     protected function getViewData(): array
     {
@@ -122,6 +124,6 @@ class Settlement extends Page
             $problem = collect($e->errors())->flatten()->implode(' ');
         }
 
-        return compact('closing', 'report', 'problem');
+        return compact('closing', 'report', 'problem') + ['emails' => Participant::pluck('email', 'id')];
     }
 }

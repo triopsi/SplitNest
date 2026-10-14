@@ -85,4 +85,11 @@ class UserManagementTest extends TestCase
         $this->assertArrayHasKey('users', $items);
         $this->assertSame(UserResource::getUrl(), $items['users']->getUrl());
     }
+
+    public function test_only_admins_can_access_the_panel(): void
+    {
+        $panel = Filament::getPanel('admin');
+        $this->assertTrue($this->admin()->canAccessPanel($panel));
+        $this->assertFalse(User::factory()->create()->canAccessPanel($panel));
+    }
 }

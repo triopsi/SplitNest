@@ -57,13 +57,13 @@ class ParticipantMonth extends Page
         try {
             $report = $closing?->snapshot ?? app(SettlementCalculator::class)->calculate($this->month);
         } catch (ValidationException $e) {
-            return ['person' => null, 'expenses' => [], 'incomes' => [], 'names' => [], 'problem' => collect($e->errors())->flatten()->implode(' ')];
+            return ['person' => null, 'expenses' => [], 'incomes' => [], 'names' => [], 'emails' => collect(), 'problem' => collect($e->errors())->flatten()->implode(' ')];
         }
         $person = collect($report['participants'])->firstWhere('id', $this->participant->id);
         $expenses = array_values(array_filter($report['expenses'], fn (array $expense): bool => ($expense['allocations'][$this->participant->id] ?? 0) > 0));
         $incomes = array_values(array_filter($report['incomes'], fn (array $income): bool => $income['participant_id'] === $this->participant->id));
         $names = array_column($report['participants'], 'name', 'id');
 
-        return ['person' => $person, 'expenses' => $expenses, 'incomes' => $incomes, 'names' => $names, 'problem' => null];
+        return ['person' => $person, 'expenses' => $expenses, 'incomes' => $incomes, 'names' => $names, 'emails' => Participant::pluck('email', 'id'), 'problem' => null];
     }
 }

@@ -53,7 +53,8 @@ class ParticipantResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('name')->label('Name')->searchable()->sortable(),
+            TextColumn::make('name')->label('Name')->searchable()->sortable()->html()
+                ->formatStateUsing(fn (Participant $record): string => view('components.person', ['name' => $record->name, 'email' => $record->email])->render()),
             TextColumn::make('email')->label('E-Mail')->placeholder('Noch nicht hinterlegt'),
         ])->recordActions([EditAction::make()]);
     }

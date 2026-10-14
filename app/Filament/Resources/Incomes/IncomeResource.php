@@ -55,7 +55,8 @@ class IncomeResource extends Resource
     {
         return $table->columns([
             TextColumn::make('name')->label('Bezeichnung')->searchable(),
-            TextColumn::make('participant.name')->label('Teilnehmer')->sortable(),
+            TextColumn::make('participant.name')->label('Teilnehmer')->sortable()->html()
+                ->formatStateUsing(fn (Income $record): string => view('components.person', ['name' => $record->participant->name, 'email' => $record->participant->email])->render()),
             TextColumn::make('amount_cents')->label('Betrag')->formatStateUsing(fn ($state) => Money::format($state))->sortable(),
             TextColumn::make('start_month')->label('Ab')->sortable(),
             TextColumn::make('end_month')->label('Bis')->placeholder('Unbegrenzt'),

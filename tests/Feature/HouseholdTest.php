@@ -7,16 +7,19 @@ use App\Filament\Pages\Settlement;
 use App\Filament\Pages\YearPlan;
 use App\Filament\Resources\Expenses\Pages\ManageExpenses;
 use App\Filament\Resources\Participants\Pages\ManageParticipants;
+use App\Mail\MonthClosedMail;
 use App\Models\Expense;
 use App\Models\Income;
 use App\Models\Participant;
 use App\Models\User;
 use App\Services\CloseMonth;
 use App\Services\SettlementCalculator;
+use App\Support\Settings;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -254,5 +257,84 @@ class HouseholdTest extends TestCase
         config(['app.version' => '9.9.9']);
         $this->actingAs($this->admin());
         $this->get('/admin')->assertSee('v9.9.9', false);
+    }
+
+    public function test_closing_a_month_sends_summary_mails_with_pdf(): void
+    {
+        Mail::fake();
+        $a = Participant::create(['name' => 'Daniel', 'email' => 'daniel@example.test']);
+        $b = Participant::create(['name' => 'Svenja', 'email' => 'svenja@example.test']);
+        $this->expense($a, $b);
+        app(CloseMonth::class)->close('2027-01', $this->admin()->id);
+
+        Mail::assertSent(MonthClosedMail::class, 2);
+        Mail::assertSent(MonthClosedMail::class, function (MonthClosedMail $mail) {
+            if (! $mail->hasTo('svenja@example.test')) {
+                return false;
+            }
+            $this->assertCount(1, $mail->attachments());
+            $mail->assertSeeInText('Hallo Svenja');
+            $mail->assertSeeInText('50,00 € an Daniel');
+
+            return true;
+        });
+        Mail::assertSent(MonthClosedMail::class, function (MonthClosedMail $mail) {
+            if (! $mail->hasTo('daniel@example.test')) {
+                return false;
+            }
+            $mail->assertSeeInText('Keine — du bist ausgeglichen.');
+
+            return true;
+        });
+    }
+
+    public function test_closing_mail_text_is_configurable_with_placeholders(): void
+    {
+        Mail::fake();
+        Settings::set('mail_body', 'Hi {name}! Monat: {monat}. Zahlungen: {ueberweisungen}');
+        $a = Participant::create(['name' => 'Daniel', 'email' => 'daniel@example.test']);
+        $b = Participant::create(['name' => 'Svenja', 'email' => 'svenja@example.test']);
+        $this->expense($a, $b);
+        app(CloseMonth::class)->close('2027-01', $this->admin()->id);
+
+        Mail::assertSent(MonthClosedMail::class, function (MonthClosedMail $mail) {
+            if (! $mail->hasTo('svenja@example.test')) {
+                return false;
+            }
+            $mail->assertSeeInText('Hi Svenja! Monat: Januar 2027. Zahlungen: - 50,00 € an Daniel');
+
+            return true;
+        });
+    }
+
+    public function test_participant_cannot_be_deleted(): void
+    {
+        [$a] = $this->people();
+        try {
+            $a->delete();
+            $this->fail('Participant deletion allowed');
+        } catch (ValidationException) {
+        }
+        $this->assertDatabaseHas('participants', ['id' => $a->id]);
+    }
+
+    public function test_monthly_closing_cannot_be_deleted(): void
+    {
+        [$a, $b] = $this->people();
+        $this->expense($a, $b);
+        $closing = app(CloseMonth::class)->close('2027-01', $this->admin()->id);
+        try {
+            $closing->delete();
+            $this->fail('Closing deletion allowed');
+        } catch (ValidationException) {
+        }
+        $this->assertDatabaseHas('monthly_closings', ['id' => $closing->id]);
+    }
+
+    public function test_calculate_rejects_invalid_month_format(): void
+    {
+        $this->people();
+        $this->expectException(ValidationException::class);
+        app(SettlementCalculator::class)->calculate('2027-13');
     }
 }

@@ -4,8 +4,10 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Http\Middleware\EnsureHouseholdAdmin;
+use App\Support\Gravatar;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -21,10 +23,18 @@ use Illuminate\Notifications\Notifiable;
  */
 #[Fillable(['name', 'email', 'password', 'is_admin'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    /**
+     * Gravatar avatar for the panel user menu, when enabled in the settings.
+     */
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return Gravatar::url($this->email);
+    }
 
     /**
      * Determine whether the user may access the given Filament panel.

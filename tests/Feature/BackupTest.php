@@ -64,4 +64,37 @@ class BackupTest extends TestCase
             unlink($path);
         }
     }
+
+    public function test_import_replaces_existing_data_completely(): void
+    {
+        $a = Participant::create(['name' => 'Daniel']);
+        $path = tempnam(sys_get_temp_dir(), 'backup-test-');
+        app(HouseholdBackup::class)->exportToZip($path);
+
+        $a->update(['name' => 'Umbenannt']);
+        Participant::create(['name' => 'Zusatz']);
+
+        app(HouseholdBackup::class)->importFromZip($path);
+        unlink($path);
+
+        $this->assertDatabaseCount('participants', 1);
+        $this->assertSame('Daniel', Participant::firstOrFail()->name);
+    }
+
+    public function test_import_rejects_backup_with_missing_table(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'backup-test-');
+        $zip = new \ZipArchive;
+        $zip->open($path, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $zip->addFromString('participants.json', '[]');
+        $zip->close();
+        try {
+            app(HouseholdBackup::class)->importFromZip($path);
+            $this->fail('Backup with missing table accepted');
+        } catch (ValidationException $e) {
+            $this->assertStringContainsString('incomes', $e->getMessage());
+        } finally {
+            unlink($path);
+        }
+    }
 }

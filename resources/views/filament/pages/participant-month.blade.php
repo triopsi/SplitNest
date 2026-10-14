@@ -2,7 +2,7 @@
     @php $money = fn ($cents) => \App\Support\Money::format($cents); $monthName = \Illuminate\Support\Carbon::createFromFormat('Y-m', $month)->translatedFormat('F Y'); @endphp
     <div class="hh-stack">
         <div class="hh-hero">
-            <div><div class="hh-kicker">Teilnehmer-Detail</div><h2>{{ $participant->name }} · {{ $monthName }}</h2><p>Alle Einkünfte und Kostenanteile, die {{ $participant->name }} in diesem Monat betreffen.</p></div>
+            <div><div class="hh-kicker">Teilnehmer-Detail</div><h2><x-person :name="$participant->name.' · '.$monthName" :email="$participant->email" /></h2><p>Alle Einkünfte und Kostenanteile, die {{ $participant->name }} in diesem Monat betreffen.</p></div>
             <a class="hh-link" href="{{ \App\Filament\Pages\Settlement::getUrl(['month' => $month]) }}">Zurück zur Monatsübersicht</a>
         </div>
         @if($problem)
@@ -39,7 +39,7 @@
                 <div class="hh-section-head"><h3>Kosten im {{ $monthName }}</h3><span class="hh-muted">{{ count($expenses) }} Posten betreffen {{ $participant->name }}</span></div>
                 <div class="hh-scroll"><table class="hh-table">
                     <thead><tr><th>Posten</th><th>Bezahlt von</th><th>Regel</th><th class="num">Gesamt</th><th class="num">Anteil {{ $participant->name }}</th></tr></thead>
-                    <tbody>@forelse($expenses as $expense)@php $shareCents = $expense['allocations'][$participant->id] ?? 0; @endphp<tr><td>{{ $expense['name'] }}</td><td>{{ $names[$expense['payer_id']] }}</td><td>{{ \App\Models\Expense::MODES[$expense['split_mode']] }}</td><td class="num">{{ $money($expense['amount_cents']) }}</td><td class="num"><b>{{ $money($shareCents) }}</b><br><span class="hh-muted">{{ $expense['amount_cents'] > 0 ? number_format(round($shareCents * 100 / $expense['amount_cents']), 0, ',', '').' %' : '–' }}</span></td></tr>@empty<tr><td colspan="5">Keine Kosten in diesem Monat.</td></tr>@endforelse</tbody>
+                    <tbody>@forelse($expenses as $expense)@php $shareCents = $expense['allocations'][$participant->id] ?? 0; @endphp<tr><td>{{ $expense['name'] }}</td><td><x-person :name="$names[$expense['payer_id']]" :email="$emails[$expense['payer_id']] ?? null" /></td><td>{{ \App\Models\Expense::MODES[$expense['split_mode']] }}</td><td class="num">{{ $money($expense['amount_cents']) }}</td><td class="num"><b>{{ $money($shareCents) }}</b><br><span class="hh-muted">{{ $expense['amount_cents'] > 0 ? number_format(round($shareCents * 100 / $expense['amount_cents']), 0, ',', '').' %' : '–' }}</span></td></tr>@empty<tr><td colspan="5">Keine Kosten in diesem Monat.</td></tr>@endforelse</tbody>
                 </table></div>
             </section>
             <section class="hh-section">
