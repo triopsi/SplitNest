@@ -25,4 +25,4 @@ fi
 chmod -R a+rwX storage bootstrap/cache
 php artisan migrate --no-interaction
 php artisan filament:assets
-echo 'Bereit. Login erstellen: php artisan splitnest:user'
+echo 'Bereit. Ersten Admin im Browser unter /admin anlegen (oder: php artisan splitnest:user)'

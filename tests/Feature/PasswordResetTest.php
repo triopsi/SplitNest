@@ -23,9 +23,12 @@ class PasswordResetTest extends TestCase
      * Open the password reset request page and the login page as a guest.
      *
      * Expects the request page to render and the login page to link to it.
+     * An account must exist, because the login page otherwise forwards to the
+     * first-user registration.
      */
     public function test_password_reset_pages_are_reachable_and_linked_from_login(): void
     {
+        User::factory()->create();
         $this->get('/admin/password-reset/request')->assertOk();
         $this->get('/admin/login')->assertOk()->assertSee('/admin/password-reset/request');
     }

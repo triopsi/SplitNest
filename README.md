@@ -30,7 +30,7 @@ The UI is in German; the codebase follows English Laravel conventions.
 - **Backup & restore** — export/import the whole dataset (participants, incomes, expenses, closings) as a ZIP, e.g. for moving to another instance
 - **E-mail invitations** — admins invite household members by mail; the one-time link (24 h by default, configurable via `.env`) leads to a secure self-registration
 - **Password reset** — "forgot password" flow with an e-mail token, valid 24 h by default and configurable via `.env`
-- **Admin-only logins** — no public registration; user management and invitations live in the profile dropdown
+- **Admin-only logins** — the very first administrator registers through a first-run form (only while no account exists); further users are created by admins or invited by e-mail
 - **Settings page** — closing mail text and optional Gravatar avatars
 - **Database choice** — PostgreSQL by default, MariaDB via `compose.mariadb.yaml`, SQLite for the test suite
 
@@ -41,14 +41,13 @@ Amounts are stored as integer cents; each expense is allocated with the largest-
 Requirements: Docker + VS Code with the Dev Containers extension.
 
 1. Open this folder and run **Dev Containers: Reopen in Container**. Composer packages, the app key and database migrations are set up automatically.
-2. Inside the container terminal:
+2. Open <http://localhost:8080/admin>: as long as no account exists, a registration form for the first administrator appears automatically.
+
+Alternatively, create the login in the container terminal:
 
 ```sh
 php artisan splitnest:user daniel@example.org --name=Daniel   # create an admin login (hidden password prompt, min. 12 chars)
-php artisan db:seed --class=HouseholdDemoSeeder               # optional: editable demo data starting 2026-01
 ```
-
-3. Open <http://localhost:8080/admin> and log in.
 
 Change the port with `APP_PORT=8088 docker compose up -d`. Data lives in a named PostgreSQL volume and survives restarts (`down --volumes` would delete it).
 

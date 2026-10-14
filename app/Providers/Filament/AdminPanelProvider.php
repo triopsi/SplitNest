@@ -2,7 +2,9 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\FirstUserRegister;
 use App\Filament\Auth\InvitationRegister;
+use App\Filament\Auth\Login;
 use App\Filament\Resources\Users\UserResource;
 use App\Http\Middleware\EnsureHouseholdAdmin;
 use Filament\Actions\Action;
@@ -37,7 +39,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(Login::class)
+            ->registration(FirstUserRegister::class)
             ->passwordReset()
             ->brandName(fn (): string => config('app.name'))
             ->brandLogo(fn () => asset('brand/splitnest-logo-light.svg'))

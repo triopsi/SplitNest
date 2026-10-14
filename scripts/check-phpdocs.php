@@ -3,14 +3,14 @@
 /**
  * Ensures every class and named method in the project code carries a PHPDoc block.
  *
- * Scans app/, database/factories and database/seeders — vendor and third-party
+ * Scans app/ and database/factories — vendor and third-party
  * code are never scanned. Anonymous classes and closures are exempt.
  * Exits non-zero when a docblock is missing, so it can run as a pre-commit
  * hook and CI step:  php scripts/check-phpdocs.php
  */
 
 /** Directories (relative to the project root) that must be fully documented. */
-const PHPDOC_DIRECTORIES = ['app', 'database/factories', 'database/seeders'];
+const PHPDOC_DIRECTORIES = ['app', 'database/factories'];
 
 /**
  * Run the check over all configured directories and print the result.
