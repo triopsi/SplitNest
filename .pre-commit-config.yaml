@@ -1,0 +1,30 @@
+# Pre-Commit-Hooks für die lokale Entwicklung (pre-commit-Framework).
+# Einrichtung: pre-commit install  (läuft automatisch in scripts/dev-setup.sh)
+# Manuell alles prüfen: pre-commit run --all-files
+#
+# Alle Hooks laufen als "system"-Hooks mit den Werkzeugen aus dem Devcontainer
+# (siehe Dockerfile, Stage "development") – es werden keine zusätzlichen
+# Toolchains (Go, Node, …) für Hooks benötigt.
+repos:
+  - repo: local
+    hooks:
+      # 1. Secret-Scan: verhindert, dass Zugangsdaten etc. committet werden
+      - id: gitleaks
+        name: Gitleaks – Secret-Scan
+        entry: gitleaks protect --staged --verbose
+        language: system
+        pass_filenames: false
+
+      # 2. Code-Stil: Laravel Pint im Prüfmodus (ändert nichts, schlägt nur fehl)
+      - id: pint
+        name: Pint – Code-Stil
+        entry: vendor/bin/pint --test
+        language: system
+        pass_filenames: false
+
+      # 3. Tests: komplette PHPUnit-Suite (SQLite :memory:, siehe phpunit.xml)
+      - id: phpunit
+        name: PHPUnit – Tests
+        entry: php artisan test
+        language: system
+        pass_filenames: false

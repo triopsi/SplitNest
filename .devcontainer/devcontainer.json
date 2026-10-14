@@ -1,0 +1,21 @@
+{
+  "name": "SplitNest · Laravel & Filament",
+  "dockerComposeFile": "../compose.yaml",
+  "service": "app",
+  "workspaceFolder": "/var/www/html",
+  "remoteUser": "root",
+  "shutdownAction": "stopCompose",
+  "forwardPorts": [8080],
+  "mounts": [
+    // SSH-Schluessel vom Host readonly einbinden; dev-setup.sh kopiert sie
+    // mit korrekten Rechten nach /root/.ssh (ssh verlangt passende Ownership)
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/ssh-host,type=bind,readonly"
+  ],
+  "postCreateCommand": "sh scripts/dev-setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": ["bmewburn.vscode-intelephense-client", "onecentlin.laravel-blade", "ms-azuretools.vscode-docker"],
+      "settings": {"php.validate.executablePath": "/usr/local/bin/php", "editor.formatOnSave": true}
+    }
+  }
+}
