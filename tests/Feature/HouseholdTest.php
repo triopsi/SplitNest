@@ -248,4 +248,11 @@ class HouseholdTest extends TestCase
             ->assertSee('Gehalt')
             ->assertDontSee('Daniels Server');
     }
+
+    public function test_footer_shows_the_app_version(): void
+    {
+        config(['app.version' => '9.9.9']);
+        $this->actingAs($this->admin());
+        $this->get('/admin')->assertSee('v9.9.9', false);
+    }
 }

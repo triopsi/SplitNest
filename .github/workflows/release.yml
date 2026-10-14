@@ -67,6 +67,8 @@ jobs:
           context: .
           target: production
           push: true
+          build-args: |
+            APP_VERSION=${{ needs.release.outputs.version }}
           tags: |
             ${{ steps.image.outputs.name }}:${{ needs.release.outputs.version }}
             ${{ steps.image.outputs.name }}:latest

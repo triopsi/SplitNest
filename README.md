@@ -1,73 +1,61 @@
-# SplitNest
+<p align="center">
+  <img src="public/brand/splitnest-logo-dark.svg" alt="SplitNest logo" width="360">
+</p>
 
-**Shared expenses. Fair contributions.**
+<h1 align="center">SplitNest</h1>
 
-Ein lauffähiger Starter für eure Haushaltsplanung: **Laravel 13, Filament 5, PHP 8.4, PostgreSQL und Docker**. Die Oberfläche ist deutsch, mit Monatsübersicht, Jahresplanung und klaren Tabellenrastern. Für die Filament-Oberfläche ist kein separater Node-Build nötig.
+<p align="center">
+  <b>Shared expenses. Fair contributions.</b><br>
+  Household budgeting, cost splitting and monthly PDF statements for shared homes.
+</p>
 
-## Schnellstart in VS Code
+<p align="center">
+  <img src="https://img.shields.io/badge/PHP-8.4-777BB4" alt="PHP 8.4">
+  <img src="https://img.shields.io/badge/Laravel-13-FF2D20" alt="Laravel 13">
+  <img src="https://img.shields.io/badge/Filament-5-FDAE4B" alt="Filament 5">
+  <img src="https://img.shields.io/badge/License-MIT-3da639" alt="MIT License">
+</p>
 
-Diesen Ordner öffnen und **Dev Containers: Reopen in Container** ausführen. Docker Desktop muss laufen. Der Devcontainer installiert Composer-Pakete, erstellt den Anwendungsschlüssel und migriert die Datenbank automatisch.
+The UI is in German; the codebase follows English Laravel conventions.
 
-Im Container-Terminal anschließend:
+## Features
+
+- **Monthly overview** — incomes, cost shares, remaining budget and the balancing transfers between participants, with per-person cost percentages
+- **Participant detail pages** — every cost item affecting a person in a given month
+- **Split rules** — fixed percentages, income-weighted, equal shares, or personal (one person carries 100 %, no matter who paid)
+- **Schedules** — one-off, monthly, quarterly, every 4 months, half-yearly or yearly costs with start/end months
+- **Month closing** — freezes an immutable snapshot and renders the PDF statement
+- **Year planning** — twelve months at a glance, closed months use their frozen snapshot
+- **Backup & restore** — export/import the whole dataset (participants, incomes, expenses, closings) as a ZIP, e.g. for moving to another instance
+- **Admin-only logins** — no public registration; user management lives in the profile dropdown
+
+Amounts are stored as integer cents; each expense is allocated with the largest-remainder method so no cent is lost.
+
+## Quick start (Dev Container)
+
+Requirements: Docker + VS Code with the Dev Containers extension.
+
+1. Open this folder and run **Dev Containers: Reopen in Container**. Composer packages, the app key and database migrations are set up automatically.
+2. Inside the container terminal:
 
 ```sh
-php artisan splitnest:user daniel@example.org --name=Daniel
-# Optional: eure bisherigen Angaben als editierbare Ausgangsdaten ab Januar 2027
-php artisan db:seed --class=HouseholdDemoSeeder
+php artisan splitnest:user daniel@example.org --name=Daniel   # create an admin login (hidden password prompt, min. 12 chars)
+php artisan db:seed --class=HouseholdDemoSeeder               # optional: editable demo data starting 2026-01
 ```
 
-Das Passwort wird zweimal verdeckt abgefragt (mindestens 12 Zeichen). Es gibt kein Standardpasswort und keine öffentliche Registrierung. Öffnen: **http://localhost:8080/admin**.
+3. Open <http://localhost:8080/admin> and log in.
 
-## Alternativ nur Docker
+Change the port with `APP_PORT=8088 docker compose up -d`. Data lives in a named PostgreSQL volume and survives restarts (`down --volumes` would delete it).
 
-```sh
-docker compose up -d --build
-docker compose exec app sh scripts/dev-setup.sh
-docker compose exec app php artisan splitnest:user daniel@example.org --name=Daniel
-docker compose exec app php artisan db:seed --class=HouseholdDemoSeeder
-```
-
-Die letzte Zeile ist optional. Der Seeder verweigert bereits befüllte Haushalte. Er legt Daniel (3.400 €), Svenja (2.800 €), die angegebenen gemeinsamen Kosten und die ursprünglich genannten persönlichen Kosten an. Unbekannte Beträge und zusätzliche Angaben nur aus dem Screenshot sind nicht voreingetragen. Persönliche Ausgaben werden zunächst von der jeweiligen Person bezahlt; bezahlt Daniel etwas für Svenja, den **Bezahler auf Daniel** ändern. Nach dem Start den Monat **2027-01** wählen.
-
-Der Port lässt sich mit `APP_PORT=8088 docker compose up -d` ändern. Stoppen: `docker compose stop`. Daten bleiben im benannten PostgreSQL-Volume erhalten. `down --volumes` würde die Daten löschen.
-
-## Bedienung
-
-1. **Teilnehmer** anlegen: Daniel, Svenja und beliebig weitere Personen. E-Mail ist optional und für spätere Benachrichtigungen vorgesehen. Teilnehmer sind getrennt von Login-Benutzern. Alle angelegten Login-Benutzer sind Administratoren desselben Haushalts und sehen alle Daten.
-2. **Einkünfte** zuordnen: Gehalt, weitere Einnahmen; Betrag, erster/letzter Monat und Wiederholung einstellen.
-3. **Kosten** erfassen: Betrag, Bezahler und Kostenempfänger auswählen. Der Bezahler überweist die gesamte Rechnung an den Anbieter. Die Empfänger tragen die eingestellten Anteile.
-4. **Monatsübersicht** öffnen: Sie zeigt Kostenanteile, verbleibendes Geld und die nötigen Ausgleichsüberweisungen zwischen Teilnehmern.
-5. **Monat abschließen**: Nach Bestätigung wird der vollständige Berechnungsstand gespeichert. Danach die PDF herunterladen und an die Teilnehmer weitergeben. Das geht bereits am Monatsanfang für die geplanten Rechnungen.
-6. **Jahresplanung**: zwölf Monate und Jahressummen; abgeschlossene Monate verwenden ihren gespeicherten Stand, offene Monate die aktuellen Einträge.
-
-### Aufteilungsregeln
-
-- **Feste Prozente**: bei zwei vorhandenen Teilnehmern 50/50 vorbelegt. Frei editierbar; Summe muss genau 100 % sein. Bei weiteren Teilnehmern die Prozente passend verteilen.
-- **Nach Einkommen**: Verhältnis der im jeweiligen Monat erfassten Einkommen der ausgewählten Teilnehmer. Bei 3.400 € und 2.800 € sind das rund 54,84 % und 45,16 %. Ohne Einkommen bei allen Empfängern wird der Abschluss verhindert.
-- **Gleiche Anteile**: gleichmäßig unter allen ausgewählten Personen.
-- **Persönlich**: genau ein Empfänger trägt 100 %, auch wenn jemand anderes bezahlt.
-
-Beispiel: Daniel bezahlt 100 € für eine gemeinsame Rechnung mit 50/50. Svenja überweist Daniel 50 €. Bezahlt Svenja zusätzlich 40 € für beide, verbleiben 30 € von Svenja an Daniel. Persönliche Kosten, die man selbst bezahlt, ändern das Restbudget, erzeugen aber keine Überweisung.
-
-Beträge werden als ganze Cent gespeichert. Jede Kostenposition wird separat mit dem größten Rest aufgeteilt; bei gleichen Resten entscheidet die Teilnehmer-ID. Dadurch geht kein Cent verloren. Eine einmalige Aufteilung einer Gesamtsumme kann um einen Cent von der Summe einzeln aufgeteilter Positionen abweichen.
-
-### Zeiträume und Abschlüsse
-
-Monatlich, einmalig, alle 3/4/6 Monate oder jährlich. Der erste Monat ist zugleich der erste Fälligkeitsmonat. Ein Betrag „alle 3 Monate“ wird vollständig im Fälligkeitsmonat berücksichtigt, nicht monatlich angespart. Endmonat inklusive.
-
-Bei einer Miet- oder Gehaltsänderung den bisherigen Datensatz bis zum Vormonat begrenzen und einen neuen ab Änderungsmonat anlegen. Löschen oder Bearbeiten verändert offene Planungen. Gespeicherte Abschlüsse bleiben unverändert; ein erneuter Abschluss erzeugt kein Duplikat. Wiederöffnen/Korrekturversionen sind in diesem Starter noch nicht enthalten. Teilnehmer werden zur Erhaltung von Zuordnungen nicht gelöscht; ihre Einkünfte/Kosten können enden.
-
-Der Starter plant Zahlungsströme. Er erfasst noch keine Bankumsätze, tatsächlichen Zahlungseingänge, Abschlagskorrekturen, Währungen außer EUR oder mehrere getrennte Haushalte.
-
-## Homelab / Produktion
+## Production (Docker)
 
 ```sh
 cp .env.production.example .env.production
-# APP_KEY erzeugen (im Entwicklungscontainer):
+# generate an app key once, e.g. inside the dev container:
 docker compose exec app php artisan key:generate --show
 ```
 
-Den ausgegebenen Schlüssel, eine HTTPS-APP_URL und ein eigenes langes DB_PASSWORD in `.env.production` setzen. Schlüssel dauerhaft aufbewahren und bei Updates nicht neu erzeugen.
+Put the generated key, your HTTPS `APP_URL` and a long random `DB_PASSWORD` into `.env.production`, then:
 
 ```sh
 docker compose --env-file .env.production -f compose.production.yaml build app
@@ -77,47 +65,51 @@ docker compose --env-file .env.production -f compose.production.yaml up -d app
 docker compose --env-file .env.production -f compose.production.yaml exec app php artisan splitnest:user
 ```
 
-Das Produktionsimage läuft als `www-data`, verwendet keine eingebauten Secrets und hat einen `/up`-Healthcheck. PostgreSQL hat keinen veröffentlichten Port. Der App-Port bindet standardmäßig an `127.0.0.1`; davor einen HTTPS-Reverse-Proxy betreiben. Bei einem Proxy in einem anderen Container dessen Netzwerk passend anbinden. `TRUSTED_PROXIES` nur auf die tatsächlichen Proxy-Adressen setzen. `SESSION_SECURE_COOKIE=true` erfordert HTTPS; für einen rein lokalen HTTP-Test explizit auf `false` setzen.
+Notes: the production image runs as `www-data`, ships no secrets and exposes a `/up` healthcheck. PostgreSQL publishes no port. The app binds to `127.0.0.1` by default — run an HTTPS reverse proxy in front of it and set `TRUSTED_PROXIES` to its address(es). `SESSION_SECURE_COOKIE=true` requires HTTPS; set it to `false` only for a purely local HTTP test.
 
-Migrationen erfolgen bewusst als eigener Schritt. Vor Updates Datenbank sichern. Backups umfassen PostgreSQL, das Storage-Volume und den Anwendungsschlüssel. Beispielsweise:
+Pre-built release images are published to the GitHub Container Registry on every release.
+
+## Backup & restore
+
+Use the **Sicherung** page in the panel: *Backup herunterladen* exports participants, incomes, expenses and monthly closings as a ZIP; *Backup einspielen* replaces the whole dataset with a backup file (works across instances). User accounts are not exported on purpose — recreate logins with `php artisan splitnest:user`.
+
+For full disaster recovery additionally back up PostgreSQL, the storage volume and the app key:
 
 ```sh
 docker compose --env-file .env.production -f compose.production.yaml exec -T db pg_dump -U household household > household-backup.sql
 ```
 
-## Lokal ohne Container
+## Development
 
-PHP 8.4 mit intl, mbstring, PDO SQLite, GD, DOM/XML und Composer vorausgesetzt:
-
-```sh
-composer install
-cp .env.example .env
-php artisan key:generate
-touch database/database.sqlite
-php artisan migrate
-php artisan splitnest:user
-php artisan serve
-```
-
-Dann http://localhost:8000/admin. SQLite ist für lokale Entwicklung vorkonfiguriert. Docker setzt PostgreSQL über Umgebungsvariablen.
-
-## Weiterentwickeln
-
-- `app/Services/SettlementCalculator.php`: centgenaue Verteilung und Ausgleichszahlungen.
-- `app/Services/CloseMonth.php`: transaktionaler, wiederholbar sicherer Abschluss.
-- `app/Models/Concerns/HasSchedule.php`: Fälligkeiten und Geldbeträge.
-- `app/Filament/Resources`: Teilnehmer-, Einkünfte- und Kostenverwaltung.
-- `app/Filament/Pages`: Monats- und Jahresübersicht.
-- `resources/views/pdf/closing.blade.php`: PDF-Layout auf Basis des gespeicherten Snapshots.
-- `app/Events/MonthClosed.php`: Erweiterungspunkt für Benachrichtigungen, erst nach erfolgreichem Commit. Es werden derzeit keine Nachrichten versandt. Später einen Queue-Listener und eine Laravel Notification ergänzen; das Produktions-Compose enthält dafür ein optionales `notifications`-Workerprofil. Empfängerfreigabe, Wiederholschutz und Versandprotokoll dabei ergänzen.
+The dev container ships PHP 8.4, Composer, Node 22, pre-commit and gitleaks. Everything is set up by `scripts/dev-setup.sh`.
 
 ```sh
-php artisan test --compact
-vendor/bin/pint
-# Im Container:
-docker compose exec app php artisan test --compact
+composer run dev        # serve with artisan serve
+php artisan test        # run the test suite (always against in-memory SQLite)
+vendor/bin/pint         # fix code style
 ```
 
-Die Tests verwenden eine eigene SQLite-In-Memory-Datenbank und prüfen Geldverteilung, mehrere Bezahler, Zeiträume, ungültige Eingaben, unveränderliche Abschlüsse, Authentifizierung, PDF-Download, Filament-Formulare und das Benutzerkommando.
+### Code standards
 
-Framework-Dokumentation: [Laravel 13](https://laravel.com/docs/13.x), [Filament 5](https://filamentphp.com/docs/5.x/introduction/installation), [Filament-Action-Tests](https://filamentphp.com/docs/5.x/testing/testing-actions).
+- [Laravel Pint](https://laravel.com/docs/pint) (Laravel preset) for code style
+- Every class and method in `app/`, `database/factories` and `database/seeders` must carry a PHPDoc block — checked by `php scripts/check-phpdocs.php`
+- Feature tests with PHPUnit for behaviour changes
+- **Conventional Commits** (`feat:`, `fix:`, …) so releases can be generated automatically
+
+Git hooks via [pre-commit](https://pre-commit.com) run gitleaks, Pint, the PHPDoc check and the test suite on every commit (`pre-commit install` happens in `dev-setup.sh`).
+
+### CI/CD
+
+- **Tests** workflow: Pint, PHPDoc coverage, PHPUnit and gitleaks on pushes/PRs
+- **Build** workflow: frontend assets plus a production Docker test build
+- **Release** workflow: [semantic-release](https://semantic-release.gitbook.io/) creates tags, GitHub releases and the changelog (attached as a release asset), then publishes the Docker image to GHCR with the version baked in as `APP_VERSION` (shown in the panel footer)
+
+Versioning starts at **v0.0.1**: create the initial tag once before the first release run:
+
+```sh
+git tag v0.0.0 && git push origin v0.0.0
+```
+
+## License
+
+[MIT](composer.json)

@@ -112,9 +112,12 @@ RUN npm run build
 # Stage: production – vollständiges Produktions-Image
 # -----------------------------------------------------------------------------
 FROM base AS production
+# Release-Version für die Fußzeilen-Anzeige (per --build-arg aus der Release-Pipeline)
+ARG APP_VERSION=dev
 ENV APP_ENV=production \
     APP_DEBUG=false \
-    COMPOSER_ALLOW_SUPERUSER=1
+    COMPOSER_ALLOW_SUPERUSER=1 \
+    APP_VERSION=${APP_VERSION}
 
 # -- PHP-Produktions-Einstellungen --------------------------------------------
 # php.ini-production: u. a. display_errors=Off. Danach OPcache für gebakten

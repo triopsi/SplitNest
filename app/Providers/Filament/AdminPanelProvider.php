@@ -44,6 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ->font('Inter', url: asset('fonts/filament/filament/inter/index.css'), provider: LocalFontProvider::class)
             ->maxContentWidth('full')
             ->renderHook('panels::head.end', fn () => view('filament.household-style'))
+            ->renderHook('panels::footer', fn () => view('filament.version-footer'))
             ->colors([
                 'primary' => Color::Teal,
             ])
