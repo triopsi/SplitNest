@@ -22,27 +22,46 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+/**
+ * End-to-end coverage of the household domain: settlement math, schedules,
+ * month closing, mail summaries, permissions and the Filament UI.
+ */
 class HouseholdTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Create the two standard participants Daniel and Svenja.
+     *
+     * @return array{Participant, Participant}
+     */
     private function people(): array
     {
         return [Participant::create(['name' => 'Daniel']), Participant::create(['name' => 'Svenja'])];
     }
 
+    /**
+     * Create a 100.01 € expense split 50/50 between two participants.
+     */
     private function expense($a, $b, array $extra = []): Expense
     {
         return Expense::create(array_replace(['name' => 'Miete', 'payer_id' => $a->id, 'amount' => '100.01', 'split_mode' => 'percentage', 'shares' => [['participant_id' => $a->id, 'percentage' => 50], ['participant_id' => $b->id, 'percentage' => 50]], 'start_month' => '2027-01', 'interval_months' => 1], $extra));
     }
 
+    /**
+     * Create a monthly salary income for a participant.
+     */
     private function income($p, string $amount): Income
     {
         return Income::create(['participant_id' => $p->id, 'name' => 'Gehalt', 'amount' => $amount, 'start_month' => '2027-01', 'interval_months' => 1]);
     }
 
+    /**
+     * Create an admin account.
+     */
     private function admin(): User
     {
         $u = User::factory()->create();
@@ -52,6 +71,14 @@ class HouseholdTest extends TestCase
         return $u;
     }
 
+    /**
+     * Calculate a 100.01 € settlement split 50/50.
+     *
+     * Expects shares 5001/5000 (remainder to the lowest ID), one 50.00 €
+     * transfer from Svenja to Daniel and balances that sum to exactly zero —
+     * no cent may be lost.
+     */
+    #[Group('critical')]
     public function test_cents_and_transfer_are_conserved(): void
     {
         [$a,$b] = $this->people();
@@ -63,6 +90,14 @@ class HouseholdTest extends TestCase
         $this->assertSame(0, array_sum(array_column($r['participants'], 'balance_cents')));
     }
 
+    /**
+     * Calculate a mixed settlement: income-weighted rent, an equal-split
+     * expense paid by the other person and a personal cost.
+     *
+     * Expects exact shares (39000/35000), remaining budgets and a single
+     * 250.00 € balancing transfer.
+     */
+    #[Group('critical')]
     public function test_income_split_personal_costs_and_multiple_payers(): void
     {
         [$a,$b] = $this->people();
@@ -77,6 +112,12 @@ class HouseholdTest extends TestCase
         $this->assertSame(25000, $r['transfers'][0]['amount_cents']);
     }
 
+    /**
+     * Calculate an income-weighted split with three participants, one of
+     * them without any income.
+     *
+     * Expects shares [3333, 6667, 0] — zero income means zero share.
+     */
     public function test_three_participants_and_zero_income(): void
     {
         [$a,$b] = $this->people();
@@ -88,6 +129,13 @@ class HouseholdTest extends TestCase
         $this->assertSame([3333, 6667, 0], array_column($r['participants'], 'share_cents'));
     }
 
+    /**
+     * Close a month whose income-weighted expense misses an income.
+     *
+     * Expects a ValidationException and a full rollback: no closing row
+     * may be left behind.
+     */
+    #[Group('critical')]
     public function test_missing_income_prevents_closing_and_rolls_back(): void
     {
         [$a,$b] = $this->people();
@@ -101,6 +149,12 @@ class HouseholdTest extends TestCase
         $this->assertDatabaseCount('monthly_closings', 0);
     }
 
+    /**
+     * Create expenses with only one 50 % share and with a duplicated
+     * participant in the shares.
+     *
+     * Expects a ValidationException in both cases and no expense rows at all.
+     */
     public function test_invalid_percentages_and_duplicate_participants_are_rejected(): void
     {
         [$a,$b] = $this->people();
@@ -114,6 +168,12 @@ class HouseholdTest extends TestCase
         $this->assertDatabaseCount('expenses', 0);
     }
 
+    /**
+     * Check a quarterly expense with start and end month against various months.
+     *
+     * Expects hits exactly on the interval rhythm inside the period and no
+     * hits outside it; interval 0 disables the entry.
+     */
     public function test_schedule_honors_intervals_and_boundaries(): void
     {
         [$a,$b] = $this->people();
@@ -129,6 +189,14 @@ class HouseholdTest extends TestCase
         $this->assertFalse($e->appliesTo('2027-02'));
     }
 
+    /**
+     * Close a month, change source data afterwards and close it again.
+     *
+     * Expects the second close to return the same frozen row (idempotent) and
+     * the snapshot to keep the original numbers; directly mutating the closed
+     * row must throw a ValidationException.
+     */
+    #[Group('critical')]
     public function test_closing_is_idempotent_and_freezes_pdf_data(): void
     {
         [$a,$b] = $this->people();
@@ -146,6 +214,14 @@ class HouseholdTest extends TestCase
         $c->update(['snapshot' => []]);
     }
 
+    /**
+     * Walk through the access rules: guest redirects, non-admin 403s, admin
+     * pages and the closing PDF download.
+     *
+     * Expects guests to be redirected to the login, non-admins to be
+     * forbidden, admins to see all pages and the PDF to start with '%PDF-'.
+     */
+    #[Group('critical')]
     public function test_login_admin_pages_and_protected_pdf(): void
     {
         [$a,$b] = $this->people();
@@ -166,6 +242,13 @@ class HouseholdTest extends TestCase
         $this->assertStringStartsWith('%PDF-', $pdf->getContent());
     }
 
+    /**
+     * Create and edit an expense through the Filament form, using German
+     * decimal input.
+     *
+     * Expects '1701,25' to be stored as 170125 cents and an edit to '1800,00'
+     * to update the amount to 180000 cents.
+     */
     public function test_expense_form_creates_and_edits_decimal_amounts_and_periods(): void
     {
         [$a,$b] = $this->people();
@@ -182,6 +265,12 @@ class HouseholdTest extends TestCase
         $this->assertSame(180000, $e->fresh()->amount_cents);
     }
 
+    /**
+     * Run the splitnest:user Artisan command with a hidden password prompt.
+     *
+     * Expects an admin account whose password is stored hashed.
+     */
+    #[Group('critical')]
     public function test_terminal_command_creates_admin_with_hashed_password(): void
     {
         $this->artisan('splitnest:user', ['email' => 'daniel@example.test', '--name' => 'Daniel'])
@@ -192,6 +281,12 @@ class HouseholdTest extends TestCase
         $this->assertTrue(Hash::check('A-long-test-password!', $u->password));
     }
 
+    /**
+     * Trigger the close-month action on the settlement page.
+     *
+     * Expects a confirmation dialog first and a persisted closing row for the
+     * selected month afterwards.
+     */
     public function test_month_closing_action_opens_confirmation_and_saves(): void
     {
         [$a, $b] = $this->people();
@@ -207,6 +302,12 @@ class HouseholdTest extends TestCase
         $this->assertDatabaseHas('monthly_closings', ['month' => '2027-03']);
     }
 
+    /**
+     * Look for the delete action on the participant table.
+     *
+     * Expects no delete action to exist, because participants with linked
+     * records must never be removed via the UI.
+     */
     public function test_participants_cannot_be_deleted_via_ui(): void
     {
         [$a] = $this->people();
@@ -216,6 +317,11 @@ class HouseholdTest extends TestCase
             ->assertActionDoesNotExist(TestAction::make('delete')->table($a));
     }
 
+    /**
+     * Open the year planning page without parameters.
+     *
+     * Expects the current year to be preselected.
+     */
     public function test_year_plan_defaults_to_current_year(): void
     {
         $this->actingAs($this->admin());
@@ -223,6 +329,12 @@ class HouseholdTest extends TestCase
         Livewire::test(YearPlan::class)->assertSet('year', now()->format('Y'));
     }
 
+    /**
+     * Change the month and year dropdowns on the settlement page.
+     *
+     * Expects the canonical month property to follow the dropdowns ('2027-03')
+     * and to default to the current month on first load.
+     */
     public function test_month_dropdowns_update_the_settlement_month(): void
     {
         $this->actingAs($this->admin());
@@ -236,6 +348,12 @@ class HouseholdTest extends TestCase
             ->assertSet('month', '2027-03');
     }
 
+    /**
+     * Open the participant detail page for Svenja with shared and personal costs.
+     *
+     * Expects her shared costs, her personal cost and her income to be shown —
+     * and Daniel's personal cost to be hidden.
+     */
     public function test_participant_month_page_shows_only_their_costs(): void
     {
         [$a, $b] = $this->people();
@@ -252,6 +370,11 @@ class HouseholdTest extends TestCase
             ->assertDontSee('Daniels Server');
     }
 
+    /**
+     * Render the panel with a fixed app version.
+     *
+     * Expects the footer to display 'v9.9.9'.
+     */
     public function test_footer_shows_the_app_version(): void
     {
         config(['app.version' => '9.9.9']);
@@ -259,6 +382,12 @@ class HouseholdTest extends TestCase
         $this->get('/admin')->assertSee('v9.9.9', false);
     }
 
+    /**
+     * Close a month with two participants that have e-mail addresses.
+     *
+     * Expects one summary mail per participant, each with the PDF attached and
+     * the personal transfer list (or 'Keine — du bist ausgeglichen.') in the text.
+     */
     public function test_closing_a_month_sends_summary_mails_with_pdf(): void
     {
         Mail::fake();
@@ -288,6 +417,12 @@ class HouseholdTest extends TestCase
         });
     }
 
+    /**
+     * Configure a custom closing mail text with placeholders and close a month.
+     *
+     * Expects the mail body to contain the replaced values (name, localized
+     * month, transfer list).
+     */
     public function test_closing_mail_text_is_configurable_with_placeholders(): void
     {
         Mail::fake();
@@ -307,6 +442,11 @@ class HouseholdTest extends TestCase
         });
     }
 
+    /**
+     * Delete a participant directly via the model.
+     *
+     * Expects a ValidationException; the record must stay in the database.
+     */
     public function test_participant_cannot_be_deleted(): void
     {
         [$a] = $this->people();
@@ -318,6 +458,13 @@ class HouseholdTest extends TestCase
         $this->assertDatabaseHas('participants', ['id' => $a->id]);
     }
 
+    /**
+     * Delete a closed monthly closing directly via the model.
+     *
+     * Expects a ValidationException; the closing must stay in the database so
+     * the frozen PDF data remains available.
+     */
+    #[Group('critical')]
     public function test_monthly_closing_cannot_be_deleted(): void
     {
         [$a, $b] = $this->people();
@@ -331,6 +478,11 @@ class HouseholdTest extends TestCase
         $this->assertDatabaseHas('monthly_closings', ['id' => $closing->id]);
     }
 
+    /**
+     * Calculate a settlement for the invalid month '2027-13'.
+     *
+     * Expects a ValidationException; months must follow the Y-m format.
+     */
     public function test_calculate_rejects_invalid_month_format(): void
     {
         $this->people();

@@ -10,12 +10,20 @@ use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+/**
+ * User administration: account creation, credential rules and the
+ * self-protection rules for the own admin account.
+ */
 class UserManagementTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Create an admin account.
+     */
     private function admin(): User
     {
         $u = User::factory()->create();
@@ -25,6 +33,9 @@ class UserManagementTest extends TestCase
         return $u;
     }
 
+    /**
+     * Create an admin and authenticate with the Filament admin panel active.
+     */
     private function actingAsAdmin(): User
     {
         $admin = $this->admin();
@@ -34,6 +45,13 @@ class UserManagementTest extends TestCase
         return $admin;
     }
 
+    /**
+     * Create a user through the Filament create action.
+     *
+     * Expects the e-mail to be lowercased, the admin flag to be stored and
+     * the password to be hashed, never plain.
+     */
+    #[Group('critical')]
     public function test_admin_can_create_user_with_hashed_password(): void
     {
         $this->actingAsAdmin();
@@ -45,6 +63,13 @@ class UserManagementTest extends TestCase
         $this->assertTrue(Hash::check('A-long-test-password!', $u->password));
     }
 
+    /**
+     * Submit the create form with a duplicate e-mail and a too short password.
+     *
+     * Expects validation errors (unique e-mail, min 12 password) and no new
+     * user record.
+     */
+    #[Group('critical')]
     public function test_duplicate_email_and_short_password_are_rejected(): void
     {
         $this->actingAsAdmin();
@@ -55,6 +80,12 @@ class UserManagementTest extends TestCase
         $this->assertDatabaseCount('users', 2);
     }
 
+    /**
+     * Edit a user while leaving the password field empty.
+     *
+     * Expects name/e-mail to be updated and the old password hash to remain
+     * untouched.
+     */
     public function test_editing_without_password_keeps_the_old_one(): void
     {
         $this->actingAsAdmin();
@@ -68,6 +99,13 @@ class UserManagementTest extends TestCase
         $this->assertTrue(Hash::check('Original-password-1', $u->fresh()->password));
     }
 
+    /**
+     * Try to delete or demote the own admin account.
+     *
+     * Expects the delete action to be hidden and the admin toggle disabled —
+     * the own account must keep its admin rights.
+     */
+    #[Group('critical')]
     public function test_admin_cannot_delete_or_demote_own_account(): void
     {
         $admin = $this->actingAsAdmin();
@@ -78,6 +116,11 @@ class UserManagementTest extends TestCase
         $this->assertDatabaseHas('users', ['id' => $admin->id, 'is_admin' => true]);
     }
 
+    /**
+     * Inspect the profile dropdown menu items as an admin.
+     *
+     * Expects a 'users' entry pointing to the user resource URL.
+     */
     public function test_profile_dropdown_shows_users_link_for_authorized_admins(): void
     {
         $this->actingAsAdmin();
@@ -86,6 +129,12 @@ class UserManagementTest extends TestCase
         $this->assertSame(UserResource::getUrl(), $items['users']->getUrl());
     }
 
+    /**
+     * Check panel access for an admin and a regular user.
+     *
+     * Expects only the admin to pass canAccessPanel().
+     */
+    #[Group('critical')]
     public function test_only_admins_can_access_the_panel(): void
     {
         $panel = Filament::getPanel('admin');

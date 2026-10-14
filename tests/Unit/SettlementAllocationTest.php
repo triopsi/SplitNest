@@ -4,8 +4,15 @@ namespace Tests\Unit;
 
 use App\Services\SettlementCalculator;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Largest-remainder allocation: splits an amount into integer cents per
+ * participant. Not a single cent may be lost or invented, so this whole
+ * class is marked as critical.
+ */
+#[Group('critical')]
 class SettlementAllocationTest extends TestCase
 {
     private SettlementCalculator $calculator;
@@ -16,31 +23,62 @@ class SettlementAllocationTest extends TestCase
         $this->calculator = new SettlementCalculator;
     }
 
+    /**
+     * Split an even amount evenly between two equal weights.
+     *
+     * Expects both participants to receive exactly half (5000 each).
+     */
     public function test_even_split_without_remainder(): void
     {
         $this->assertSame([1 => 5000, 2 => 5000], $this->calculator->allocate(10000, [1 => 1, 2 => 1]));
     }
 
+    /**
+     * Split an odd amount between two equal weights.
+     *
+     * Expects the remainder cent to go to the lowest participant ID first.
+     */
     public function test_remainder_goes_to_lowest_ids_first(): void
     {
         $this->assertSame([1 => 5001, 2 => 5000], $this->calculator->allocate(10001, [1 => 1, 2 => 1]));
     }
 
+    /**
+     * Split an amount with weights 1:3.
+     *
+     * Expects a proportional 2500/7500 distribution.
+     */
     public function test_weighted_split_is_proportional(): void
     {
         $this->assertSame([1 => 2500, 2 => 7500], $this->calculator->allocate(10000, [1 => 1, 2 => 3]));
     }
 
+    /**
+     * Split a single cent between three equal weights.
+     *
+     * Expects the cent to land on the lowest ID (3), deterministically.
+     */
     public function test_single_cent_tie_break_is_stable_by_id(): void
     {
         $this->assertSame([3 => 1, 5 => 0, 8 => 0], $this->calculator->allocate(1, [5 => 1, 3 => 1, 8 => 1]));
     }
 
+    /**
+     * Split zero cents.
+     *
+     * Expects zero for every participant.
+     */
     public function test_zero_amount_allocates_nothing(): void
     {
         $this->assertSame([1 => 0, 2 => 0], $this->calculator->allocate(0, [1 => 1, 2 => 1]));
     }
 
+    /**
+     * Split several amounts with uneven weights.
+     *
+     * Expects the allocations to always sum back to the exact amount — no
+     * cent may be lost or created by rounding.
+     */
     public function test_allocations_always_sum_to_the_amount(): void
     {
         foreach ([1, 7, 100, 10001, 123456789] as $amount) {
@@ -49,24 +87,44 @@ class SettlementAllocationTest extends TestCase
         }
     }
 
+    /**
+     * Split a negative amount.
+     *
+     * Expects an InvalidArgumentException.
+     */
     public function test_negative_amount_is_rejected(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->calculator->allocate(-1, [1 => 1]);
     }
 
+    /**
+     * Split an amount with no weights at all.
+     *
+     * Expects an InvalidArgumentException.
+     */
     public function test_empty_weights_are_rejected(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->calculator->allocate(100, []);
     }
 
+    /**
+     * Split an amount whose weights are all zero.
+     *
+     * Expects an InvalidArgumentException.
+     */
     public function test_all_zero_weights_are_rejected(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->calculator->allocate(100, [1 => 0, 2 => 0]);
     }
 
+    /**
+     * Split an amount with a negative weight.
+     *
+     * Expects an InvalidArgumentException.
+     */
     public function test_negative_weights_are_rejected(): void
     {
         $this->expectException(InvalidArgumentException::class);

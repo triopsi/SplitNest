@@ -15,6 +15,12 @@ class SystemSettingsTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Toggle the Gravatar setting off and on via the settings page.
+     *
+     * Expects avatars to be hidden by default (no gravatar.com URLs anywhere)
+     * and to appear for the user menu and participants once enabled.
+     */
     public function test_gravatar_toggle_controls_avatars_everywhere(): void
     {
         $admin = User::factory()->create();

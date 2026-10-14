@@ -12,12 +12,25 @@ use App\Services\HouseholdBackup;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+/**
+ * Backup & restore: the ZIP export/import is the migration path between
+ * instances and must preserve every record and ID.
+ */
 class BackupTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Export a populated household to ZIP, wipe the tables and import it back.
+     *
+     * Expects all records (participants, incomes, expenses, closing snapshot)
+     * to be restored unchanged and ID sequences to continue above the
+     * imported IDs so new records cannot collide.
+     */
+    #[Group('critical')]
     public function test_export_import_roundtrip_restores_all_data(): void
     {
         $a = Participant::create(['name' => 'Daniel']);
@@ -51,6 +64,11 @@ class BackupTest extends TestCase
         $this->assertGreaterThan($b->id, $c->id);
     }
 
+    /**
+     * Import a file that is not a ZIP archive.
+     *
+     * Expects a ValidationException mentioning the ZIP format.
+     */
     public function test_import_rejects_invalid_file(): void
     {
         $path = tempnam(sys_get_temp_dir(), 'backup-test-');
@@ -65,6 +83,12 @@ class BackupTest extends TestCase
         }
     }
 
+    /**
+     * Import a backup while the household data has changed since the export.
+     *
+     * Expects the import to fully replace the current dataset: renames are
+     * reverted and additionally created records are gone.
+     */
     public function test_import_replaces_existing_data_completely(): void
     {
         $a = Participant::create(['name' => 'Daniel']);
@@ -81,6 +105,11 @@ class BackupTest extends TestCase
         $this->assertSame('Daniel', Participant::firstOrFail()->name);
     }
 
+    /**
+     * Import a ZIP that contains only some of the expected table files.
+     *
+     * Expects a ValidationException naming the first missing table (incomes).
+     */
     public function test_import_rejects_backup_with_missing_table(): void
     {
         $path = tempnam(sys_get_temp_dir(), 'backup-test-');

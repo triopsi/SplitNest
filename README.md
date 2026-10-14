@@ -105,8 +105,11 @@ The dev container ships PHP 8.4, Composer, Node 22, pre-commit and gitleaks. Eve
 ```sh
 composer run dev        # serve with artisan serve
 php artisan test        # run the test suite (always against in-memory SQLite)
+php artisan test --group=critical   # only the safety- and money-critical tests
 vendor/bin/pint         # fix code style
 ```
+
+Every test method documents what it does and the expected outcome in its PHPDoc. Tests guarding money conservation, closing immutability, backups and authentication are marked `#[Group('critical')]`.
 
 ### Code standards
 

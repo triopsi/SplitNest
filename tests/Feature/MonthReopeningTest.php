@@ -13,12 +13,20 @@ use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+/**
+ * Reopening closed months: the escape hatch when something was forgotten,
+ * without giving up the immutability of closed settlements.
+ */
 class MonthReopeningTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Create an admin account.
+     */
     private function admin(): User
     {
         $u = User::factory()->create();
@@ -28,6 +36,9 @@ class MonthReopeningTest extends TestCase
         return $u;
     }
 
+    /**
+     * Close 2027-01 with a 100.01 € expense split 50/50.
+     */
     private function closeMonthWithExpense(): MonthlyClosing
     {
         [$a, $b] = [Participant::create(['name' => 'Daniel']), Participant::create(['name' => 'Svenja'])];
@@ -36,6 +47,14 @@ class MonthReopeningTest extends TestCase
         return app(CloseMonth::class)->close('2027-01', $this->admin()->id);
     }
 
+    /**
+     * Reopen a closed month, change the source data and close it again.
+     *
+     * Expects the same closing row to be reused: snapshot, closed_by and
+     * closed_at are cleared on reopen, and the second close freezes the
+     * updated numbers (20000 cents).
+     */
+    #[Group('critical')]
     public function test_reopen_discards_the_snapshot_and_allows_reclosing(): void
     {
         $closing = $this->closeMonthWithExpense();
@@ -54,12 +73,49 @@ class MonthReopeningTest extends TestCase
         $this->assertDatabaseCount('monthly_closings', 1);
     }
 
+    /**
+     * Reopen a month that was never closed.
+     *
+     * Expects a ValidationException ('Dieser Monat ist nicht abgeschlossen.').
+     */
     public function test_reopening_a_month_that_is_not_closed_fails(): void
     {
         $this->expectException(ValidationException::class);
         app(ReopenMonth::class)->reopen('2027-01');
     }
 
+    /**
+     * Reopen a month with a malformed month string.
+     *
+     * Expects a ValidationException; months must follow the Y-m format.
+     */
+    public function test_reopen_rejects_an_invalid_month_format(): void
+    {
+        $this->expectException(ValidationException::class);
+        app(ReopenMonth::class)->reopen('2027-13');
+    }
+
+    /**
+     * Reopen a month twice in a row.
+     *
+     * Expects the second reopen to fail with a ValidationException, because
+     * the month is already open again.
+     */
+    public function test_reopening_twice_fails(): void
+    {
+        $this->closeMonthWithExpense();
+        app(ReopenMonth::class)->reopen('2027-01');
+        $this->expectException(ValidationException::class);
+        app(ReopenMonth::class)->reopen('2027-01');
+    }
+
+    /**
+     * Try to modify a closed month, then reopen it and touch the row again.
+     *
+     * Expects the update while closed to throw a ValidationException, and the
+     * row to be writable again after the reopen.
+     */
+    #[Group('critical')]
     public function test_closed_month_stays_immutable_until_reopened(): void
     {
         $closing = $this->closeMonthWithExpense();
@@ -71,6 +127,11 @@ class MonthReopeningTest extends TestCase
         $this->assertDatabaseCount('monthly_closings', 1);
     }
 
+    /**
+     * Trigger the reopen action on the settlement page for a closed month.
+     *
+     * Expects a confirmation dialog first and closed_at to be null afterwards.
+     */
     public function test_reopen_action_on_the_settlement_page(): void
     {
         $this->closeMonthWithExpense();
