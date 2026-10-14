@@ -23,6 +23,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -100,14 +101,17 @@ class ExpenseResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('name')->label('Bezeichnung')->searchable()->sortable(),
-            TextColumn::make('payer.name')->label('Bezahler')->sortable()->html()
+            TextColumn::make('name')->label('Bezeichnung')->searchable()->sortable()->toggleable(),
+            TextColumn::make('payer.name')->label('Bezahler')->sortable()->html()->toggleable()
                 ->formatStateUsing(fn (Expense $record): string => view('components.person', ['name' => $record->payer->name, 'email' => $record->payer->email])->render()),
-            TextColumn::make('amount_cents')->label('Betrag')->formatStateUsing(fn ($state) => Money::format($state))->sortable(),
-            TextColumn::make('split_mode')->label('Aufteilung')->formatStateUsing(fn ($state) => Expense::MODES[$state])->badge(),
-            TextColumn::make('start_month')->label('Ab')->sortable(),
-            TextColumn::make('end_month')->label('Bis')->placeholder('Unbegrenzt'),
-            TextColumn::make('interval_months')->label('Intervall')->formatStateUsing(fn ($state) => $state ? "Alle {$state} Monate" : 'Einmalig'),
+            TextColumn::make('amount_cents')->label('Betrag')->formatStateUsing(fn ($state) => Money::format($state))->sortable()->toggleable(),
+            TextColumn::make('next_billing')->label('Nächste Abrechnung')->toggleable()
+                ->getStateUsing(fn (Expense $record): string => ($next = $record->nextBillingMonth(now()->format('Y-m')))
+                    ? Carbon::createFromFormat('Y-m', $next)->format('m/Y') : '–'),
+            TextColumn::make('split_mode')->label('Aufteilung')->formatStateUsing(fn ($state) => Expense::MODES[$state])->badge()->toggleable(),
+            TextColumn::make('start_month')->label('Ab')->sortable()->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('end_month')->label('Bis')->placeholder('Unbegrenzt')->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('interval_months')->label('Intervall')->formatStateUsing(fn ($state) => $state ? "Alle {$state} Monate" : 'Einmalig')->toggleable(),
         ])->filters([
             SelectFilter::make('payer')->relationship('payer', 'name')->label('Bezahler'),
             SelectFilter::make('split_mode')->label('Aufteilung')->options(Expense::MODES),

@@ -54,13 +54,13 @@ class IncomeResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('name')->label('Bezeichnung')->searchable(),
-            TextColumn::make('participant.name')->label('Teilnehmer')->sortable()->html()
+            TextColumn::make('name')->label('Bezeichnung')->searchable()->toggleable(),
+            TextColumn::make('participant.name')->label('Teilnehmer')->sortable()->html()->toggleable()
                 ->formatStateUsing(fn (Income $record): string => view('components.person', ['name' => $record->participant->name, 'email' => $record->participant->email])->render()),
-            TextColumn::make('amount_cents')->label('Betrag')->formatStateUsing(fn ($state) => Money::format($state))->sortable(),
-            TextColumn::make('start_month')->label('Ab')->sortable(),
-            TextColumn::make('end_month')->label('Bis')->placeholder('Unbegrenzt'),
-            TextColumn::make('interval_months')->label('Intervall')->formatStateUsing(fn ($state) => $state ? "Alle {$state} Monate" : 'Einmalig'),
+            TextColumn::make('amount_cents')->label('Betrag')->formatStateUsing(fn ($state) => Money::format($state))->sortable()->toggleable(),
+            TextColumn::make('start_month')->label('Ab')->sortable()->toggleable(),
+            TextColumn::make('end_month')->label('Bis')->placeholder('Unbegrenzt')->toggleable(),
+            TextColumn::make('interval_months')->label('Intervall')->formatStateUsing(fn ($state) => $state ? "Alle {$state} Monate" : 'Einmalig')->toggleable(),
         ])->filters([SelectFilter::make('participant')->relationship('participant', 'name')->label('Teilnehmer')])
             ->recordActions([EditAction::make(), DeleteAction::make()]);
     }

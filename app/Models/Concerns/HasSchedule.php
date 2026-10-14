@@ -4,6 +4,7 @@ namespace App\Models\Concerns;
 
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -55,5 +56,29 @@ trait HasSchedule
             + (int) substr($month, 5, 2) - (int) substr($this->start_month, 5, 2);
 
         return $this->interval_months === 0 ? $distance === 0 : $distance % $this->interval_months === 0;
+    }
+
+    /**
+     * The next month (Y-m) in which this entry is billed, viewed from $from.
+     *
+     * Returns null when the entry no longer occurs: a one-off in the past or
+     * the next occurrence lying beyond the end month.
+     */
+    public function nextBillingMonth(string $from): ?string
+    {
+        $start = $this->start_month;
+        if ($this->interval_months === 0) {
+            return $start >= $from ? $start : null;
+        }
+        $distance = ((int) substr($from, 0, 4) - (int) substr($start, 0, 4)) * 12
+            + (int) substr($from, 5, 2) - (int) substr($start, 5, 2);
+        if ($distance <= 0) {
+            $next = $start;
+        } else {
+            $offset = ($this->interval_months - ($distance % $this->interval_months)) % $this->interval_months;
+            $next = Carbon::createFromFormat('Y-m', $from)->addMonths($offset)->format('Y-m');
+        }
+
+        return $this->end_month && $next > $this->end_month ? null : $next;
     }
 }
