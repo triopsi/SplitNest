@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\ParticipantMonth;
 use App\Filament\Pages\Settlement;
 use App\Filament\Pages\YearPlan;
 use App\Filament\Resources\Expenses\Pages\ManageExpenses;
@@ -217,5 +218,34 @@ class HouseholdTest extends TestCase
         $this->actingAs($this->admin());
         Filament::setCurrentPanel(Filament::getPanel('admin'));
         Livewire::test(YearPlan::class)->assertSet('year', now()->format('Y'));
+    }
+
+    public function test_month_dropdowns_update_the_settlement_month(): void
+    {
+        $this->actingAs($this->admin());
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Livewire::test(Settlement::class)
+            ->assertSet('month', now()->format('Y-m'))
+            ->assertSet('yearPicker', now()->format('Y'))
+            ->assertSet('monthPicker', (string) (int) now()->format('m'))
+            ->set('yearPicker', '2027')
+            ->set('monthPicker', '3')
+            ->assertSet('month', '2027-03');
+    }
+
+    public function test_participant_month_page_shows_only_their_costs(): void
+    {
+        [$a, $b] = $this->people();
+        $this->expense($a, $b, ['name' => 'Miete', 'amount' => '100']);
+        $this->expense($a, $b, ['name' => 'Svenjas Handy', 'split_mode' => 'personal', 'shares' => [['participant_id' => $b->id]]]);
+        $this->expense($a, $b, ['name' => 'Daniels Server', 'split_mode' => 'personal', 'shares' => [['participant_id' => $a->id]]]);
+        $this->income($b, '2800');
+        $this->actingAs($this->admin());
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Livewire::test(ParticipantMonth::class, ['participant' => $b, 'month' => '2027-01'])
+            ->assertSee('Miete')
+            ->assertSee('Svenjas Handy')
+            ->assertSee('Gehalt')
+            ->assertDontSee('Daniels Server');
     }
 }

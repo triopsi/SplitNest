@@ -33,12 +33,55 @@ class Settlement extends Page
     #[Url]
     public string $month = '';
 
+    /** Month number (1-12) of the month dropdown. */
+    public string $monthPicker = '';
+
+    /** Year of the year dropdown. */
+    public string $yearPicker = '';
+
     /**
-     * Default the view to the current month on first load.
+     * Default the view to the current month on first load and sync the dropdowns.
      */
     public function mount(): void
     {
         $this->month = $this->month ?: now()->format('Y-m');
+        $this->syncPickers();
+    }
+
+    /**
+     * Update the settlement month when the month dropdown changes.
+     */
+    public function updatedMonthPicker(): void
+    {
+        $this->updateMonthFromPickers();
+    }
+
+    /**
+     * Update the settlement month when the year dropdown changes.
+     */
+    public function updatedYearPicker(): void
+    {
+        $this->updateMonthFromPickers();
+    }
+
+    /**
+     * Push the canonical month (Y-m) into the two dropdown properties.
+     */
+    private function syncPickers(): void
+    {
+        [$year, $month] = explode('-', $this->month);
+        $this->yearPicker = $year;
+        $this->monthPicker = (string) (int) $month;
+    }
+
+    /**
+     * Combine both dropdown values into the canonical month (Y-m).
+     */
+    private function updateMonthFromPickers(): void
+    {
+        if (ctype_digit($this->monthPicker) && ctype_digit($this->yearPicker)) {
+            $this->month = sprintf('%04d-%02d', (int) $this->yearPicker, (int) $this->monthPicker);
+        }
     }
 
     /**

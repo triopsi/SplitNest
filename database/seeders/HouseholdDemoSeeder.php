@@ -36,13 +36,16 @@ class HouseholdDemoSeeder extends Seeder
                 Expense::create(['name' => $name, 'amount_cents' => $amount, 'payer_id' => $daniel->id, 'split_mode' => 'income',
                     'shares' => [['participant_id' => $daniel->id], ['participant_id' => $svenja->id]], 'start_month' => '2026-01', 'interval_months' => 1]);
             }
+            // Personal costs as [bearer, payer, items]: the bearer carries 100 % of
+            // the cost; if someone else pays the bill, the balancing transfer refunds them.
             $personal = [
-                [$daniel, ['Auto' => 13000, 'Grover MacBook' => 11900, 'Server' => 11500, 'Fonds / Sparen' => 10000, 'Kita' => 9100, 'ADAC' => 3950, 'Grover Staubsaugerroboter' => 2790, 'ChatGPT' => 2300, 'Handy Congstar' => 2000, 'Terminus SSH' => 1200, 'MS Office' => 700, 'Discovery+' => 599, 'GitHub' => 500, 'iCloud' => 300, 'Google Foto' => 200]],
-                [$svenja, ['Auto' => 13000, 'Kita Phillip' => 4650]],
+                [$daniel, $daniel, ['Auto' => 13000, 'Grover MacBook' => 11900, 'Server' => 11500, 'Fonds / Sparen' => 10000, 'Kita' => 9100, 'ADAC' => 3950, 'Grover Staubsaugerroboter' => 2790, 'ChatGPT' => 2300, 'Handy Congstar' => 2000, 'Terminus SSH' => 1200, 'MS Office' => 700, 'Discovery+' => 599, 'GitHub' => 500, 'iCloud' => 300, 'Google Foto' => 200]],
+                // Svenja's car and childcare are paid by Daniel — she refunds him 100 %.
+                [$svenja, $daniel, ['Auto' => 13000, 'Kita Phillip' => 4650]],
             ];
-            foreach ($personal as [$p,$items]) {
+            foreach ($personal as [$p, $payer, $items]) {
                 foreach ($items as $name => $amount) {
-                    Expense::create(['name' => $name, 'amount_cents' => $amount, 'payer_id' => $p->id, 'split_mode' => 'personal', 'shares' => [['participant_id' => $p->id]], 'start_month' => '2026-01', 'interval_months' => 1]);
+                    Expense::create(['name' => $name, 'amount_cents' => $amount, 'payer_id' => $payer->id, 'split_mode' => 'personal', 'shares' => [['participant_id' => $p->id]], 'start_month' => '2026-01', 'interval_months' => 1]);
                 }
             }
             $this->command?->info('Daniel, Svenja und bekannte Beträge für 2027 angelegt. Haushaltsgeld und unbekannte Beträge bitte ergänzen. Kein Login angelegt.');
