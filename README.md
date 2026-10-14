@@ -24,10 +24,15 @@ The UI is in German; the codebase follows English Laravel conventions.
 - **Participant detail pages** — every cost item affecting a person in a given month
 - **Split rules** — fixed percentages, income-weighted, equal shares, or personal (one person carries 100 %, no matter who paid)
 - **Schedules** — one-off, monthly, quarterly, every 4 months, half-yearly or yearly costs with start/end months
-- **Month closing** — freezes an immutable snapshot and renders the PDF statement
 - **Year planning** — twelve months at a glance, closed months use their frozen snapshot
+- **Month closing** — freezes an immutable snapshot and renders the PDF statement; a closing can be reopened when something was forgotten and closed again afterwards
+- **Closing e-mails** — participants automatically receive the PDF statement by mail when a month is closed; the body text is configurable with placeholders
 - **Backup & restore** — export/import the whole dataset (participants, incomes, expenses, closings) as a ZIP, e.g. for moving to another instance
-- **Admin-only logins** — no public registration; user management lives in the profile dropdown
+- **E-mail invitations** — admins invite household members by mail; the one-time link (24 h by default, configurable via `.env`) leads to a secure self-registration
+- **Password reset** — "forgot password" flow with an e-mail token, valid 24 h by default and configurable via `.env`
+- **Admin-only logins** — no public registration; user management and invitations live in the profile dropdown
+- **Settings page** — closing mail text and optional Gravatar avatars
+- **Database choice** — PostgreSQL by default, MariaDB via `compose.mariadb.yaml`, SQLite for the test suite
 
 Amounts are stored as integer cents; each expense is allocated with the largest-remainder method so no cent is lost.
 
@@ -46,6 +51,20 @@ php artisan db:seed --class=HouseholdDemoSeeder               # optional: editab
 3. Open <http://localhost:8080/admin> and log in.
 
 Change the port with `APP_PORT=8088 docker compose up -d`. Data lives in a named PostgreSQL volume and survives restarts (`down --volumes` would delete it).
+
+### Alternative: Docker Compose with MariaDB
+
+If you prefer plain Docker over the Dev Container — or MariaDB over PostgreSQL — use the MariaDB variant, which mirrors the dev setup:
+
+```sh
+docker compose -f compose.mariadb.yaml up -d --build
+docker compose -f compose.mariadb.yaml exec app composer install
+docker compose -f compose.mariadb.yaml exec app php artisan key:generate
+docker compose -f compose.mariadb.yaml exec app php artisan migrate
+docker compose -f compose.mariadb.yaml exec app php artisan splitnest:user daniel@example.org --name=Daniel
+```
+
+Then open <http://localhost:8080/admin> and log in. The app connects with `DB_CONNECTION=mariadb`; data lives in its own named volume (`database-mariadb`), so it never clashes with the PostgreSQL volume of `compose.yaml`.
 
 ## Production (Docker)
 

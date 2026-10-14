@@ -1,0 +1,39 @@
+# MariaDB-Variante von compose.yaml (statt PostgreSQL).
+# Gleiches Dev-Setup, eigener Volume (database-mariadb), damit nichts kollidiert:
+#   docker compose -f compose.mariadb.yaml up -d --build
+services:
+  app:
+    build:
+      context: .
+      target: development
+    ports:
+      - "127.0.0.1:${APP_PORT:-8080}:8080"
+    volumes:
+      - .:/var/www/html
+    environment:
+      DB_CONNECTION: mariadb
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: household
+      DB_USERNAME: household
+      DB_PASSWORD: local-development-only
+      APP_URL: http://localhost:${APP_PORT:-8080}
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: household
+      MARIADB_USER: household
+      MARIADB_PASSWORD: local-development-only
+      MARIADB_ROOT_PASSWORD: local-development-only-root
+    volumes:
+      - database-mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  database-mariadb:

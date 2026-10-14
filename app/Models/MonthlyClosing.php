@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 
 /**
- * An immutable monthly settlement, frozen as a JSON snapshot.
+ * A monthly settlement, frozen as a JSON snapshot when closed.
  *
- * Once closed, a closing can neither be changed nor deleted, so PDFs and
- * reports always show the numbers as they were at closing time.
+ * A closed month can neither be changed nor deleted, so PDFs and reports
+ * always show the numbers as they were at closing time. It can be reopened
+ * though: clearing `closed_at` discards the snapshot and makes the month
+ * editable again until it is closed anew.
  *
  * @property string $month Closed month (Y-m).
  * @property array<string, mixed>|null $snapshot Frozen settlement report.
@@ -34,12 +36,15 @@ class MonthlyClosing extends Model
     /**
      * Register model hooks: make closed months immutable and undeletable.
      *
+     * Only the reopening transition (clearing `closed_at`) may touch a closed
+     * row; every other update is rejected.
+     *
      * @throws ValidationException When a closing is modified or deleted.
      */
     protected static function booted(): void
     {
         static::updating(function (self $closing): void {
-            if ($closing->getOriginal('closed_at')) {
+            if ($closing->getOriginal('closed_at') && $closing->closed_at) {
                 throw ValidationException::withMessages(['month' => 'Dieser Monat ist abgeschlossen und unveränderlich.']);
             }
         });

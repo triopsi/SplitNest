@@ -29,6 +29,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Household Invitation Token TTL
+    |--------------------------------------------------------------------------
+    |
+    | How many hours an invitation link stays valid. Invited members register
+    | via a one-time token; after it expires an admin has to invite them
+    | again. Configure via HOUSEHOLD_INVITATION_TTL.
+    |
+    */
+
+    'invitation_ttl_hours' => (int) env('HOUSEHOLD_INVITATION_TTL', 24),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

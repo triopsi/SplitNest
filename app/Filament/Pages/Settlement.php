@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\MonthlyClosing;
 use App\Models\Participant;
 use App\Services\CloseMonth;
+use App\Services\ReopenMonth;
 use App\Services\SettlementCalculator;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -103,6 +104,28 @@ class Settlement extends Page
                     Notification::make()->success()->title('Monat abgeschlossen. Die PDF steht bereit.')->send();
                 } catch (ValidationException $e) {
                     Notification::make()->danger()->title('Abschluss nicht möglich')->body(collect($e->errors())->flatten()->implode(' '))->send();
+                }
+            });
+    }
+
+    /**
+     * "Reopen month" action: discards the frozen snapshot after a confirmation
+     * dialog, so forgotten entries can be added before closing the month anew.
+     *
+     * Validation problems are shown as a notification instead of an exception.
+     */
+    public function reopenMonthAction(): Action
+    {
+        return Action::make('reopenMonth')->label('Monat wieder eröffnen')->icon('heroicon-o-lock-open')->color('gray')
+            ->requiresConfirmation()->modalHeading('Abschluss wieder eröffnen?')
+            ->modalDescription('Der eingefrorene Stand wird verworfen und die bisherige PDF-Abrechnung ist nicht mehr abrufbar. Danach kann der Monat bearbeitet und erneut abgeschlossen werden.')
+            ->action(function (): void {
+                abort_unless(auth()->user()?->is_admin, 403);
+                try {
+                    app(ReopenMonth::class)->reopen($this->month);
+                    Notification::make()->success()->title('Monat wieder geöffnet.')->send();
+                } catch (ValidationException $e) {
+                    Notification::make()->danger()->title('Eröffnen nicht möglich')->body(collect($e->errors())->flatten()->implode(' '))->send();
                 }
             });
     }

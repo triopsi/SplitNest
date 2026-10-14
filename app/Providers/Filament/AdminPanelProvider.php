@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\InvitationRegister;
 use App\Filament\Resources\Users\UserResource;
 use App\Http\Middleware\EnsureHouseholdAdmin;
 use Filament\Actions\Action;
@@ -19,6 +20,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 /**
@@ -36,6 +38,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->passwordReset()
             ->brandName(fn (): string => config('app.name'))
             ->brandLogo(fn () => asset('brand/splitnest-logo-light.svg'))
             ->darkModeBrandLogo(fn () => asset('brand/splitnest-logo-dark.svg'))
@@ -55,6 +58,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
             ])
+            ->routes(fn () => Route::get('/einladung/{token}', InvitationRegister::class)->name('invitation'))
             ->userMenuItems([
                 Action::make('users')
                     ->label('Benutzer')

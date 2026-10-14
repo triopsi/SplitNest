@@ -25,6 +25,7 @@
                 @if($closing)
                     <span class="hh-badge">Abgeschlossen am {{ $closing->closed_at->format('d.m.Y H:i') }}</span>
                     <x-filament::button tag="a" href="{{ route('closings.pdf', $closing) }}" icon="heroicon-o-arrow-down-tray">Abrechnung als PDF</x-filament::button>
+                    {{ $this->reopenMonthAction }}
                 @else
                     <span class="hh-badge">Offener Monatsplan {{ $month }}</span>
                     {{ $this->closeMonthAction }}

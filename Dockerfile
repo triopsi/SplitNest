@@ -35,6 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # intl       Lokalisierung/Formatierung (Filament-Anforderung)
     # mbstring   Multibyte-Strings
     # opcache    Bytecode-Cache (Performance)
+    # pdo_mysql  MariaDB/MySQL-Anbindung (Alternative, siehe compose.mariadb.yaml)
     # pdo_pgsql  PostgreSQL-Anbindung (Entwicklung/Produktion)
     # pdo_sqlite SQLite-Anbindung (Tests, lokale Nutzung)
     # zip        ZIP-Archive
@@ -44,6 +45,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     intl \
     mbstring \
     opcache \
+    pdo_mysql \
     pdo_pgsql \
     pdo_sqlite \
     zip \

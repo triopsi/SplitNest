@@ -93,6 +93,8 @@ final class HouseholdBackup
                 DB::statement("SELECT setval(pg_get_serial_sequence('{$table}', 'id'), COALESCE((SELECT MAX(id) FROM {$table}), 0) + 1, false)");
             } elseif (DB::getDriverName() === 'sqlite' && DB::getSchemaBuilder()->hasTable('sqlite_sequence')) {
                 DB::table('sqlite_sequence')->where('name', $table)->update(['seq' => DB::table($table)->max('id') ?? 0]);
+            } elseif (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+                DB::statement('ALTER TABLE `'.$table.'` AUTO_INCREMENT = '.((int) (DB::table($table)->max('id') ?? 0) + 1));
             }
         }
     }
