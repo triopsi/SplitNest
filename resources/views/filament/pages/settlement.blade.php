@@ -50,6 +50,7 @@
                     <div class="hh-muted">Einkünfte minus Kosten — euer frei verfügbarer Rest.</div>
                 </div>
             </div>
+            @livewire(\App\Filament\Widgets\MonthlyCostSharesChart::class, ['month' => $month])
             <section class="hh-section">
                 <div class="hh-section-head"><h3>Diese Beträge sind zu überweisen</h3><span class="hh-muted">{{ count($report['transfers']) }} Ausgleichszahlungen</span></div>
                 @forelse($report['transfers'] as $transfer)

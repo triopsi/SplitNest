@@ -25,6 +25,7 @@ The UI is in German; the codebase follows English Laravel conventions.
 - **Split rules** — fixed percentages, income-weighted, equal shares, or personal (one person carries 100 %, no matter who paid)
 - **Schedules** — one-off, monthly, quarterly, every 4 months, half-yearly or yearly costs with start/end months
 - **Year planning** — twelve months at a glance, closed months use their frozen snapshot
+- **Charts** — doughnut of the month's cost shares per person and a year overview comparing incomes vs. costs per month
 - **Month closing** — freezes an immutable snapshot and renders the PDF statement; a closing can be reopened when something was forgotten and closed again afterwards
 - **Closing e-mails** — participants automatically receive the PDF statement by mail when a month is closed; the body text is configurable with placeholders
 - **Backup & restore** — export/import the whole dataset (participants, incomes, expenses, closings) as a ZIP, e.g. for moving to another instance

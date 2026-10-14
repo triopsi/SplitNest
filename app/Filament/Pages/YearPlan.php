@@ -8,6 +8,7 @@ use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Validation\ValidationException;
+use UnitEnum;
 
 /**
  * Year planning page: lists all twelve months of the chosen year with their
@@ -18,6 +19,8 @@ class YearPlan extends Page
     protected string $view = 'filament.pages.year-plan';
 
     protected static ?string $title = 'Jahresplanung';
+
+    protected static UnitEnum|string|null $navigationGroup = 'Übersicht';
 
     protected static ?int $navigationSort = 2;
 

@@ -14,6 +14,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
 /**
  * Filament resource for managing household participants.
@@ -32,6 +33,8 @@ class ParticipantResource extends Resource
     protected static ?string $pluralModelLabel = 'Teilnehmer';
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    protected static UnitEnum|string|null $navigationGroup = 'Haushalt';
 
     protected static ?int $navigationSort = 3;
 

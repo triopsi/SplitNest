@@ -11,6 +11,7 @@ use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use UnitEnum;
 
 /**
  * Backup page: export the whole household as a ZIP download and restore it
@@ -23,6 +24,8 @@ class Backup extends Page
     protected static ?string $navigationLabel = 'Sicherung';
 
     protected static ?string $title = 'Sicherung';
+
+    protected static UnitEnum|string|null $navigationGroup = 'System';
 
     protected static ?int $navigationSort = 7;
 

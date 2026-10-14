@@ -18,6 +18,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use UnitEnum;
 
 /**
  * Filament resource for managing participant incomes.
@@ -33,6 +34,8 @@ class IncomeResource extends Resource
     protected static ?string $pluralModelLabel = 'Einkünfte';
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    protected static UnitEnum|string|null $navigationGroup = 'Haushalt';
 
     protected static ?int $navigationSort = 4;
 

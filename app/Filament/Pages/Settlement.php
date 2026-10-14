@@ -15,6 +15,7 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Url;
+use UnitEnum;
 
 /**
  * Monthly overview page: shows the live settlement for the selected month,
@@ -27,6 +28,8 @@ class Settlement extends Page
     protected static ?string $slug = '/';
 
     protected static ?string $title = 'Monatsübersicht';
+
+    protected static UnitEnum|string|null $navigationGroup = 'Übersicht';
 
     protected static ?int $navigationSort = 1;
 

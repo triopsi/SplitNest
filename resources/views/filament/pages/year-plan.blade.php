@@ -3,6 +3,9 @@
     <div class="hh-stack">
         <div class="hh-hero"><div><div class="hh-kicker">Zwölf Monate voraus</div><h2>Euer Haushaltsjahr.</h2><p>Abgeschlossene Monate zeigen den gespeicherten Stand. Offene Monate rechnen mit euren aktuellen Einträgen.</p></div><label>Jahr<br><input class="hh-input" aria-label="Jahr" type="number" min="2000" max="2100" wire:model.live.debounce.500ms="year"></label></div>
         @if($problem)<p class="hh-warning">{{ $problem }}</p>@endif
+        @if(! $problem)
+            @livewire(\App\Filament\Widgets\MonthlyCostsChart::class, ['year' => $year])
+        @endif
         <section class="hh-section"><div class="hh-scroll"><table class="hh-table">
             <thead><tr><th>Monat</th><th>Status</th><th class="num">Einkünfte</th><th class="num">Kosten</th><th class="num">Übrig</th><th>Ausgleichszahlungen</th></tr></thead>
             <tbody>@foreach($rows as $row)<tr>

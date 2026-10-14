@@ -2,11 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\Backup;
 use App\Filament\Pages\ParticipantMonth;
 use App\Filament\Pages\Settlement;
+use App\Filament\Pages\SystemSettings;
 use App\Filament\Pages\YearPlan;
+use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Resources\Expenses\Pages\ManageExpenses;
+use App\Filament\Resources\Incomes\IncomeResource;
 use App\Filament\Resources\Participants\Pages\ManageParticipants;
+use App\Filament\Resources\Participants\ParticipantResource;
+use App\Filament\Widgets\MonthlyCostsChart;
+use App\Filament\Widgets\MonthlyCostSharesChart;
 use App\Mail\MonthClosedMail;
 use App\Models\Expense;
 use App\Models\Income;
@@ -266,6 +273,28 @@ class HouseholdTest extends TestCase
     }
 
     /**
+     * Switch the split mode to "personal" in the expense form.
+     *
+     * Expects the shares to collapse to the single payer (which also removes
+     * the add/delete buttons via the same mode check) and the 50 % default
+     * to return when switching back to "percentage".
+     */
+    public function test_personal_split_defaults_to_the_payer(): void
+    {
+        [$a, $b] = $this->people();
+        $this->actingAs($this->admin());
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Livewire::test(ManageExpenses::class)
+            ->mountAction('create')
+            ->setActionData(['payer_id' => $b->id])
+            ->setActionData(['split_mode' => 'personal'])
+            ->assertActionDataSet(fn (array $data): bool => count($data['shares']) === 1
+                && (int) array_values($data['shares'])[0]['participant_id'] === $b->id)
+            ->setActionData(['split_mode' => 'percentage'])
+            ->assertActionDataSet(fn (array $data): bool => array_values($data['shares'])[0]['percentage'] === '50');
+    }
+
+    /**
      * Run the splitnest:user Artisan command with a hidden password prompt.
      *
      * Expects an admin account whose password is stored hashed.
@@ -327,6 +356,118 @@ class HouseholdTest extends TestCase
         $this->actingAs($this->admin());
         Filament::setCurrentPanel(Filament::getPanel('admin'));
         Livewire::test(YearPlan::class)->assertSet('year', now()->format('Y'));
+    }
+
+    /**
+     * Read the navigation group of every sidebar entry.
+     *
+     * Expects the overview pages under "Übersicht", the household data under
+     * "Haushalt" and backup/settings under "System".
+     */
+    public function test_sidebar_entries_are_grouped(): void
+    {
+        $this->assertSame('Übersicht', Settlement::getNavigationGroup());
+        $this->assertSame('Übersicht', YearPlan::getNavigationGroup());
+        $this->assertSame('Haushalt', ParticipantResource::getNavigationGroup());
+        $this->assertSame('Haushalt', IncomeResource::getNavigationGroup());
+        $this->assertSame('Haushalt', ExpenseResource::getNavigationGroup());
+        $this->assertSame('System', Backup::getNavigationGroup());
+        $this->assertSame('System', SystemSettings::getNavigationGroup());
+    }
+
+    /**
+     * Open the year planning page.
+     *
+     * Expects the monthly costs chart widget to be embedded next to the table.
+     */
+    public function test_year_plan_page_contains_the_monthly_costs_chart(): void
+    {
+        $this->actingAs($this->admin());
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        $this->get('/admin/year-plan')->assertOk()->assertSeeLivewire(MonthlyCostsChart::class);
+    }
+
+    /**
+     * Read the chart data for a year with an open month, a closed month and an
+     * invalid month (income-weighted expense without income).
+     *
+     * Expects live values for open months, the frozen snapshot for the closed
+     * month and null gaps for months that cannot be calculated — in the costs
+     * dataset; without incomes the incomes dataset stays at zero.
+     */
+    public function test_year_plan_chart_uses_snapshots_and_gaps(): void
+    {
+        [$a, $b] = $this->people();
+        $e = $this->expense($a, $b);
+        app(CloseMonth::class)->close('2027-02', $this->admin()->id);
+        $e->update(['amount' => '200']);
+        $this->expense($a, $b, ['name' => 'Kaputt', 'split_mode' => 'income', 'shares' => [['participant_id' => $a->id], ['participant_id' => $b->id]], 'start_month' => '2027-05']);
+
+        $data = Livewire::test(MonthlyCostsChart::class, ['year' => '2027'])->instance()->getData();
+        $costs = $data['datasets'][1]['data'];
+        $this->assertSame('Einkünfte in €', $data['datasets'][0]['label']);
+        $this->assertSame('Kosten in €', $data['datasets'][1]['label']);
+        $this->assertSame(200.0, $costs[0]);
+        $this->assertSame(100.01, $costs[1]);
+        $this->assertNull($costs[4]);
+        $this->assertSame(0.0, $data['datasets'][0]['data'][0]);
+        $this->assertCount(12, $costs);
+        $this->assertCount(12, $data['labels']);
+    }
+
+    /**
+     * Read the incomes dataset with a changed income after a closing.
+     *
+     * Expects the open month to show the new income and the closed month the
+     * frozen one from the snapshot.
+     */
+    public function test_year_plan_chart_shows_income_snapshots(): void
+    {
+        [$a, $b] = $this->people();
+        $income = $this->income($a, '3400');
+        $this->expense($a, $b);
+        app(CloseMonth::class)->close('2027-02', $this->admin()->id);
+        $income->update(['amount' => '4000']);
+
+        $incomes = Livewire::test(MonthlyCostsChart::class, ['year' => '2027'])->instance()->getData()['datasets'][0]['data'];
+        $this->assertSame(4000.0, $incomes[0]);
+        $this->assertSame(3400.0, $incomes[1]);
+    }
+
+    /**
+     * Read the cost-share chart data for a month with a 100.01 € expense
+     * split 50/50.
+     *
+     * Expects one slice per participant (50.01 € / 50.00 €) with the names as
+     * labels, and the frozen snapshot values once the month is closed.
+     */
+    public function test_settlement_chart_shows_cost_shares_per_person(): void
+    {
+        [$a, $b] = $this->people();
+        $e = $this->expense($a, $b);
+
+        $data = Livewire::test(MonthlyCostSharesChart::class, ['month' => '2027-01'])->instance()->getData();
+        $this->assertSame(['Daniel', 'Svenja'], $data['labels']);
+        $this->assertSame([50.01, 50.0], $data['datasets'][0]['data']);
+
+        app(CloseMonth::class)->close('2027-01', $this->admin()->id);
+        $e->update(['amount' => '400']);
+        $frozen = Livewire::test(MonthlyCostSharesChart::class, ['month' => '2027-01'])->instance()->getData();
+        $this->assertSame([50.01, 50.0], $frozen['datasets'][0]['data']);
+    }
+
+    /**
+     * Open the monthly overview page.
+     *
+     * Expects the cost-share chart widget to be embedded.
+     */
+    public function test_settlement_page_contains_the_cost_shares_chart(): void
+    {
+        [$a, $b] = $this->people();
+        $this->expense($a, $b);
+        $this->actingAs($this->admin());
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        $this->get('/admin?month=2027-01')->assertOk()->assertSeeLivewire(MonthlyCostSharesChart::class);
     }
 
     /**

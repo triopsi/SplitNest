@@ -13,6 +13,7 @@ use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use UnitEnum;
 
 /**
  * System settings page: household-wide switches such as Gravatar avatars.
@@ -26,6 +27,8 @@ class SystemSettings extends Page implements HasSchemas
     protected static ?string $navigationLabel = 'Einstellungen';
 
     protected static ?string $title = 'Einstellungen';
+
+    protected static UnitEnum|string|null $navigationGroup = 'System';
 
     protected static ?int $navigationSort = 8;
 
