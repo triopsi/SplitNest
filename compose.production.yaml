@@ -1,0 +1,62 @@
+services:
+  app:
+    build:
+      context: .
+      target: production
+    image: splitnest:local
+    restart: unless-stopped
+    ports:
+      - "${APP_BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-8080}:8080"
+    environment: &app-environment
+      APP_NAME: SplitNest
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY:?Bitte APP_KEY in .env.production setzen}
+      APP_URL: ${APP_URL:?Bitte APP_URL setzen}
+      APP_LOCALE: de
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: household
+      DB_USERNAME: household
+      DB_PASSWORD: ${DB_PASSWORD:?Bitte ein Datenbankpasswort setzen}
+      SESSION_DRIVER: database
+      SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      MAIL_MAILER: log
+      LOG_CHANNEL: stderr
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
+    volumes:
+      - storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: household
+      POSTGRES_USER: household
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Bitte ein Datenbankpasswort setzen}
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U household -d household"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  worker:
+    image: splitnest:local
+    profiles: [notifications]
+    restart: unless-stopped
+    command: [php, artisan, queue:work, --tries=3, --timeout=60]
+    environment: *app-environment
+    volumes:
+      - storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  database:
+  storage:
