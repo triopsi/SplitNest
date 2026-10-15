@@ -156,6 +156,9 @@ RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/fra
 # Apache/PHP laufen als www-data, nicht als root
 USER www-data
 
+ENTRYPOINT ["/bin/sh", "/var/www/html/.docker/entrypoint.sh"]
+CMD ["apache2-foreground"]
+
 # Liveness-Probe: Laravels Health-Route /up muss HTTP 200 liefern
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
     CMD curl -fsS http://localhost:8080/up || exit 1
