@@ -2,7 +2,7 @@
 <script>
     Livewire.on('passkeyPropertiesValidated', async function (eventData) {
         if (typeof startRegistration !== 'function') {
-            console.error('startRegistration fehlt: veraltetes Frontend-Bundle. Bitte Assets neu bauen/deployen (npm run build).');
+            console.error('startRegistration fehlt: Das Passkey-JavaScript wurde nicht geladen. Bitte die Skript-Einbindung und Netzwerkanfragen prüfen.');
             return;
         }
         const passkeyOptions = eventData[0].passkeyOptions;

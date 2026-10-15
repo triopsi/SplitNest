@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Filament\Auth\Profile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Vite;
+use Illuminate\Support\HtmlString;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Group;
 use Spatie\LaravelPasskeys\Livewire\PasskeysComponent;
@@ -53,8 +55,9 @@ class PasskeyTest extends TestCase
     #[Group('critical')]
     public function test_login_page_shows_the_passkey_button(): void
     {
+        $script = $this->expectPasskeyScript();
         User::factory()->create();
-        $this->get('/admin/login')->assertOk()->assertSee('passkey-login-form', false);
+        $this->get('/admin/login')->assertOk()->assertSee('passkey-login-form', false)->assertSee($script, false);
     }
 
     /**
@@ -77,9 +80,25 @@ class PasskeyTest extends TestCase
      */
     public function test_profile_page_shows_passkey_management(): void
     {
+        $script = $this->expectPasskeyScript();
         $this->assertFalse(Profile::isSimple());
         $this->actingAs($this->admin());
-        $this->get(Profile::getUrl())->assertOk()->assertSee('Passkeys')->assertSeeLivewire(PasskeysComponent::class);
+        $this->get(Profile::getUrl())->assertOk()->assertSee('Passkeys')->assertSeeLivewire(PasskeysComponent::class)->assertSee($script, false);
+    }
+
+    /**
+     * Expect the panel to render the Vite entry point without requiring built assets.
+     */
+    private function expectPasskeyScript(): string
+    {
+        $script = '<script type="module" src="/build/assets/passkeys-test.js"></script>';
+
+        Vite::partialMock()->shouldReceive('__invoke')
+            ->once()
+            ->with('resources/js/app.js')
+            ->andReturn(new HtmlString($script));
+
+        return $script;
     }
 
     /**

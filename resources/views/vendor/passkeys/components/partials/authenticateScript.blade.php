@@ -1,7 +1,7 @@
 <script>
     async function authenticateWithPasskey(remember = false) {
         if (typeof startAuthentication !== 'function') {
-            console.error('startAuthentication fehlt: veraltetes Frontend-Bundle. Bitte Assets neu bauen/deployen (npm run build).');
+            console.error('startAuthentication fehlt: Das Passkey-JavaScript wurde nicht geladen. Bitte die Skript-Einbindung und Netzwerkanfragen prüfen.');
             return;
         }
         const response = await fetch('{{ route('passkeys.authentication_options') }}')

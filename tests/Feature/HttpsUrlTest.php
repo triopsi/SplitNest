@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use App\Providers\AppServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -37,5 +38,20 @@ class HttpsUrlTest extends TestCase
         config(['app.url' => 'http://localhost:8080']);
         (new AppServiceProvider($this->app))->boot();
         $this->assertStringStartsWith('http://', asset('fonts/example.css'));
+    }
+
+    /**
+     * Render the panel behind TLS termination and verify its configured font URL.
+     */
+    public function test_login_page_renders_https_font_url_with_https_app_url(): void
+    {
+        User::factory()->create();
+        config(['app.url' => 'https://splitnest.example']);
+        (new AppServiceProvider($this->app))->boot();
+
+        $this->get('http://splitnest.example/admin/login')
+            ->assertOk()
+            ->assertSee('https://splitnest.example/fonts/filament/filament/inter/index.css', false)
+            ->assertDontSee('http://splitnest.example/fonts/filament/filament/inter/index.css', false);
     }
 }
