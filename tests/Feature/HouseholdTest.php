@@ -53,7 +53,7 @@ class HouseholdTest extends TestCase
     /**
      * Create a 100.01 € expense split 50/50 between two participants.
      */
-    private function expense($a, $b, array $extra = []): Expense
+    private function expense(Participant $a, Participant $b, array $extra = []): Expense
     {
         return Expense::create(array_replace(['name' => 'Miete', 'payer_id' => $a->id, 'amount' => '100.01', 'split_mode' => 'percentage', 'shares' => [['participant_id' => $a->id, 'percentage' => 50], ['participant_id' => $b->id, 'percentage' => 50]], 'start_month' => '2027-01', 'interval_months' => 1], $extra));
     }
@@ -61,7 +61,7 @@ class HouseholdTest extends TestCase
     /**
      * Create a monthly salary income for a participant.
      */
-    private function income($p, string $amount): Income
+    private function income(Participant $p, string $amount): Income
     {
         return Income::create(['participant_id' => $p->id, 'name' => 'Gehalt', 'amount' => $amount, 'start_month' => '2027-01', 'interval_months' => 1]);
     }

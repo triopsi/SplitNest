@@ -16,6 +16,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Filament resource for user management: admins create logins here.
@@ -69,7 +70,7 @@ class UserResource extends Resource
                 ->helperText(__('users.fields.password_hint')),
             Toggle::make('is_admin')->label(__('users.fields.is_admin'))
                 ->helperText(__('users.fields.is_admin_hint'))
-                ->disabled(fn (?User $record): bool => $record?->getKey() === auth()->id()),
+                ->disabled(fn (?User $record): bool => $record?->getKey() === Auth::id()),
         ]);
     }
 
@@ -85,7 +86,7 @@ class UserResource extends Resource
             TextColumn::make('created_at')->label(__('users.table.created'))->dateTime('d.m.Y')->sortable(),
         ])->recordActions([
             EditAction::make(),
-            DeleteAction::make()->visible(fn (User $record): bool => $record->getKey() !== auth()->id()),
+            DeleteAction::make()->visible(fn (User $record): bool => $record->getKey() !== Auth::id()),
         ]);
     }
 

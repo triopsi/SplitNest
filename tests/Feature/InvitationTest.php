@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\InviteToHousehold;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
@@ -151,7 +152,7 @@ class InvitationTest extends TestCase
         $admin = $this->actingAsAdmin();
         $invitation = app(InviteToHousehold::class)->invite('neu@example.test', $admin->id);
         $token = $this->mailedToken();
-        auth()->logout();
+        Auth::logout();
 
         $this->get('/admin/einladung/'.$token)->assertOk();
         Livewire::test(InvitationRegister::class, ['token' => $token])

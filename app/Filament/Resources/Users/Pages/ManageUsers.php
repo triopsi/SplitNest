@@ -9,6 +9,7 @@ use Filament\Actions\CreateAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRecords;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -36,7 +37,7 @@ class ManageUsers extends ManageRecords
                 ])
                 ->action(function (array $data): void {
                     try {
-                        app(InviteToHousehold::class)->invite($data['email'], (int) auth()->id());
+                        app(InviteToHousehold::class)->invite($data['email'], (int) Auth::id());
                         Notification::make()->success()->title(__('users.invite.success', ['hours' => config('app.invitation_ttl_hours')]))->send();
                     } catch (ValidationException $e) {
                         Notification::make()->danger()->title(__('users.invite.error'))->body(collect($e->errors())->flatten()->implode(' '))->send();

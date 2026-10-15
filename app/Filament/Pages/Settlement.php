@@ -13,6 +13,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Url;
 
@@ -120,9 +121,9 @@ class Settlement extends Page
             ->requiresConfirmation()->modalHeading(__('settlement.close_action.heading'))
             ->modalDescription(__('settlement.close_action.description'))
             ->action(function (): void {
-                abort_unless(auth()->user()?->is_admin, 403);
+                abort_unless(Auth::user()?->is_admin, 403);
                 try {
-                    app(CloseMonth::class)->close($this->month, auth()->id());
+                    app(CloseMonth::class)->close($this->month, (int) Auth::id());
                     Notification::make()->success()->title(__('settlement.close_action.success'))->send();
                 } catch (ValidationException $e) {
                     Notification::make()->danger()->title(__('settlement.close_action.error'))->body(collect($e->errors())->flatten()->implode(' '))->send();
@@ -142,7 +143,7 @@ class Settlement extends Page
             ->requiresConfirmation()->modalHeading(__('settlement.reopen_action.heading'))
             ->modalDescription(__('settlement.reopen_action.description'))
             ->action(function (): void {
-                abort_unless(auth()->user()?->is_admin, 403);
+                abort_unless(Auth::user()?->is_admin, 403);
                 try {
                     app(ReopenMonth::class)->reopen($this->month);
                     Notification::make()->success()->title(__('settlement.reopen_action.success'))->send();
