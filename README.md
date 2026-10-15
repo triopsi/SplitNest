@@ -14,11 +14,11 @@
   <img src="https://img.shields.io/badge/Laravel-13-FF2D20" alt="Laravel 13">
   <img src="https://img.shields.io/badge/Filament-5-FDAE4B" alt="Filament 5">
   <img src="https://img.shields.io/badge/License-MIT-3da639" alt="MIT License">
-  [![Tests](https://github.com/triopsi/SplitNest/actions/workflows/tests.yml/badge.svg)](https://github.com/triopsi/SplitNest/actions/workflows/tests.yml)
-  [![Build](https://github.com/triopsi/SplitNest/actions/workflows/build.yml/badge.svg)](https://github.com/triopsi/SplitNest/actions/workflows/build.yml)
-  [![Release](https://github.com/triopsi/SplitNest/actions/workflows/release.yml/badge.svg)](https://github.com/triopsi/SplitNest/actions/workflows/release.yml)
-  [![Downloads](https://img.shields.io/github/downloads/triopsi/SplitNest/total)]()
-  [![GitHub release (latest by date)](https://img.shields.io/github/v/release/triopsi/SplitNest)](https://github.com/triopsi/SplitNest/releases)
+  <a href="https://github.com/triopsi/SplitNest/actions/workflows/tests.yml"><img src="https://github.com/triopsi/SplitNest/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+  <a href="https://github.com/triopsi/SplitNest/actions/workflows/build.yml"><img src="https://github.com/triopsi/SplitNest/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="https://github.com/triopsi/SplitNest/actions/workflows/release.yml"><img src="https://github.com/triopsi/SplitNest/actions/workflows/release.yml/badge.svg" alt="Release"></a>
+  <a href="https://github.com/triopsi/SplitNest/releases"><img src="https://img.shields.io/github/downloads/triopsi/SplitNest/total" alt="Downloads"></a>
+  <a href="https://github.com/triopsi/SplitNest/releases"><img src="https://img.shields.io/github/v/release/triopsi/SplitNest" alt="GitHub release (latest by date)"></a>
 </p>
 
 The UI is in German; the codebase follows English Laravel conventions.
