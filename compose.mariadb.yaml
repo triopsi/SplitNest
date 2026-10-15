@@ -1,5 +1,5 @@
-# MariaDB-Variante von compose.yaml (statt PostgreSQL).
-# Gleiches Dev-Setup, eigener Volume (database-mariadb), damit nichts kollidiert:
+# MariaDB variant of compose.yaml (instead of PostgreSQL).
+# Same dev setup, separate volume (database-mariadb) so nothing clashes:
 #   docker compose -f compose.mariadb.yaml up -d --build
 services:
   app:
