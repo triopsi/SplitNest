@@ -20,13 +20,29 @@ class MonthlyCostSharesChart extends ChartWidget
 
     protected static bool $isDiscovered = false;
 
-    protected ?string $heading = 'Kostenanteile';
+    protected ?string $heading = null;
 
-    protected ?string $description = 'Wer trägt wie viel der Kosten in diesem Monat?';
+    protected ?string $description = null;
 
     protected ?string $maxHeight = '18rem';
 
     protected int|string|array $columnSpan = 'full';
+
+    /**
+     * Chart heading (translated).
+     */
+    public function getHeading(): string
+    {
+        return __('settlement.shares_chart.heading');
+    }
+
+    /**
+     * Chart description (translated).
+     */
+    public function getDescription(): string
+    {
+        return __('settlement.shares_chart.description');
+    }
 
     /**
      * Chart.js type: doughnut.
@@ -52,7 +68,7 @@ class MonthlyCostSharesChart extends ChartWidget
 
         return [
             'datasets' => [[
-                'label' => 'Kostenanteil in €',
+                'label' => __('settlement.shares_chart.dataset'),
                 'data' => array_map(fn (array $participant): float => round($participant['share_cents'] / 100, 2), $report['participants']),
                 'backgroundColor' => ['#14b8a6', '#f59e0b', '#8b5cf6', '#f43f5e', '#0ea5e9', '#84cc16'],
             ]],

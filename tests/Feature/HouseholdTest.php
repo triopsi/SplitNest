@@ -303,8 +303,8 @@ class HouseholdTest extends TestCase
     public function test_terminal_command_creates_admin_with_hashed_password(): void
     {
         $this->artisan('splitnest:user', ['email' => 'daniel@example.test', '--name' => 'Daniel'])
-            ->expectsQuestion('Passwort (mindestens 12 Zeichen)', 'A-long-test-password!')
-            ->expectsQuestion('Passwort wiederholen', 'A-long-test-password!')->assertSuccessful();
+            ->expectsQuestion('Password (at least 12 characters)', 'A-long-test-password!')
+            ->expectsQuestion('Repeat password', 'A-long-test-password!')->assertSuccessful();
         $u = User::where('email', 'daniel@example.test')->firstOrFail();
         $this->assertTrue($u->is_admin);
         $this->assertTrue(Hash::check('A-long-test-password!', $u->password));
@@ -366,11 +366,11 @@ class HouseholdTest extends TestCase
      */
     public function test_sidebar_entries_are_grouped(): void
     {
-        $this->assertSame('Übersicht', Settlement::getNavigationGroup());
-        $this->assertSame('Übersicht', YearPlan::getNavigationGroup());
-        $this->assertSame('Haushalt', ParticipantResource::getNavigationGroup());
-        $this->assertSame('Haushalt', IncomeResource::getNavigationGroup());
-        $this->assertSame('Haushalt', ExpenseResource::getNavigationGroup());
+        $this->assertSame('Overview', Settlement::getNavigationGroup());
+        $this->assertSame('Overview', YearPlan::getNavigationGroup());
+        $this->assertSame('Household', ParticipantResource::getNavigationGroup());
+        $this->assertSame('Household', IncomeResource::getNavigationGroup());
+        $this->assertSame('Household', ExpenseResource::getNavigationGroup());
         $this->assertSame('System', Backup::getNavigationGroup());
         $this->assertSame('System', SystemSettings::getNavigationGroup());
     }
@@ -405,8 +405,8 @@ class HouseholdTest extends TestCase
 
         $data = Livewire::test(MonthlyCostsChart::class, ['year' => '2027'])->instance()->getData();
         $costs = $data['datasets'][1]['data'];
-        $this->assertSame('Einkünfte in €', $data['datasets'][0]['label']);
-        $this->assertSame('Kosten in €', $data['datasets'][1]['label']);
+        $this->assertSame('Incomes in €', $data['datasets'][0]['label']);
+        $this->assertSame('Costs in €', $data['datasets'][1]['label']);
         $this->assertSame(200.0, $costs[0]);
         $this->assertSame(100.01, $costs[1]);
         $this->assertNull($costs[4]);
@@ -527,7 +527,7 @@ class HouseholdTest extends TestCase
      * Close a month with two participants that have e-mail addresses.
      *
      * Expects one summary mail per participant, each with the PDF attached and
-     * the personal transfer list (or 'Keine — du bist ausgeglichen.') in the text.
+     * the personal transfer list (or 'None — you are even.') in the text.
      */
     public function test_closing_a_month_sends_summary_mails_with_pdf(): void
     {
@@ -543,8 +543,8 @@ class HouseholdTest extends TestCase
                 return false;
             }
             $this->assertCount(1, $mail->attachments());
-            $mail->assertSeeInText('Hallo Svenja');
-            $mail->assertSeeInText('50,00 € an Daniel');
+            $mail->assertSeeInText('Hello Svenja');
+            $mail->assertSeeInText('50,00 € to Daniel');
 
             return true;
         });
@@ -552,7 +552,7 @@ class HouseholdTest extends TestCase
             if (! $mail->hasTo('daniel@example.test')) {
                 return false;
             }
-            $mail->assertSeeInText('Keine — du bist ausgeglichen.');
+            $mail->assertSeeInText('None — you are even.');
 
             return true;
         });
@@ -577,7 +577,7 @@ class HouseholdTest extends TestCase
             if (! $mail->hasTo('svenja@example.test')) {
                 return false;
             }
-            $mail->assertSeeInText('Hi Svenja! Monat: Januar 2027. Zahlungen: - 50,00 € an Daniel');
+            $mail->assertSeeInText('Hi Svenja! Monat: January 2027. Zahlungen: - 50,00 € to Daniel');
 
             return true;
         });

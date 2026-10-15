@@ -26,7 +26,6 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
-use UnitEnum;
 
 /**
  * Filament resource for managing household expenses and their allocation.
@@ -37,15 +36,33 @@ class ExpenseResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedReceiptPercent;
 
-    protected static ?string $modelLabel = 'Kostenposition';
-
-    protected static ?string $pluralModelLabel = 'Kosten';
-
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Haushalt';
-
     protected static ?int $navigationSort = 5;
+
+    /**
+     * Singular model label (translated).
+     */
+    public static function getModelLabel(): string
+    {
+        return __('expenses.label');
+    }
+
+    /**
+     * Plural model label (translated).
+     */
+    public static function getPluralModelLabel(): string
+    {
+        return __('expenses.plural');
+    }
+
+    /**
+     * Sidebar group (translated).
+     */
+    public static function getNavigationGroup(): string
+    {
+        return __('nav.groups.household');
+    }
 
     /**
      * Define the create/edit form for an expense.
@@ -55,26 +72,26 @@ class ExpenseResource extends Resource
         return $schema
             ->columns(1)
             ->components([
-                Section::make('Was wird gezahlt?')
-                    ->description('Wofür ist die Kostenposition und wer bezahlt die Rechnung?')
+                Section::make(__('expenses.sections.what'))
+                    ->description(__('expenses.sections.what_desc'))
                     ->schema([
-                        TextInput::make('name')->label('Bezeichnung')->placeholder('z. B. Miete, Strom, Spotify')->required()->maxLength(255)
-                            ->helperText('Wofür ist die Ausgabe? Ein kurzer Name genügt, z. B. „Miete“ oder „Internet“.'),
-                        Select::make('payer_id')->label('Bezahlt von')->relationship('payer', 'name')->preload()->searchable()->required()->live()
+                        TextInput::make('name')->label(__('expenses.fields.name'))->placeholder(__('expenses.fields.name_placeholder'))->required()->maxLength(255)
+                            ->helperText(__('expenses.fields.name_hint')),
+                        Select::make('payer_id')->label(__('expenses.fields.payer'))->relationship('payer', 'name')->preload()->searchable()->required()->live()
                             ->afterStateUpdated(function (Set $set, Get $get, mixed $state): void {
                                 if ($get('split_mode') === 'personal') {
                                     $set('shares', [['participant_id' => $state, 'percentage' => null]]);
                                 }
                             })
-                            ->helperText('Wer bezahlt die Rechnung bzw. von wessen Konto geht das Geld ab? Beispiel: Daniel überweist die Miete → „Daniel“ auswählen.'),
+                            ->helperText(__('expenses.fields.payer_hint')),
                     ]),
-                Section::make('Wie viel und wie oft?')
-                    ->description('Betrag, Rhythmus und Zeitraum der Kostenposition.')
+                Section::make(__('expenses.sections.schedule'))
+                    ->description(__('expenses.sections.schedule_desc'))
                     ->schema([...ScheduleFields::make()]),
-                Section::make('Wer trägt die Kosten?')
-                    ->description('Lege fest, wie der Betrag auf die Teilnehmer verteilt wird.')
+                Section::make(__('expenses.sections.split'))
+                    ->description(__('expenses.sections.split_desc'))
                     ->schema([
-                        Select::make('split_mode')->label('Aufteilung')->options(Expense::MODES)->default('percentage')->required()->live()
+                        Select::make('split_mode')->label(__('expenses.fields.split_mode'))->options(Expense::modeLabels())->default('percentage')->required()->live()
                             ->afterStateUpdated(function (Set $set, Get $get, mixed $state): void {
                                 if ($state === 'personal') {
                                     $set('shares', [['participant_id' => $get('payer_id'), 'percentage' => null]]);
@@ -82,43 +99,43 @@ class ExpenseResource extends Resource
                                     $set('shares', collect($get('shares') ?? [])->map(fn (array $share): array => [...$share, 'percentage' => $share['percentage'] ?? '50'])->all());
                                 }
                             })
-                            ->helperText('Wie wird der Betrag aufgeteilt? Beispiele für 100 €: Feste Prozente — ihr legt die Anteile selbst fest, z. B. Daniel 60 %, Svenja 40 %. Nach Einkommen — wer mehr verdient, zahlt mehr: bei 3.000 € und 2.000 € Einkommen zahlt Daniel 60 €, Svenja 40 €. Gleiche Anteile — jede Person zahlt gleich viel, also je 50 €. Persönlich — eine Person trägt alles, z. B. Svenjas Handyvertrag.'),
-                        Repeater::make('shares')->label('Personen')->minItems(1)->required()->reorderable(false)
-                            ->addActionLabel('Weitere Person hinzufügen')
+                            ->helperText(__('expenses.fields.split_hint')),
+                        Repeater::make('shares')->label(__('expenses.fields.shares'))->minItems(1)->required()->reorderable(false)
+                            ->addActionLabel(__('expenses.fields.add_person'))
                             ->helperText(fn (Get $get): string => match ($get('split_mode')) {
-                                'percentage' => 'Wähle alle Personen aus, die sich beteiligen, und lege ihre Anteile in Prozent fest. Zusammen muss es genau 100 % ergeben, z. B. 60 % + 40 %.',
-                                'income' => 'Wähle alle Personen aus, die sich beteiligen. Die Anteile berechnen sich automatisch aus den Einkünften: Wer mehr verdient, trägt mehr.',
-                                'equal' => 'Wähle alle Personen aus, die sich beteiligen. Der Betrag wird gleichmäßig auf alle verteilt.',
-                                'personal' => 'Diese eine Person trägt die Kosten allein — voreingestellt ist der Bezahler.',
-                                default => 'Wer beteiligt sich an den Kosten?',
+                                'percentage' => __('expenses.share_hints.percentage'),
+                                'income' => __('expenses.share_hints.income'),
+                                'equal' => __('expenses.share_hints.equal'),
+                                'personal' => __('expenses.share_hints.personal'),
+                                default => __('expenses.share_hints.default'),
                             })
                             ->addable(fn (Get $get): bool => $get('split_mode') !== 'personal')
                             ->deletable(fn (Get $get): bool => $get('split_mode') !== 'personal')
                             ->maxItems(fn (Get $get) => $get('split_mode') === 'personal' ? 1 : 100)
                             ->default(fn () => Participant::orderBy('id')->limit(2)->get()->map(fn ($p) => ['participant_id' => $p->id, 'percentage' => '50'])->all())
                             ->schema([
-                                Select::make('participant_id')->label('Teilnehmer')->options(fn () => Participant::orderBy('name')->pluck('name', 'id'))
+                                Select::make('participant_id')->label(__('expenses.fields.participant'))->options(fn () => Participant::orderBy('name')->pluck('name', 'id'))
                                     ->searchable()->required()->distinct()->disableOptionsWhenSelectedInSiblingRepeaterItems(),
-                                TextInput::make('percentage')->label('Anteil')->suffix('%')->default('50')
+                                TextInput::make('percentage')->label(__('expenses.fields.percentage'))->suffix('%')->default('50')
                                     ->visible(fn (Get $get) => $get('../../split_mode') === 'percentage')
                                     ->required(fn (Get $get) => $get('../../split_mode') === 'percentage')
-                                    ->rules(['regex:/^\d{1,3}([.,]\d{1,2})?$/D'])->helperText('Anteil dieser Person in Prozent, z. B. 60. Alle Anteile zusammen müssen genau 100 % ergeben.'),
+                                    ->rules(['regex:/^\d{1,3}([.,]\d{1,2})?$/D'])->helperText(__('expenses.fields.percentage_hint')),
                             ])
                             ->rules([fn (Get $get) => function (string $attribute, mixed $value, \Closure $fail) use ($get) {
                                 if ($get('split_mode') === 'percentage') {
                                     try {
                                         $sum = array_sum(array_map(fn ($share) => Money::cents($share['percentage'] ?? '', 'shares'), $value));
                                         if ($sum !== 10000) {
-                                            $fail('Die Anteile müssen zusammen genau 100 % ergeben.');
+                                            $fail(__('expenses.validation.sum_100'));
                                         }
                                     } catch (ValidationException) {
-                                        $fail('Bitte gültige Prozentwerte eintragen.');
+                                        $fail(__('expenses.fields.percentage_hint'));
                                     }
                                 }
                             }]),
                     ]),
-                Textarea::make('notes')->label('Notizen')->columnSpanFull()
-                    ->helperText('Optional, z. B. Vertragslaufzeit, Kündigungsfrist oder wer die Lastschrift eingerichtet hat.'),
+                Textarea::make('notes')->label(__('expenses.fields.notes'))->columnSpanFull()
+                    ->helperText(__('expenses.fields.notes_hint')),
             ]);
     }
 
@@ -128,20 +145,20 @@ class ExpenseResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('name')->label('Bezeichnung')->searchable()->sortable()->toggleable(),
-            TextColumn::make('payer.name')->label('Bezahler')->sortable()->html()->toggleable()
+            TextColumn::make('name')->label(__('expenses.table.name'))->searchable()->sortable()->toggleable(),
+            TextColumn::make('payer.name')->label(__('expenses.table.payer'))->sortable()->html()->toggleable()
                 ->formatStateUsing(fn (Expense $record): string => view('components.person', ['name' => $record->payer->name, 'email' => $record->payer->email])->render()),
-            TextColumn::make('amount_cents')->label('Betrag')->formatStateUsing(fn ($state) => Money::format($state))->sortable()->toggleable(),
-            TextColumn::make('next_billing')->label('Nächste Abrechnung')->toggleable()
+            TextColumn::make('amount_cents')->label(__('expenses.table.amount'))->formatStateUsing(fn ($state) => Money::format($state))->sortable()->toggleable(),
+            TextColumn::make('next_billing')->label(__('expenses.table.next_billing'))->toggleable()
                 ->getStateUsing(fn (Expense $record): string => ($next = $record->nextBillingMonth(now()->format('Y-m')))
                     ? Carbon::createFromFormat('Y-m', $next)->format('m/Y') : '–'),
-            TextColumn::make('split_mode')->label('Aufteilung')->formatStateUsing(fn ($state) => Expense::MODES[$state])->badge()->toggleable(),
-            TextColumn::make('start_month')->label('Ab')->sortable()->toggleable(isToggledHiddenByDefault: true),
-            TextColumn::make('end_month')->label('Bis')->placeholder('Unbegrenzt')->toggleable(isToggledHiddenByDefault: true),
-            TextColumn::make('interval_months')->label('Intervall')->formatStateUsing(fn ($state) => $state ? "Alle {$state} Monate" : 'Einmalig')->toggleable(),
+            TextColumn::make('split_mode')->label(__('expenses.table.split_mode'))->formatStateUsing(fn ($state) => Expense::modeLabels()[$state])->badge()->toggleable(),
+            TextColumn::make('start_month')->label(__('expenses.table.from'))->sortable()->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('end_month')->label(__('expenses.table.until'))->placeholder(__('schedule.unlimited'))->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('interval_months')->label(__('incomes.table.interval'))->formatStateUsing(fn ($state) => $state ? __('schedule.every_x_months', ['count' => $state]) : __('schedule.one_off'))->toggleable(),
         ])->filters([
-            SelectFilter::make('payer')->relationship('payer', 'name')->label('Bezahler'),
-            SelectFilter::make('split_mode')->label('Aufteilung')->options(Expense::MODES),
+            SelectFilter::make('payer')->relationship('payer', 'name')->label(__('expenses.filters.payer')),
+            SelectFilter::make('split_mode')->label(__('expenses.filters.split_mode'))->options(Expense::modeLabels()),
         ])->recordActions([EditAction::make(), DeleteAction::make()]);
     }
 

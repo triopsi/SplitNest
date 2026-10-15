@@ -18,7 +18,6 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use UnitEnum;
 
 /**
  * Filament resource for managing participant incomes.
@@ -29,15 +28,33 @@ class IncomeResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
-    protected static ?string $modelLabel = 'Einkunft';
-
-    protected static ?string $pluralModelLabel = 'Einkünfte';
-
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Haushalt';
-
     protected static ?int $navigationSort = 4;
+
+    /**
+     * Singular model label (translated).
+     */
+    public static function getModelLabel(): string
+    {
+        return __('incomes.label');
+    }
+
+    /**
+     * Plural model label (translated).
+     */
+    public static function getPluralModelLabel(): string
+    {
+        return __('incomes.plural');
+    }
+
+    /**
+     * Sidebar group (translated).
+     */
+    public static function getNavigationGroup(): string
+    {
+        return __('nav.groups.household');
+    }
 
     /**
      * Define the create/edit form for an income.
@@ -45,8 +62,8 @@ class IncomeResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('name')->label('Bezeichnung')->placeholder('Nettogehalt')->required()->maxLength(255),
-            Select::make('participant_id')->label('Teilnehmer')->relationship('participant', 'name')->searchable()->preload()->required(),
+            TextInput::make('name')->label(__('incomes.fields.name'))->placeholder(__('incomes.fields.name_placeholder'))->required()->maxLength(255),
+            Select::make('participant_id')->label(__('incomes.fields.participant'))->relationship('participant', 'name')->searchable()->preload()->required(),
             ...ScheduleFields::make(),
         ]);
     }
@@ -57,14 +74,14 @@ class IncomeResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('name')->label('Bezeichnung')->searchable()->toggleable(),
-            TextColumn::make('participant.name')->label('Teilnehmer')->sortable()->html()->toggleable()
+            TextColumn::make('name')->label(__('incomes.table.name'))->searchable()->toggleable(),
+            TextColumn::make('participant.name')->label(__('incomes.table.participant'))->sortable()->html()->toggleable()
                 ->formatStateUsing(fn (Income $record): string => view('components.person', ['name' => $record->participant->name, 'email' => $record->participant->email])->render()),
-            TextColumn::make('amount_cents')->label('Betrag')->formatStateUsing(fn ($state) => Money::format($state))->sortable()->toggleable(),
-            TextColumn::make('start_month')->label('Ab')->sortable()->toggleable(),
-            TextColumn::make('end_month')->label('Bis')->placeholder('Unbegrenzt')->toggleable(),
-            TextColumn::make('interval_months')->label('Intervall')->formatStateUsing(fn ($state) => $state ? "Alle {$state} Monate" : 'Einmalig')->toggleable(),
-        ])->filters([SelectFilter::make('participant')->relationship('participant', 'name')->label('Teilnehmer')])
+            TextColumn::make('amount_cents')->label(__('incomes.table.amount'))->formatStateUsing(fn ($state) => Money::format($state))->sortable()->toggleable(),
+            TextColumn::make('start_month')->label(__('incomes.table.from'))->sortable()->toggleable(),
+            TextColumn::make('end_month')->label(__('incomes.table.until'))->placeholder(__('schedule.unlimited'))->toggleable(),
+            TextColumn::make('interval_months')->label(__('incomes.table.interval'))->formatStateUsing(fn ($state) => $state ? __('schedule.every_x_months', ['count' => $state]) : __('schedule.one_off'))->toggleable(),
+        ])->filters([SelectFilter::make('participant')->relationship('participant', 'name')->label(__('incomes.table.participant'))])
             ->recordActions([EditAction::make(), DeleteAction::make()]);
     }
 

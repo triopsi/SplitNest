@@ -37,7 +37,7 @@ class MonthClosedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'SplitNest Abrechnung '.$this->closing->month,
+            subject: __('mail.closing_subject', ['app' => config('app.name'), 'month' => $this->closing->month]),
         );
     }
 

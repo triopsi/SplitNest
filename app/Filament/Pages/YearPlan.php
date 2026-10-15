@@ -8,7 +8,6 @@ use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Validation\ValidationException;
-use UnitEnum;
 
 /**
  * Year planning page: lists all twelve months of the chosen year with their
@@ -17,10 +16,6 @@ use UnitEnum;
 class YearPlan extends Page
 {
     protected string $view = 'filament.pages.year-plan';
-
-    protected static ?string $title = 'Jahresplanung';
-
-    protected static UnitEnum|string|null $navigationGroup = 'Übersicht';
 
     protected static ?int $navigationSort = 2;
 
@@ -38,6 +33,30 @@ class YearPlan extends Page
     }
 
     /**
+     * Page title (translated).
+     */
+    public function getTitle(): string
+    {
+        return __('yearplan.title');
+    }
+
+    /**
+     * Navigation label (translated).
+     */
+    public static function getNavigationLabel(): string
+    {
+        return __('yearplan.title');
+    }
+
+    /**
+     * Sidebar group (translated).
+     */
+    public static function getNavigationGroup(): string
+    {
+        return __('nav.groups.overview');
+    }
+
+    /**
      * Build one row per month for the selected year.
      *
      * @return array{rows: list<array{month: string, closed: bool, report: array<string, mixed>|null, error: string|null}>, problem: string|null}
@@ -46,7 +65,7 @@ class YearPlan extends Page
     {
         $rows = [];
         if (! ctype_digit($this->year) || $this->year < 2000 || $this->year > 2100) {
-            return ['rows' => [], 'problem' => 'Bitte ein Jahr von 2000 bis 2100 auswählen.'];
+            return ['rows' => [], 'problem' => __('yearplan.invalid_year')];
         }
         $closings = MonthlyClosing::where('month', 'like', $this->year.'-%')->whereNotNull('closed_at')->get()->keyBy('month');
         for ($m = 1; $m <= 12; $m++) {

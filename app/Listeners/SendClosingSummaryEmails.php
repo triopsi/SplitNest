@@ -36,12 +36,12 @@ class SendClosingSummaryEmails
             $lines = [];
             foreach ($report['transfers'] as $transfer) {
                 if ($transfer['from_id'] === $participant->id) {
-                    $lines[] = '- '.Money::format($transfer['amount_cents']).' an '.$names[$transfer['to_id']];
+                    $lines[] = __('mail.transfer_line', ['amount' => Money::format($transfer['amount_cents']), 'name' => $names[$transfer['to_id']]]);
                 }
             }
             $body = str_replace(
                 ['{name}', '{monat}', '{ueberweisungen}'],
-                [$participant->name, $monthName, $lines === [] ? 'Keine — du bist ausgeglichen.' : implode("\n", $lines)],
+                [$participant->name, $monthName, $lines === [] ? __('mail.no_transfers') : implode("\n", $lines)],
                 Settings::mailBody(),
             );
             Mail::to($participant)->send(new MonthClosedMail($closing, $body, $pdfData));

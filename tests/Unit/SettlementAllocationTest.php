@@ -5,7 +5,7 @@ namespace Tests\Unit;
 use App\Services\SettlementCalculator;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 /**
  * Largest-remainder allocation: splits an amount into integer cents per

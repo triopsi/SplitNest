@@ -15,7 +15,6 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Url;
-use UnitEnum;
 
 /**
  * Monthly overview page: shows the live settlement for the selected month,
@@ -26,10 +25,6 @@ class Settlement extends Page
     protected string $view = 'filament.pages.settlement';
 
     protected static ?string $slug = '/';
-
-    protected static ?string $title = 'Monatsübersicht';
-
-    protected static UnitEnum|string|null $navigationGroup = 'Übersicht';
 
     protected static ?int $navigationSort = 1;
 
@@ -52,6 +47,30 @@ class Settlement extends Page
     {
         $this->month = $this->month ?: now()->format('Y-m');
         $this->syncPickers();
+    }
+
+    /**
+     * Page title (translated).
+     */
+    public function getTitle(): string
+    {
+        return __('settlement.title');
+    }
+
+    /**
+     * Navigation label (translated).
+     */
+    public static function getNavigationLabel(): string
+    {
+        return __('settlement.title');
+    }
+
+    /**
+     * Sidebar group (translated).
+     */
+    public static function getNavigationGroup(): string
+    {
+        return __('nav.groups.overview');
     }
 
     /**
@@ -97,16 +116,16 @@ class Settlement extends Page
      */
     public function closeMonthAction(): Action
     {
-        return Action::make('closeMonth')->label('Monat abschließen')->icon('heroicon-o-lock-closed')
-            ->requiresConfirmation()->modalHeading('Abrechnung verbindlich speichern?')
-            ->modalDescription('Die geplanten Rechnungen und ihre Aufteilung werden eingefroren. Der Abschluss kann auch am Monatsanfang erstellt werden. Die PDF bleibt bei späteren Änderungen unverändert.')
+        return Action::make('closeMonth')->label(__('settlement.close_action.label'))->icon('heroicon-o-lock-closed')
+            ->requiresConfirmation()->modalHeading(__('settlement.close_action.heading'))
+            ->modalDescription(__('settlement.close_action.description'))
             ->action(function (): void {
                 abort_unless(auth()->user()?->is_admin, 403);
                 try {
                     app(CloseMonth::class)->close($this->month, auth()->id());
-                    Notification::make()->success()->title('Monat abgeschlossen. Die PDF steht bereit.')->send();
+                    Notification::make()->success()->title(__('settlement.close_action.success'))->send();
                 } catch (ValidationException $e) {
-                    Notification::make()->danger()->title('Abschluss nicht möglich')->body(collect($e->errors())->flatten()->implode(' '))->send();
+                    Notification::make()->danger()->title(__('settlement.close_action.error'))->body(collect($e->errors())->flatten()->implode(' '))->send();
                 }
             });
     }
@@ -119,16 +138,16 @@ class Settlement extends Page
      */
     public function reopenMonthAction(): Action
     {
-        return Action::make('reopenMonth')->label('Monat wieder eröffnen')->icon('heroicon-o-lock-open')->color('gray')
-            ->requiresConfirmation()->modalHeading('Abschluss wieder eröffnen?')
-            ->modalDescription('Der eingefrorene Stand wird verworfen und die bisherige PDF-Abrechnung ist nicht mehr abrufbar. Danach kann der Monat bearbeitet und erneut abgeschlossen werden.')
+        return Action::make('reopenMonth')->label(__('settlement.reopen_action.label'))->icon('heroicon-o-lock-open')->color('gray')
+            ->requiresConfirmation()->modalHeading(__('settlement.reopen_action.heading'))
+            ->modalDescription(__('settlement.reopen_action.description'))
             ->action(function (): void {
                 abort_unless(auth()->user()?->is_admin, 403);
                 try {
                     app(ReopenMonth::class)->reopen($this->month);
-                    Notification::make()->success()->title('Monat wieder geöffnet.')->send();
+                    Notification::make()->success()->title(__('settlement.reopen_action.success'))->send();
                 } catch (ValidationException $e) {
-                    Notification::make()->danger()->title('Eröffnen nicht möglich')->body(collect($e->errors())->flatten()->implode(' '))->send();
+                    Notification::make()->danger()->title(__('settlement.reopen_action.error'))->body(collect($e->errors())->flatten()->implode(' '))->send();
                 }
             });
     }

@@ -14,7 +14,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use UnitEnum;
 
 /**
  * Filament resource for managing household participants.
@@ -28,15 +27,33 @@ class ParticipantResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    protected static ?string $modelLabel = 'Teilnehmer';
-
-    protected static ?string $pluralModelLabel = 'Teilnehmer';
-
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Haushalt';
-
     protected static ?int $navigationSort = 3;
+
+    /**
+     * Singular and plural model label (translated).
+     */
+    public static function getModelLabel(): string
+    {
+        return __('participants.label');
+    }
+
+    /**
+     * Plural model label (translated).
+     */
+    public static function getPluralModelLabel(): string
+    {
+        return __('participants.label');
+    }
+
+    /**
+     * Sidebar group (translated).
+     */
+    public static function getNavigationGroup(): string
+    {
+        return __('nav.groups.household');
+    }
 
     /**
      * Define the create/edit form for a participant.
@@ -44,9 +61,9 @@ class ParticipantResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('name')->label('Name')->required()->maxLength(255),
-            TextInput::make('email')->label('E-Mail (für spätere Benachrichtigungen)')->email()->maxLength(255),
-            Textarea::make('notes')->label('Notizen')->columnSpanFull(),
+            TextInput::make('name')->label(__('participants.fields.name'))->required()->maxLength(255),
+            TextInput::make('email')->label(__('participants.fields.email'))->email()->maxLength(255),
+            Textarea::make('notes')->label(__('participants.fields.notes'))->columnSpanFull(),
         ]);
     }
 
@@ -56,9 +73,9 @@ class ParticipantResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('name')->label('Name')->searchable()->sortable()->html()
+            TextColumn::make('name')->label(__('participants.table.name'))->searchable()->sortable()->html()
                 ->formatStateUsing(fn (Participant $record): string => view('components.person', ['name' => $record->name, 'email' => $record->email])->render()),
-            TextColumn::make('email')->label('E-Mail')->placeholder('Noch nicht hinterlegt'),
+            TextColumn::make('email')->label(__('participants.table.email'))->placeholder(__('participants.table.no_email')),
         ])->recordActions([EditAction::make()]);
     }
 

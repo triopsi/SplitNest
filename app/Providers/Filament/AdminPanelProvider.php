@@ -56,9 +56,9 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Teal,
             ])
             ->navigationGroups([
-                NavigationGroup::make('Übersicht'),
-                NavigationGroup::make('Haushalt'),
-                NavigationGroup::make('System'),
+                NavigationGroup::make(fn (): string => __('nav.groups.overview')),
+                NavigationGroup::make(fn (): string => __('nav.groups.household')),
+                NavigationGroup::make(fn (): string => __('nav.groups.system')),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
@@ -70,7 +70,7 @@ class AdminPanelProvider extends PanelProvider
             ->routes(fn () => Route::get('/einladung/{token}', InvitationRegister::class)->name('invitation'))
             ->userMenuItems([
                 Action::make('users')
-                    ->label('Benutzer')
+                    ->label(__('users.menu'))
                     ->icon(Heroicon::OutlinedShieldCheck)
                     ->url(fn (): string => UserResource::getUrl())
                     ->visible(fn (): bool => UserResource::canCreate()),

@@ -34,7 +34,7 @@ final class SettlementCalculator
             'share_cents' => 0, 'balance_cents' => 0, 'remaining_cents' => 0,
         ]])->all();
         if (! $people) {
-            throw ValidationException::withMessages(['month' => 'Bitte zuerst Teilnehmer anlegen.']);
+            throw ValidationException::withMessages(['month' => __('settlement.calculator.no_participants')]);
         }
         $incomeLines = [];
         foreach (Income::orderBy('id')->get() as $income) {
@@ -59,7 +59,7 @@ final class SettlementCalculator
                 };
             }
             if (array_sum($weights) === 0) {
-                throw ValidationException::withMessages(['month' => "Für „{$expense->name}“ fehlt Einkommen bei allen zugeordneten Teilnehmern. Bitte Einkommen oder eine andere Aufteilung hinterlegen."]);
+                throw ValidationException::withMessages(['month' => __('settlement.calculator.missing_income', ['name' => $expense->name])]);
             }
             $allocations = $this->allocate($expense->amount_cents, $weights);
             foreach ($allocations as $id => $cents) {
@@ -102,7 +102,7 @@ final class SettlementCalculator
         ksort($weights, SORT_NUMERIC);
         $sum = array_sum($weights);
         if ($amount < 0 || $sum <= 0 || min($weights) < 0) {
-            throw new \InvalidArgumentException('Ungültiger Betrag oder Gewichtung.');
+            throw new \InvalidArgumentException(__('settlement.calculator.invalid_amount'));
         }
         $allocations = $remainders = [];
         foreach ($weights as $id => $weight) {

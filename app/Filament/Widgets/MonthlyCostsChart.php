@@ -24,11 +24,19 @@ class MonthlyCostsChart extends ChartWidget
 
     protected static bool $isDiscovered = false;
 
-    protected ?string $heading = 'Einkünfte und Kosten pro Monat';
+    protected ?string $heading = null;
 
     protected ?string $maxHeight = '18rem';
 
     protected int|string|array $columnSpan = 'full';
+
+    /**
+     * Chart heading (translated).
+     */
+    public function getHeading(): string
+    {
+        return __('yearplan.chart.heading');
+    }
 
     /**
      * Chart.js type: vertical bars.
@@ -65,10 +73,10 @@ class MonthlyCostsChart extends ChartWidget
 
         return [
             'datasets' => [
-                ['label' => 'Einkünfte in €', 'data' => $incomes, 'backgroundColor' => '#14b8a6'],
-                ['label' => 'Kosten in €', 'data' => $costs, 'backgroundColor' => '#f43f5e'],
+                ['label' => __('yearplan.chart.incomes'), 'data' => $incomes, 'backgroundColor' => '#14b8a6'],
+                ['label' => __('yearplan.chart.costs'), 'data' => $costs, 'backgroundColor' => '#f43f5e'],
             ],
-            'labels' => ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+            'labels' => __('yearplan.chart.months'),
         ];
     }
 

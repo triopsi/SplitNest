@@ -28,7 +28,7 @@ class FirstUserRegister extends Register
         parent::mount();
 
         if (! Login::needsFirstUser()) {
-            Notification::make()->title('Die Ersteinrichtung ist bereits abgeschlossen.')->send();
+            Notification::make()->title(__('users.first_run.done'))->send();
             $this->redirect(Filament::getLoginUrl());
         }
     }
@@ -38,7 +38,7 @@ class FirstUserRegister extends Register
      */
     public function getTitle(): string|Htmlable
     {
-        return 'Ersteinrichtung';
+        return __('users.first_run.title');
     }
 
     /**
@@ -46,7 +46,7 @@ class FirstUserRegister extends Register
      */
     public function getHeading(): string|Htmlable|null
     {
-        return 'Ersten Administrator anlegen';
+        return __('users.first_run.heading');
     }
 
     /**
@@ -56,7 +56,7 @@ class FirstUserRegister extends Register
     {
         return parent::getPasswordFormComponent()
             ->rules(['min:12'])
-            ->helperText('Mindestens 12 Zeichen.');
+            ->helperText(__('users.first_run.password_hint'));
     }
 
     /**
@@ -73,7 +73,7 @@ class FirstUserRegister extends Register
     protected function handleRegistration(#[SensitiveParameter] array $data): Model
     {
         if (! Login::needsFirstUser()) {
-            throw ValidationException::withMessages(['email' => 'Die Ersteinrichtung ist bereits abgeschlossen.']);
+            throw ValidationException::withMessages(['email' => __('users.first_run.done')]);
         }
 
         return $this->getUserModel()::create([

@@ -35,7 +35,7 @@ class HouseholdInvitationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('app.name').' – Einladung in den Haushalt',
+            subject: __('mail.invitation_subject', ['app' => config('app.name')]),
         );
     }
 
@@ -47,8 +47,11 @@ class HouseholdInvitationMail extends Mailable
         return new Content(
             text: 'emails.invitation',
             with: [
-                'url' => route('filament.admin.invitation', ['token' => $this->token]),
-                'hours' => config('app.invitation_ttl_hours'),
+                'body' => __('mail.invitation_body', [
+                    'app' => config('app.name'),
+                    'url' => route('filament.admin.invitation', ['token' => $this->token]),
+                    'hours' => config('app.invitation_ttl_hours'),
+                ]),
             ],
         );
     }

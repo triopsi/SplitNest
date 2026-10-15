@@ -29,6 +29,6 @@ class Participant extends Model
      */
     protected static function booted(): void
     {
-        static::deleting(fn () => throw ValidationException::withMessages(['participant' => 'Teilnehmer bleiben für historische Zuordnungen erhalten.']));
+        static::deleting(fn () => throw ValidationException::withMessages(['participant' => __('participants.delete_protected')]));
     }
 }

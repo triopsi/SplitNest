@@ -21,7 +21,7 @@
   <a href="https://github.com/triopsi/SplitNest/releases"><img src="https://img.shields.io/github/v/release/triopsi/SplitNest" alt="GitHub release (latest by date)"></a>
 </p>
 
-The UI is in German; the codebase follows English Laravel conventions.
+The UI is in English by default and ships with a full German translation — switch with `APP_LOCALE`. The codebase follows English Laravel conventions.
 
 ## Features
 
@@ -84,7 +84,7 @@ Homelab-friendly: no build, no repo clone — release images come prebuilt from 
          APP_DEBUG: "false"
          APP_KEY: ${APP_KEY}
          APP_URL: ${APP_URL}
-         APP_LOCALE: de
+         APP_LOCALE: en
          DB_CONNECTION: mariadb
          DB_HOST: db
          DB_PORT: 3306
@@ -175,7 +175,7 @@ Everything the app reads from the environment, with its defaults. In production,
 | `APP_DEBUG` | `false` | Debug mode — never `true` in production |
 | `APP_KEY` | *(required)* | Encryption key, generate per the production steps |
 | `APP_URL` | `http://localhost` | Public base URL, used for links in e-mails |
-| `APP_LOCALE` | `de` | UI locale |
+| `APP_LOCALE` | `en` | UI locale (`de` is shipped; contribute your own, see below) |
 | `APP_FALLBACK_LOCALE` | `en` | Fallback locale |
 | `APP_VERSION` | `dev` | Version shown in the footer; baked into release images |
 | `TRUSTED_PROXIES` | *(empty)* | Reverse proxy IP address(es), comma-separated |
@@ -231,6 +231,18 @@ Everything the app reads from the environment, with its defaults. In production,
 | `APP_PORT` | `8080` | Host port mapping |
 | `APP_BIND_ADDRESS` | `127.0.0.1` | Host bind address |
 | `MARIADB_ROOT_PASSWORD` | *(required)* | MariaDB root password |
+
+## Translations
+
+The UI base language is **English**; German is included as a complete translation. Switch the language with `APP_LOCALE` (e.g. `APP_LOCALE=de` in your `.env`). Panel chrome (buttons, pagination, login form) is translated by Filament itself.
+
+Missing your language? **Contributions are very welcome!** Translations live in `lang/<locale>/` as plain PHP array files, grouped by area (`settlement.php`, `yearplan.php`, `expenses.php`, `incomes.php`, `participants.php`, `schedule.php`, `users.php`, `backup.php`, `settings.php`, `mail.php`, `pdf.php`, `nav.php`). To add your language:
+
+1. Copy the English files: `cp -r lang/en lang/<your-locale>` (e.g. `lang/fr`)
+2. Translate the values — keep the keys and `:placeholder`/`{placeholder}` names untouched
+3. Open a pull request
+
+The test suite compares every locale against the English keys, so a PR with gaps fails fast and translations stay maintained.
 
 ## Backup & restore
 

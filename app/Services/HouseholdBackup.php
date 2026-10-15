@@ -49,7 +49,7 @@ final class HouseholdBackup
     {
         $zip = new ZipArchive;
         if ($zip->open($path) !== true) {
-            throw ValidationException::withMessages(['file' => 'Die Datei ist kein lesbares ZIP-Archiv.']);
+            throw ValidationException::withMessages(['file' => __('backup.errors.not_zip')]);
         }
         $data = [];
         foreach (self::TABLES as $table) {
@@ -57,12 +57,12 @@ final class HouseholdBackup
             $rows = $json === false ? null : json_decode($json, true);
             if (! is_array($rows)) {
                 $zip->close();
-                throw ValidationException::withMessages(['file' => "In der Datei fehlt der Datenbestand „{$table}“ oder er ist beschädigt."]);
+                throw ValidationException::withMessages(['file' => __('backup.errors.missing_table', ['table' => $table])]);
             }
             foreach ($rows as $row) {
                 if (! is_array($row) || ! array_key_exists('id', $row)) {
                     $zip->close();
-                    throw ValidationException::withMessages(['file' => "Der Datenbestand „{$table}“ enthält ungültige Zeilen."]);
+                    throw ValidationException::withMessages(['file' => __('backup.errors.invalid_rows', ['table' => $table])]);
                 }
             }
             $data[$table] = $rows;

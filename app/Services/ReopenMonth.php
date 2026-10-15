@@ -28,7 +28,7 @@ final class ReopenMonth
         return DB::transaction(function () use ($month) {
             $closing = MonthlyClosing::where('month', $month)->lockForUpdate()->first();
             if (! $closing?->closed_at) {
-                throw ValidationException::withMessages(['month' => 'Dieser Monat ist nicht abgeschlossen.']);
+                throw ValidationException::withMessages(['month' => __('settlement.closing.not_closed')]);
             }
             $closing->update(['snapshot' => null, 'closed_by' => null, 'closed_at' => null]);
 

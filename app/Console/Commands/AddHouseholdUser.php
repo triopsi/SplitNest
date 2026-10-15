@@ -12,19 +12,19 @@ use Illuminate\Validation\Rules\Password;
  */
 class AddHouseholdUser extends Command
 {
-    protected $signature = 'splitnest:user {email?} {--name= : Anzeigename}';
+    protected $signature = 'splitnest:user {email?} {--name= : Display name}';
 
-    protected $description = 'Legt einen Haushaltsadministrator an (Passwort wird verdeckt abgefragt).';
+    protected $description = 'Creates a household administrator (the password is asked hidden).';
 
     /**
      * Ask for name, e-mail and password, validate them and create the admin user.
      */
     public function handle(): int
     {
-        $email = strtolower(trim($this->argument('email') ?: $this->ask('E-Mail-Adresse')));
-        $name = $this->option('name') ?: $this->ask('Name');
-        $password = $this->secret('Passwort (mindestens 12 Zeichen)');
-        $confirmation = $this->secret('Passwort wiederholen');
+        $email = strtolower(trim($this->argument('email') ?: $this->ask(__('users.command.email'))));
+        $name = $this->option('name') ?: $this->ask(__('users.command.name'));
+        $password = $this->secret(__('users.command.password'));
+        $confirmation = $this->secret(__('users.command.password_repeat'));
         $validator = Validator::make(['name' => $name, 'email' => $email, 'password' => $password, 'password_confirmation' => $confirmation], [
             'name' => ['required', 'string', 'max:255'], 'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::min(12)],
@@ -39,7 +39,7 @@ class AddHouseholdUser extends Command
         $user = new User(['name' => $name, 'email' => $email, 'password' => $password]);
         $user->is_admin = true;
         $user->save();
-        $this->info("Login für {$email} erstellt. Dieser Benutzer darf den gesamten Haushalt verwalten.");
+        $this->info(__('users.command.success', ['email' => $email]));
 
         return self::SUCCESS;
     }

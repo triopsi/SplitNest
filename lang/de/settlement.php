@@ -1,0 +1,88 @@
+<?php
+
+/**
+ * Monatsübersicht, Monatsabschluss/-eröffnung und Abrechnungsberechnung.
+ */
+return [
+    'title' => 'Monatsübersicht',
+    'hero' => [
+        'kicker' => 'Gemeinsam planen · Fair aufteilen',
+        'title' => 'Ein Monat. Alles im Blick.',
+        'text' => 'Einkünfte, Kosten und die Zahlungen, die euren Haushalt ausgleichen.',
+    ],
+    'picker' => [
+        'month' => 'Abrechnungsmonat',
+        'year' => 'Jahr',
+    ],
+    'months' => ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+    'manage_participants' => 'Teilnehmer verwalten',
+    'closed_badge' => 'Abgeschlossen am :date',
+    'open_badge' => 'Offener Monatsplan :month',
+    'pdf_button' => 'Abrechnung als PDF',
+    'close_hint' => '„Monat abschließen" friert Einkünfte, Kosten und deren Aufteilung für diesen Monat ein: Der Abschluss ist danach unveränderlich und die PDF-Abrechnung bleibt bei späteren Änderungen identisch.',
+    'planned_note' => 'Geplante Zahlungen, keine Bankumsätze. Überweisungen werden noch nicht als bezahlt erfasst.',
+    'cards' => [
+        'income' => 'Einkünfte zusammen',
+        'income_hint' => 'Alle Einkünfte, die in diesem Monat geplant sind.',
+        'costs' => 'Kosten zusammen',
+        'costs_hint' => 'Alle Kostenpositionen, die in diesem Monat fällig werden.',
+        'left' => 'Nach allen Kosten übrig',
+        'left_hint' => 'Einkünfte minus Kosten — euer frei verfügbarer Rest.',
+    ],
+    'transfers' => [
+        'title' => 'Diese Beträge sind zu überweisen',
+        'count' => ':count Ausgleichszahlungen',
+        'to' => 'an',
+        'reference' => 'Haushaltsanteil :month',
+        'balanced' => 'Der Haushalt ist ausgeglichen. Es ist keine Ausgleichszahlung nötig.',
+    ],
+    'overview' => [
+        'title' => 'Eure persönliche Übersicht',
+        'participant' => 'Teilnehmer',
+        'income' => 'Einkünfte',
+        'share' => 'Eigener Kostenanteil',
+        'share_pct' => 'Anteil an Kosten',
+        'paid' => 'Rechnungen bezahlt*',
+        'balance' => 'Ausgleich**',
+        'left' => 'Übrig',
+        'footnote' => 'Anteil an Kosten = prozentualer Anteil am gemeinsamen Kostentopf. * Laut geplantem Bezahler. ** Positiv = erhält Geld, negativ = zahlt Geld. Übrig = Einkommen minus eigener Kostenanteil.',
+    ],
+    'costs' => [
+        'title' => 'So teilen sich die Kosten auf',
+        'manage' => 'Kosten verwalten',
+        'item' => 'Posten',
+        'payer' => 'Bezahler',
+        'rule' => 'Regel',
+        'total' => 'Gesamt',
+        'empty' => 'Für diesen Monat sind noch keine Kosten erfasst.',
+    ],
+    'close_action' => [
+        'label' => 'Monat abschließen',
+        'heading' => 'Abrechnung verbindlich speichern?',
+        'description' => 'Die geplanten Rechnungen und ihre Aufteilung werden eingefroren. Der Abschluss kann auch am Monatsanfang erstellt werden. Die PDF bleibt bei späteren Änderungen unverändert.',
+        'success' => 'Monat abgeschlossen. Die PDF steht bereit.',
+        'error' => 'Abschluss nicht möglich',
+    ],
+    'reopen_action' => [
+        'label' => 'Monat wieder eröffnen',
+        'heading' => 'Abschluss wieder eröffnen?',
+        'description' => 'Der eingefrorene Stand wird verworfen und die bisherige PDF-Abrechnung ist nicht mehr abrufbar. Danach kann der Monat bearbeitet und erneut abgeschlossen werden.',
+        'success' => 'Monat wieder geöffnet.',
+        'error' => 'Eröffnen nicht möglich',
+    ],
+    'closing' => [
+        'immutable' => 'Dieser Monat ist abgeschlossen und unveränderlich.',
+        'no_delete' => 'Monatsabschlüsse dürfen nicht gelöscht werden.',
+        'not_closed' => 'Dieser Monat ist nicht abgeschlossen.',
+    ],
+    'calculator' => [
+        'no_participants' => 'Bitte zuerst Teilnehmer anlegen.',
+        'missing_income' => 'Für „:name" fehlt Einkommen bei allen zugeordneten Teilnehmern. Bitte Einkommen oder eine andere Aufteilung hinterlegen.',
+        'invalid_amount' => 'Ungültiger Betrag oder Gewichtung.',
+    ],
+    'shares_chart' => [
+        'heading' => 'Kostenanteile',
+        'description' => 'Wer trägt wie viel der Kosten in diesem Monat?',
+        'dataset' => 'Kostenanteil in €',
+    ],
+];

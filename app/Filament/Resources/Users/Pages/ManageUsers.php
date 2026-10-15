@@ -30,16 +30,16 @@ class ManageUsers extends ManageRecords
     {
         return [
             CreateAction::make(),
-            Action::make('invite')->label('Per E-Mail einladen')->icon('heroicon-o-envelope')
+            Action::make('invite')->label(__('users.invite.action'))->icon('heroicon-o-envelope')
                 ->schema([
-                    TextInput::make('email')->label('E-Mail')->email()->required()->maxLength(255),
+                    TextInput::make('email')->label(__('users.fields.email'))->email()->required()->maxLength(255),
                 ])
                 ->action(function (array $data): void {
                     try {
                         app(InviteToHousehold::class)->invite($data['email'], (int) auth()->id());
-                        Notification::make()->success()->title('Einladung verschickt. Der Link ist '.config('app.invitation_ttl_hours').' Stunden gültig.')->send();
+                        Notification::make()->success()->title(__('users.invite.success', ['hours' => config('app.invitation_ttl_hours')]))->send();
                     } catch (ValidationException $e) {
-                        Notification::make()->danger()->title('Einladung nicht möglich')->body(collect($e->errors())->flatten()->implode(' '))->send();
+                        Notification::make()->danger()->title(__('users.invite.error'))->body(collect($e->errors())->flatten()->implode(' '))->send();
                     }
                 }),
         ];

@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\DB;
  */
 final class Settings
 {
-    /** Default closing e-mail body; supports {name}, {monat} and {ueberweisungen}. */
-    public const DEFAULT_MAIL_BODY = "Hallo {name},\n\ndie Abrechnung für {monat} ist fertig und hängt als PDF an.\n\nDeine Ausgleichszahlungen:\n{ueberweisungen}\n\nViele Grüße\nSplitNest";
-
     /**
      * Read a setting value, falling back to the given default.
      */
@@ -37,10 +34,10 @@ final class Settings
     }
 
     /**
-     * The configurable closing e-mail body template.
+     * The configurable closing e-mail body template (default: translated).
      */
     public static function mailBody(): string
     {
-        return self::get('mail_body') ?? self::DEFAULT_MAIL_BODY;
+        return self::get('mail_body') ?? __('mail.default_body');
     }
 }

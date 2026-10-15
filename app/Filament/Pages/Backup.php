@@ -11,7 +11,6 @@ use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
-use UnitEnum;
 
 /**
  * Backup page: export the whole household as a ZIP download and restore it
@@ -21,22 +20,40 @@ class Backup extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBoxArrowDown;
 
-    protected static ?string $navigationLabel = 'Sicherung';
-
-    protected static ?string $title = 'Sicherung';
-
-    protected static UnitEnum|string|null $navigationGroup = 'System';
-
     protected static ?int $navigationSort = 7;
 
     protected string $view = 'filament.pages.backup';
+
+    /**
+     * Page title (translated).
+     */
+    public function getTitle(): string
+    {
+        return __('backup.title');
+    }
+
+    /**
+     * Navigation label (translated).
+     */
+    public static function getNavigationLabel(): string
+    {
+        return __('backup.title');
+    }
+
+    /**
+     * Sidebar group (translated).
+     */
+    public static function getNavigationGroup(): string
+    {
+        return __('nav.groups.system');
+    }
 
     /**
      * Export action: downloads all household data as a ZIP file.
      */
     public function exportAction(): Action
     {
-        return Action::make('export')->label('Backup herunterladen')->icon('heroicon-o-arrow-down-tray')
+        return Action::make('export')->label(__('backup.export'))->icon('heroicon-o-arrow-down-tray')
             ->action(function () {
                 $path = tempnam(sys_get_temp_dir(), 'splitnest-backup-');
                 app(HouseholdBackup::class)->exportToZip($path);
@@ -50,19 +67,19 @@ class Backup extends Page
      */
     public function importAction(): Action
     {
-        return Action::make('import')->label('Backup einspielen')->icon('heroicon-o-arrow-up-tray')->color('danger')
-            ->requiresConfirmation()->modalHeading('Backup einspielen und alle Daten ersetzen?')
-            ->modalDescription('Alle aktuell gespeicherten Teilnehmer, Einkünfte, Kosten und Monatsabschlüsse werden durch den Inhalt der Datei ersetzt. Das kann nicht rückgängig gemacht werden.')
+        return Action::make('import')->label(__('backup.import'))->icon('heroicon-o-arrow-up-tray')->color('danger')
+            ->requiresConfirmation()->modalHeading(__('backup.import_heading'))
+            ->modalDescription(__('backup.import_description'))
             ->form([
-                FileUpload::make('file')->label('Backup-Datei (.zip)')->disk('local')->directory('backup-uploads')
+                FileUpload::make('file')->label(__('backup.file'))->disk('local')->directory('backup-uploads')
                     ->acceptedFileTypes(['application/zip', 'application/x-zip-compressed'])->required(),
             ])
             ->action(function (array $data): void {
                 try {
                     app(HouseholdBackup::class)->importFromZip(Storage::disk('local')->path($data['file']));
-                    Notification::make()->success()->title('Backup eingespielt. Alle Daten wurden ersetzt.')->send();
+                    Notification::make()->success()->title(__('backup.imported'))->send();
                 } catch (ValidationException $e) {
-                    Notification::make()->danger()->title('Import fehlgeschlagen')
+                    Notification::make()->danger()->title(__('backup.import_failed'))
                         ->body(collect($e->errors())->flatten()->implode(' '))->send();
                 } finally {
                     Storage::disk('local')->delete($data['file']);

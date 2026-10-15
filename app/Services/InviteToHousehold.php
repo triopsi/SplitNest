@@ -31,7 +31,7 @@ final class InviteToHousehold
         $email = strtolower(trim($email));
         Validator::make(['email' => $email], ['email' => ['required', 'email:rfc', 'max:255']])->validate();
         if (User::where('email', $email)->exists()) {
-            throw ValidationException::withMessages(['email' => 'Für diese E-Mail-Adresse besteht bereits ein Konto.']);
+            throw ValidationException::withMessages(['email' => __('users.invite.account_exists')]);
         }
 
         $token = HouseholdInvitation::generateToken();

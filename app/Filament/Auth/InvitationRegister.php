@@ -36,7 +36,7 @@ class InvitationRegister extends Register
 
         $invitation = $this->pendingInvitation();
         if (! $invitation) {
-            Notification::make()->danger()->title('Diese Einladung ist ungültig, abgelaufen oder wurde bereits verwendet.')->persistent()->send();
+            Notification::make()->danger()->title(__('users.invitation.invalid'))->persistent()->send();
             $this->redirect(Filament::getLoginUrl());
 
             return;
@@ -50,7 +50,7 @@ class InvitationRegister extends Register
      */
     public function getTitle(): string|Htmlable
     {
-        return 'Einladung annehmen';
+        return __('users.invitation.title');
     }
 
     /**
@@ -58,7 +58,7 @@ class InvitationRegister extends Register
      */
     public function getHeading(): string|Htmlable|null
     {
-        return 'Konto für den Haushalt anlegen';
+        return __('users.invitation.heading');
     }
 
     /**
@@ -68,7 +68,7 @@ class InvitationRegister extends Register
     {
         return parent::getEmailFormComponent()
             ->readOnly()
-            ->helperText('Die Einladung gilt für diese E-Mail-Adresse.');
+            ->helperText(__('users.invitation.email_hint'));
     }
 
     /**
@@ -78,7 +78,7 @@ class InvitationRegister extends Register
     {
         return parent::getPasswordFormComponent()
             ->rules(['min:12'])
-            ->helperText('Mindestens 12 Zeichen.');
+            ->helperText(__('users.invitation.password_hint'));
     }
 
     /**
@@ -97,7 +97,7 @@ class InvitationRegister extends Register
     {
         $invitation = $this->pendingInvitation();
         if (! $invitation) {
-            throw ValidationException::withMessages(['email' => 'Diese Einladung ist ungültig, abgelaufen oder wurde bereits verwendet.']);
+            throw ValidationException::withMessages(['email' => __('users.invitation.invalid')]);
         }
 
         $user = $this->getUserModel()::create([

@@ -23,6 +23,7 @@
              Nur so landen Tests garantiert auf SQLite :memory: und RefreshDatabase
              leert nicht die Dev-Datenbank. -->
         <server name="APP_ENV" value="testing"/>
+        <server name="APP_LOCALE" value="en"/>
         <server name="APP_MAINTENANCE_DRIVER" value="file"/>
         <server name="BCRYPT_ROUNDS" value="4"/>
         <server name="BROADCAST_CONNECTION" value="null"/>

@@ -29,8 +29,8 @@ class Expense extends Model
 {
     use HasSchedule;
 
-    /** Available cost-splitting strategies (key => German UI label). */
-    public const MODES = ['percentage' => 'Feste Prozente', 'income' => 'Nach Einkommen', 'equal' => 'Gleiche Anteile', 'personal' => 'Persönlich (100 %)'];
+    /** Available cost-splitting strategies (keys, see {@see Expense::modeLabels()}). */
+    public const MODE_KEYS = ['percentage', 'income', 'equal', 'personal'];
 
     protected $fillable = ['payer_id', 'name', 'amount', 'amount_cents', 'split_mode', 'shares', 'start_month', 'end_month', 'interval_months', 'notes'];
 
@@ -52,6 +52,21 @@ class Expense extends Model
     public function payer(): BelongsTo
     {
         return $this->belongsTo(Participant::class, 'payer_id');
+    }
+
+    /**
+     * The split strategies as translated UI labels (key => label).
+     *
+     * @return array<string, string>
+     */
+    public static function modeLabels(): array
+    {
+        return [
+            'percentage' => __('expenses.modes.percentage'),
+            'income' => __('expenses.modes.income'),
+            'equal' => __('expenses.modes.equal'),
+            'personal' => __('expenses.modes.personal'),
+        ];
     }
 
     /**
@@ -77,19 +92,19 @@ class Expense extends Model
         ])->validate();
 
         if ($this->split_mode === 'personal' && count($this->shares) !== 1) {
-            throw ValidationException::withMessages(['shares' => 'Persönliche Kosten brauchen genau einen Teilnehmer.']);
+            throw ValidationException::withMessages(['shares' => __('expenses.validation.personal_one')]);
         }
         if ($this->split_mode === 'percentage') {
             $total = 0;
             foreach ($this->shares as $share) {
                 $percentage = Money::cents($share['percentage'] ?? '', 'shares');
                 if ($percentage > 10000) {
-                    throw ValidationException::withMessages(['shares' => 'Ein Anteil darf höchstens 100 % betragen.']);
+                    throw ValidationException::withMessages(['shares' => __('expenses.validation.max_100')]);
                 }
                 $total += $percentage;
             }
             if ($total !== 10000) {
-                throw ValidationException::withMessages(['shares' => 'Die Anteile müssen zusammen genau 100 % ergeben.']);
+                throw ValidationException::withMessages(['shares' => __('expenses.validation.sum_100')]);
             }
         }
     }

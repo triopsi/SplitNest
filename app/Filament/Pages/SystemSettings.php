@@ -13,7 +13,6 @@ use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use UnitEnum;
 
 /**
  * System settings page: household-wide switches such as Gravatar avatars.
@@ -24,18 +23,36 @@ class SystemSettings extends Page implements HasSchemas
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
 
-    protected static ?string $navigationLabel = 'Einstellungen';
-
-    protected static ?string $title = 'Einstellungen';
-
-    protected static UnitEnum|string|null $navigationGroup = 'System';
-
     protected static ?int $navigationSort = 8;
 
     protected string $view = 'filament.pages.system-settings';
 
     /** Form state, keyed by field name. */
     public ?array $data = [];
+
+    /**
+     * Page title (translated).
+     */
+    public function getTitle(): string
+    {
+        return __('settings.title');
+    }
+
+    /**
+     * Navigation label (translated).
+     */
+    public static function getNavigationLabel(): string
+    {
+        return __('settings.title');
+    }
+
+    /**
+     * Sidebar group (translated).
+     */
+    public static function getNavigationGroup(): string
+    {
+        return __('nav.groups.system');
+    }
 
     /**
      * Fill the form with the persisted settings.
@@ -54,17 +71,17 @@ class SystemSettings extends Page implements HasSchemas
     public function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('Avatare')
-                ->description('Profilbilder anhand der hinterlegten E-Mail-Adresse anzeigen.')
+            Section::make(__('settings.avatars'))
+                ->description(__('settings.avatars_desc'))
                 ->schema([
-                    Toggle::make('gravatar_enabled')->label('Gravatar verwenden')
-                        ->helperText('Wenn aktiv, erscheinen Gravatar-Bilder beim angemeldeten Benutzer oben rechts und überall dort, wo Teilnehmer mit E-Mail-Adresse genannt werden. Die Bilder werden von gravatar.com geladen.'),
+                    Toggle::make('gravatar_enabled')->label(__('settings.gravatar'))
+                        ->helperText(__('settings.gravatar_hint')),
                 ]),
-            Section::make('E-Mail beim Monatsabschluss')
-                ->description('Beim Abschließen eines Monats erhalten alle Teilnehmer mit E-Mail-Adresse die Abrechnung als PDF und ihren Zahlungsplan per E-Mail.')
+            Section::make(__('settings.closing_mail'))
+                ->description(__('settings.closing_mail_desc'))
                 ->schema([
-                    Textarea::make('mail_body')->label('E-Mail-Text')->rows(10)->required()
-                        ->helperText('Platzhalter: {name} = Teilnehmername, {monat} = Abrechnungsmonat, {ueberweisungen} = Liste der Zahlungen des Teilnehmers.'),
+                    Textarea::make('mail_body')->label(__('settings.mail_body'))->rows(10)->required()
+                        ->helperText(__('settings.mail_body_hint')),
                 ]),
         ])->statePath('data');
     }
@@ -76,7 +93,7 @@ class SystemSettings extends Page implements HasSchemas
     {
         $state = $this->form->getState();
         Settings::set('gravatar_enabled', ($state['gravatar_enabled'] ?? false) ? '1' : '0');
-        Settings::set('mail_body', $state['mail_body'] ?? Settings::DEFAULT_MAIL_BODY);
-        Notification::make()->success()->title('Einstellungen gespeichert.')->send();
+        Settings::set('mail_body', $state['mail_body'] ?? __('mail.default_body'));
+        Notification::make()->success()->title(__('settings.saved'))->send();
     }
 }

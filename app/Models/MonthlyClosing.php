@@ -45,9 +45,9 @@ class MonthlyClosing extends Model
     {
         static::updating(function (self $closing): void {
             if ($closing->getOriginal('closed_at') && $closing->closed_at) {
-                throw ValidationException::withMessages(['month' => 'Dieser Monat ist abgeschlossen und unveränderlich.']);
+                throw ValidationException::withMessages(['month' => __('settlement.closing.immutable')]);
             }
         });
-        static::deleting(fn () => throw ValidationException::withMessages(['month' => 'Monatsabschlüsse dürfen nicht gelöscht werden.']));
+        static::deleting(fn () => throw ValidationException::withMessages(['month' => __('settlement.closing.no_delete')]));
     }
 }
