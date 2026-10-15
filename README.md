@@ -95,7 +95,14 @@ Homelab-friendly: no build, no repo clone — release images come prebuilt from 
          SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
          CACHE_STORE: database
          QUEUE_CONNECTION: database
-         MAIL_MAILER: log
+         MAIL_MAILER: ${MAIL_MAILER:-log}
+         MAIL_HOST: ${MAIL_HOST:-127.0.0.1}
+         MAIL_PORT: ${MAIL_PORT:-2525}
+         MAIL_SCHEME: ${MAIL_SCHEME:-}
+         MAIL_USERNAME: ${MAIL_USERNAME:-}
+         MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+         MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
+         MAIL_FROM_NAME: ${MAIL_FROM_NAME:-SplitNest}
          LOG_CHANNEL: stderr
          TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
        volumes:
@@ -160,7 +167,7 @@ Homelab-friendly: no build, no repo clone — release images come prebuilt from 
 
 Migrations run automatically on every start (one-shot `migrate` service). Pin a release with `SPLITNEST_VERSION=1.4.0` in the `.env` (default: `latest`); update with `docker compose pull && docker compose up -d`.
 
-Notes: the image runs as `www-data`, ships no secrets and exposes a `/up` healthcheck. MariaDB publishes no port. The app binds to `127.0.0.1` by default — run an HTTPS reverse proxy in front of it and set `TRUSTED_PROXIES` to its address(es). `SESSION_SECURE_COOKIE=true` requires HTTPS; set it to `false` only for a purely local HTTP test.
+Notes: the image runs as `www-data`, ships no secrets and exposes a `/up` healthcheck. MariaDB publishes no port. **The app binds to `127.0.0.1` by default** — reachable only from the host itself. To reach it from your LAN, set `APP_BIND_ADDRESS=0.0.0.0`; better: keep the loopback bind and run an HTTPS reverse proxy on the same host in front of it (set `TRUSTED_PROXIES` to its address(es)). `SESSION_SECURE_COOKIE=true` requires HTTPS; set it to `false` only for a purely local HTTP test.
 
 ## Environment variables
 
