@@ -72,6 +72,12 @@ class InvitationTest extends TestCase
         $this->assertSame('neu@example.test', $invitation->email);
         $this->assertTrue($invitation->isPending());
         $this->assertSame(HouseholdInvitation::hashToken($this->mailedToken()), $invitation->token);
+
+        /** @var HouseholdInvitationMail $mail */
+        $mail = Mail::sent(HouseholdInvitationMail::class)->first();
+        $url = route('filament.admin.invitation', ['token' => $mail->token]);
+        $mail->assertSeeInHtml('Create account');
+        $mail->assertSeeInHtml($url);
     }
 
     /**

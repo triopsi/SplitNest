@@ -35,23 +35,24 @@ class HouseholdInvitationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('mail.invitation_subject', ['app' => config('app.name')]),
+            subject: __('mail.invitation.subject', ['app' => config('app.name')]),
         );
     }
 
     /**
-     * Get the message content definition.
+     * Get the message content definition: HTML card plus plain-text fallback.
      */
     public function content(): Content
     {
+        $url = route('filament.admin.invitation', ['token' => $this->token]);
+
         return new Content(
-            text: 'emails.invitation',
+            view: 'emails.invitation',
+            text: 'emails.invitation-text',
             with: [
-                'body' => __('mail.invitation_body', [
-                    'app' => config('app.name'),
-                    'url' => route('filament.admin.invitation', ['token' => $this->token]),
-                    'hours' => config('app.invitation_ttl_hours'),
-                ]),
+                'url' => $url,
+                'hours' => config('app.invitation_ttl_hours'),
+                'bodyText' => __('mail.invitation.body', ['app' => config('app.name'), 'url' => $url, 'hours' => config('app.invitation_ttl_hours')]),
             ],
         );
     }

@@ -42,12 +42,13 @@ class MonthClosedMail extends Mailable
     }
 
     /**
-     * Get the message content definition.
+     * Get the message content definition: HTML card plus plain-text fallback.
      */
     public function content(): Content
     {
         return new Content(
-            text: 'emails.month-closed',
+            view: 'emails.month-closed',
+            text: 'emails.month-closed-text',
         );
     }
 
@@ -59,7 +60,7 @@ class MonthClosedMail extends Mailable
     public function attachments(): array
     {
         return [
-            Attachment::fromData(fn (): string => $this->pdfData, 'SplitNest-Abrechnung-'.$this->closing->month.'.pdf')
+            Attachment::fromData(fn (): string => $this->pdfData, __('mail.closing_attachment', ['app' => config('app.name'), 'month' => $this->closing->month]))
                 ->withMime('application/pdf'),
         ];
     }

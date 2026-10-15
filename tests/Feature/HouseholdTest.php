@@ -545,6 +545,8 @@ class HouseholdTest extends TestCase
             $this->assertCount(1, $mail->attachments());
             $mail->assertSeeInText('Hello Svenja');
             $mail->assertSeeInText('50,00 € to Daniel');
+            $mail->assertSeeInHtml('Hello Svenja');
+            $mail->assertSeeInHtml('January 2027');
 
             return true;
         });
