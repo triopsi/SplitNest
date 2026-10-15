@@ -49,7 +49,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(fn () => asset('brand/splitnest-logo-light.svg'))
             ->darkModeBrandLogo(fn () => asset('brand/splitnest-logo-dark.svg'))
             ->brandLogoHeight('2.5rem')
-            ->favicon(fn () => asset('favicon.svg'))
+            ->favicon(fn () => asset('brand/favicon.svg'))
             ->font('Inter', url: asset('fonts/filament/filament/inter/index.css'), provider: LocalFontProvider::class)
             ->maxContentWidth('full')
             ->renderHook('panels::head.end', fn () => view('filament.household-style'))
