@@ -170,7 +170,7 @@ Homelab-friendly: no build, no repo clone — release images come prebuilt from 
 
 Migrations run automatically on every start (one-shot `migrate` service). Pin a release with `SPLITNEST_VERSION=1.4.0` in the `.env` (default: `latest`); update with `docker compose pull && docker compose up -d`.
 
-Notes: the image runs as `www-data`, ships no secrets and exposes a `/up` healthcheck. MariaDB publishes no port. **The app binds to `127.0.0.1` by default** — reachable only from the host itself. To reach it from your LAN, set `APP_BIND_ADDRESS=0.0.0.0`; better: keep the loopback bind and run an HTTPS reverse proxy on the same host in front of it (set `TRUSTED_PROXIES` to its address(es)). `SESSION_SECURE_COOKIE=true` requires HTTPS; set it to `false` only for a purely local HTTP test.
+Notes: the image runs as `www-data`, ships no secrets and exposes a `/up` healthcheck. MariaDB publishes no port. **The app binds to `127.0.0.1` by default** — reachable only from the host itself. To reach it from your LAN, set `APP_BIND_ADDRESS=0.0.0.0`; better: keep the loopback bind and run an HTTPS reverse proxy on the same host in front of it. **Behind a reverse proxy, always set `TRUSTED_PROXIES` to its address(es)** — otherwise the app generates `http://` asset URLs and browsers block them as mixed content. `SESSION_SECURE_COOKIE=true` requires HTTPS; set it to `false` only for a purely local HTTP test.
 
 ## Environment variables
 
