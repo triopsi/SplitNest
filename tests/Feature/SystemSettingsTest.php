@@ -46,4 +46,28 @@ class SystemSettingsTest extends TestCase
         $this->assertSame('https://www.gravatar.com/avatar/'.md5($admin->email).'?s=80&d=initials', $admin->getFilamentAvatarUrl());
         $this->get('/admin?month=2027-01')->assertSee('gravatar.com/avatar/'.md5('daniel@example.test'), false);
     }
+
+    /**
+     * Change the Gravatar fallback style via the settings dropdown.
+     *
+     * Expects the chosen style to be persisted and used in generated avatar
+     * URLs; the default stays 'initials'.
+     */
+    public function test_gravatar_style_dropdown_changes_the_avatar_fallback(): void
+    {
+        $admin = User::factory()->create();
+        $admin->is_admin = true;
+        $admin->save();
+        $this->actingAs($admin);
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        $this->assertSame('initials', Settings::gravatarStyle());
+        Livewire::test(SystemSettings::class)
+            ->assertSet('data.gravatar_style', 'initials')
+            ->set('data.gravatar_enabled', true)
+            ->set('data.gravatar_style', 'monsterid')
+            ->call('save');
+        $this->assertSame('monsterid', Settings::gravatarStyle());
+        $this->assertStringContainsString('d=monsterid', (string) $admin->getFilamentAvatarUrl());
+    }
 }

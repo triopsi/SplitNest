@@ -4,11 +4,13 @@ namespace App\Filament\Pages;
 
 use App\Support\Settings;
 use BackedEnum;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
@@ -61,6 +63,7 @@ class SystemSettings extends Page implements HasSchemas
     {
         $this->form->fill([
             'gravatar_enabled' => Settings::gravatarEnabled(),
+            'gravatar_style' => Settings::gravatarStyle(),
             'mail_body' => Settings::mailBody(),
         ]);
     }
@@ -74,8 +77,12 @@ class SystemSettings extends Page implements HasSchemas
             Section::make(__('settings.avatars'))
                 ->description(__('settings.avatars_desc'))
                 ->schema([
-                    Toggle::make('gravatar_enabled')->label(__('settings.gravatar'))
+                    Toggle::make('gravatar_enabled')->label(__('settings.gravatar'))->live()
                         ->helperText(__('settings.gravatar_hint')),
+                    Select::make('gravatar_style')->label(__('settings.gravatar_style'))
+                        ->options(__('settings.gravatar_styles'))->required()
+                        ->visible(fn (Get $get): bool => (bool) $get('gravatar_enabled'))
+                        ->helperText(__('settings.gravatar_style_hint')),
                 ]),
             Section::make(__('settings.closing_mail'))
                 ->description(__('settings.closing_mail_desc'))
@@ -93,6 +100,7 @@ class SystemSettings extends Page implements HasSchemas
     {
         $state = $this->form->getState();
         Settings::set('gravatar_enabled', ($state['gravatar_enabled'] ?? false) ? '1' : '0');
+        Settings::set('gravatar_style', $state['gravatar_style'] ?? Settings::gravatarStyle());
         Settings::set('mail_body', $state['mail_body'] ?? __('mail.default_body'));
         Notification::make()->success()->title(__('settings.saved'))->send();
     }

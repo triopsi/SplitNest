@@ -34,6 +34,14 @@ final class Settings
     }
 
     /**
+     * The Gravatar fallback style (the d parameter), e.g. initials or monsterid.
+     */
+    public static function gravatarStyle(): string
+    {
+        return self::get('gravatar_style', 'initials') ?? 'initials';
+    }
+
+    /**
      * The configurable closing e-mail body template (default: translated).
      */
     public static function mailBody(): string

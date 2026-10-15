@@ -13,7 +13,7 @@ final class Gravatar
     /**
      * Build the Gravatar URL for an e-mail address, or null when disabled.
      *
-     * "d=initials" lets Gravatar render neutral initials when no picture exists.
+     * The fallback style (d parameter) is configurable in the settings.
      */
     public static function url(?string $email, int $size = 80): ?string
     {
@@ -21,6 +21,6 @@ final class Gravatar
             return null;
         }
 
-        return 'https://www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?s={$size}&d=initials";
+        return 'https://www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?s={$size}&d=".Settings::gravatarStyle();
     }
 }
