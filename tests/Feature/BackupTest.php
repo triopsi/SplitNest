@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\Backup;
 use App\Models\Expense;
 use App\Models\Income;
 use App\Models\MonthlyClosing;
@@ -9,9 +10,12 @@ use App\Models\Participant;
 use App\Models\User;
 use App\Services\CloseMonth;
 use App\Services\HouseholdBackup;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
@@ -62,6 +66,37 @@ class BackupTest extends TestCase
         // Sequences must continue above the imported IDs.
         $c = Participant::create(['name' => 'Neu']);
         $this->assertGreaterThan($b->id, $c->id);
+    }
+
+    /**
+     * Upload a real export ZIP through the import action in the UI.
+     *
+     * Expects the extension-based upload validation to accept the file and
+     * the import to replace the dataset without action errors.
+     */
+    #[Group('critical')]
+    public function test_import_action_accepts_a_real_export_zip(): void
+    {
+        Participant::create(['name' => 'Daniel']);
+        $path = tempnam(sys_get_temp_dir(), 'backup-test-');
+        app(HouseholdBackup::class)->exportToZip($path);
+
+        $admin = User::factory()->create();
+        $admin->is_admin = true;
+        $admin->save();
+        $this->actingAs($admin);
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        Participant::create(['name' => 'Vorher']);
+        Storage::disk('local')->put('backup-uploads/test.zip', file_get_contents($path));
+        Livewire::test(Backup::class)
+            ->mountAction('import')
+            ->setActionData(['file' => ['00000000-0000-0000-0000-000000000000' => 'backup-uploads/test.zip']])
+            ->callMountedAction()
+            ->assertHasNoActionErrors();
+        $this->assertDatabaseCount('participants', 1);
+        $this->assertSame('Daniel', Participant::firstOrFail()->name);
+        unlink($path);
     }
 
     /**

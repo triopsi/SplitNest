@@ -72,7 +72,7 @@ class Backup extends Page
             ->modalDescription(__('backup.import_description'))
             ->form([
                 FileUpload::make('file')->label(__('backup.file'))->disk('local')->directory('backup-uploads')
-                    ->acceptedFileTypes(['application/zip', 'application/x-zip-compressed'])->required(),
+                    ->rules(['extensions:zip'])->required(),
             ])
             ->action(function (array $data): void {
                 try {

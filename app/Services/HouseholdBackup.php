@@ -78,8 +78,10 @@ final class HouseholdBackup
                     DB::table($table)->insert($chunk);
                 }
             }
-            $this->resetIdSequences();
         });
+        // Outside the transaction: on MariaDB/MySQL the ALTER TABLE in
+        // resetIdSequences() would trigger an implicit commit and break it.
+        $this->resetIdSequences();
     }
 
     /**

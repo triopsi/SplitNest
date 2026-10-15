@@ -241,7 +241,7 @@ Everything the app reads from the environment, with its defaults. In production,
 
 ## Translations
 
-The UI base language is **English**; German is included as a complete translation. Switch the language with `APP_LOCALE` (e.g. `APP_LOCALE=de` in your `.env`). Panel chrome (buttons, pagination, login form) is translated by Filament itself.
+The UI base language is **English**; German is included as a complete translation. Users switch the language in the topbar dropdown next to the user menu (remembered per session); the default for fresh sessions is set with `APP_LOCALE` (e.g. `APP_LOCALE=de` in your `.env`). Panel chrome (buttons, pagination, login form) is translated by Filament itself.
 
 Missing your language? **Contributions are very welcome!** Translations live in `lang/<locale>/` as plain PHP array files, grouped by area (`settlement.php`, `yearplan.php`, `expenses.php`, `incomes.php`, `participants.php`, `schedule.php`, `users.php`, `backup.php`, `settings.php`, `mail.php`, `pdf.php`, `nav.php`). To add your language:
 
@@ -249,7 +249,7 @@ Missing your language? **Contributions are very welcome!** Translations live in 
 2. Translate the values — keep the keys and `:placeholder`/`{placeholder}` names untouched
 3. Open a pull request
 
-The test suite compares every locale against the English keys, so a PR with gaps fails fast and translations stay maintained.
+New locales appear in the switcher automatically (add the native name to `App\Support\Locales`). The test suite compares every locale against the English keys, so a PR with gaps fails fast and translations stay maintained.
 
 ## Backup & restore
 

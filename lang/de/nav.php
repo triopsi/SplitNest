@@ -4,6 +4,7 @@
  * Navigation: Seitenleisten-Gruppen.
  */
 return [
+    'language' => 'Sprache',
     'groups' => [
         'overview' => 'Übersicht',
         'household' => 'Haushalt',

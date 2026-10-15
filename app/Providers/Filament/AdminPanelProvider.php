@@ -7,6 +7,7 @@ use App\Filament\Auth\InvitationRegister;
 use App\Filament\Auth\Login;
 use App\Filament\Resources\Users\UserResource;
 use App\Http\Middleware\EnsureHouseholdAdmin;
+use App\Http\Middleware\SetLocale;
 use Filament\Actions\Action;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
@@ -18,6 +19,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Icons\Heroicon;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -52,6 +54,7 @@ class AdminPanelProvider extends PanelProvider
             ->maxContentWidth('full')
             ->renderHook('panels::head.end', fn () => view('filament.household-style'))
             ->renderHook('panels::footer', fn () => view('filament.version-footer'))
+            ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => view('filament.language-switcher'))
             ->colors([
                 'primary' => Color::Teal,
             ])
@@ -79,6 +82,7 @@ class AdminPanelProvider extends PanelProvider
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
+                SetLocale::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
                 PreventRequestForgery::class,
