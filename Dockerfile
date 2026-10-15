@@ -99,11 +99,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 FROM node:22-bookworm-slim AS frontend
 WORKDIR /app
 
-# Erst nur das Manifest kopieren -> npm-Layer bleibt gecacht, solange sich
-# package.json nicht ändert (das Projekt hat keine Lock-Datei).
-COPY package.json ./
+# Erst nur die Manifeste kopieren -> npm-Layer bleibt gecacht, solange sich
+# package.json/package-lock.json nicht ändern.
+COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
-    npm install --no-audit --no-fund
+    npm ci --no-audit --no-fund
 
 # Vite-Config + Quellen; Tailwind scannt dabei die Blade-Views in resources/views
 COPY vite.config.js ./

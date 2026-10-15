@@ -8,6 +8,7 @@ return [
     'label' => 'Benutzer',
     'plural' => 'Benutzer',
     'menu' => 'Benutzer',
+    'or' => 'ODER',
     'fields' => [
         'name' => 'Name',
         'email' => 'E-Mail',
@@ -49,5 +50,18 @@ return [
         'password' => 'Passwort (mindestens 12 Zeichen)',
         'password_repeat' => 'Passwort wiederholen',
         'success' => 'Login für :email erstellt. Dieser Benutzer darf den gesamten Haushalt verwalten.',
+    ],
+    'passkeys' => [
+        'heading' => 'Passkeys',
+        'description' => 'Ohne Passwort einloggen: Erstelle einen Passkey mit deinem Passwort-Manager oder Gerät (z. B. 1Password, iCloud-Schlüsselbund, Windows Hello). Du kannst mehrere Passkeys hinterlegen und hier wieder entfernen.',
+        'default_names' => [
+            'windows' => 'Windows-PC',
+            'mac' => 'Mac',
+            'iphone' => 'iPhone',
+            'ipad' => 'iPad',
+            'android' => 'Android-Gerät',
+            'linux' => 'Linux-PC',
+            'fallback' => 'Dieses Gerät',
+        ],
     ],
 ];

@@ -37,6 +37,9 @@ The UI is in English by default and ships with a full German translation — swi
 - **E-mail invitations** — admins invite household members by mail; the one-time link (24 h by default, configurable via `.env`) leads to a secure self-registration
 - **Password reset** — "forgot password" flow with an e-mail token, valid 24 h by default and configurable via `.env`
 - **Admin-only logins** — the very first administrator registers through a first-run form (only while no account exists); further users are created by admins or invited by e-mail
+- **Passkeys** — passwordless login button on the login page; every user registers one or more passkeys (1Password, iCloud Keychain, Windows Hello …) on their profile page
+- **Profile page** — every user edits their account and manages their passkeys
+- **Language switcher** — English/German UI, chosen in the topbar dropdown (default via `APP_LOCALE`)
 - **Settings page** — closing mail text and optional Gravatar avatars
 - **Database choice** — MariaDB in production, PostgreSQL or MariaDB for development, SQLite for the test suite
 

@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Auth\FirstUserRegister;
 use App\Filament\Auth\InvitationRegister;
 use App\Filament\Auth\Login;
+use App\Filament\Auth\Profile;
 use App\Filament\Resources\Users\UserResource;
 use App\Http\Middleware\EnsureHouseholdAdmin;
 use App\Http\Middleware\SetLocale;
@@ -45,6 +46,7 @@ class AdminPanelProvider extends PanelProvider
             ->login(Login::class)
             ->registration(FirstUserRegister::class)
             ->passwordReset()
+            ->profile(Profile::class, isSimple: false)
             ->brandName(fn (): string => config('app.name'))
             ->brandLogo(fn () => asset('brand/splitnest-logo-light.svg'))
             ->darkModeBrandLogo(fn () => asset('brand/splitnest-logo-dark.svg'))
@@ -55,6 +57,7 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook('panels::head.end', fn () => view('filament.household-style'))
             ->renderHook('panels::footer', fn () => view('filament.version-footer'))
             ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => view('filament.language-switcher'))
+            ->renderHook(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER, fn () => view('filament.passkey-login'))
             ->colors([
                 'primary' => Color::Teal,
             ])

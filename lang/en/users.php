@@ -8,6 +8,7 @@ return [
     'label' => 'User',
     'plural' => 'Users',
     'menu' => 'Users',
+    'or' => 'OR',
     'fields' => [
         'name' => 'Name',
         'email' => 'E-mail',
@@ -49,5 +50,18 @@ return [
         'password' => 'Password (at least 12 characters)',
         'password_repeat' => 'Repeat password',
         'success' => 'Login for :email created. This user may manage the whole household.',
+    ],
+    'passkeys' => [
+        'heading' => 'Passkeys',
+        'description' => 'Log in without a password: create a passkey with your password manager or device (e.g. 1Password, iCloud Keychain, Windows Hello). You can register several passkeys and remove them here.',
+        'default_names' => [
+            'windows' => 'Windows PC',
+            'mac' => 'Mac',
+            'iphone' => 'iPhone',
+            'ipad' => 'iPad',
+            'android' => 'Android device',
+            'linux' => 'Linux PC',
+            'fallback' => 'This device',
+        ],
     ],
 ];
