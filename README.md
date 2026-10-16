@@ -29,7 +29,7 @@ You need [Docker with Docker Compose](https://docs.docker.com/get-started/get-do
 ```yaml
 services:
   app:
-    image: ghcr.io/triopsi/splitnest:latest
+    image: triopsi/splitnest:latest
     restart: unless-stopped
     ports:
       - "127.0.0.1:8080:8080"
@@ -142,7 +142,7 @@ For a new MariaDB installation, use this Compose file instead of the quick-start
 ```yaml
 services:
   app:
-    image: ghcr.io/triopsi/splitnest:latest
+    image: triopsi/splitnest:latest
     restart: unless-stopped
     ports:
       - "127.0.0.1:8080:8080"
@@ -268,7 +268,7 @@ Git hooks via [pre-commit](https://pre-commit.com) run gitleaks, Pint, the PHPDo
 
 - **Tests** workflow: Pint, PHPDoc coverage, PHPUnit and gitleaks on pushes/PRs
 - **Build** workflow: frontend assets plus a production Docker test build
-- **Release** workflow: [semantic-release](https://semantic-release.gitbook.io/) creates tags, GitHub releases and the changelog (attached as a release asset), then publishes the Docker image to GHCR with the version baked in as `APP_VERSION` (shown in the panel footer)
+- **Release** workflow: [semantic-release](https://semantic-release.gitbook.io/) creates tags, GitHub releases and the changelog (attached as a release asset), then publishes the Docker image to [Docker Hub](https://hub.docker.com/r/triopsi/splitnest) with the version baked in as `APP_VERSION` (shown in the panel footer). Images support `linux/amd64` and `linux/arm64` and are tagged with the release version and `latest`.
 
 ## Translations
 
