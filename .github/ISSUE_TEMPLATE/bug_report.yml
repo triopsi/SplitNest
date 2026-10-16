@@ -53,7 +53,7 @@ body:
     attributes:
       label: Installation method
       options:
-        - Docker image from GHCR
+        - Docker image from Docker Hub
         - Development container
         - Local installation
         - Other (describe below)
