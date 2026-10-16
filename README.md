@@ -18,6 +18,8 @@
 
 SplitNest helps shared households split expenses fairly, track their budget and create monthly statements. Available in English and German, with passwordless sign-in using passkeys.
 
+[![SplitNest preview: monthly overview, shared cost breakdown, year planning, PDF statements and passkey sign-in](.github/assets/splitnest-preview.png)](.github/assets/splitnest-preview.png)
+
 [Quick start](#quick-start) · [HTTPS & reverse proxy](#https--reverse-proxy) · [Updates](#updates) · [Backups](#backups) · [Development](#development)
 
 ## Quick start
