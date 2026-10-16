@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Buildx einrichten
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Image bauen (ohne Push)
         uses: docker/build-push-action@v6
