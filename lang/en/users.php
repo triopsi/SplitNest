@@ -8,6 +8,7 @@ return [
     'label' => 'User',
     'plural' => 'Users',
     'menu' => 'Users',
+    'edit_profile' => 'Edit profile',
     'or' => 'OR',
     'fields' => [
         'name' => 'Name',

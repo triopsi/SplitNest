@@ -21,13 +21,11 @@ use Illuminate\Support\Facades\Auth;
 /**
  * Filament resource for user management: admins create logins here.
  *
- * Hidden from the sidebar; reachable through the profile dropdown. The own
- * account is protected against deletion and self-demotion.
+ * Available in the system sidebar group. The own account is protected
+ * against deletion and self-demotion.
  */
 class UserResource extends Resource
 {
-    protected static bool $shouldRegisterNavigation = false;
-
     protected static ?string $model = User::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
@@ -50,6 +48,14 @@ class UserResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('users.plural');
+    }
+
+    /**
+     * Sidebar group (translated).
+     */
+    public static function getNavigationGroup(): string
+    {
+        return __('nav.groups.system');
     }
 
     /**

@@ -18,6 +18,7 @@ services:
       DB_USERNAME: household
       DB_PASSWORD: local-development-only
       APP_URL: http://localhost:${APP_PORT:-8080}
+      QUEUE_CONNECTION: sync
     depends_on:
       db:
         condition: service_healthy

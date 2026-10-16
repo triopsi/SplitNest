@@ -3,11 +3,17 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Filament\Auth\Pages\PasswordReset\RequestPasswordReset;
+use Filament\Facades\Filament;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Mail\Events\MessageSent;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
@@ -49,6 +55,55 @@ class PasswordResetTest extends TestCase
         $this->assertSame(Password::RESET_LINK_SENT, $status);
         Notification::assertSentTo($user, ResetPassword::class);
         $this->assertDatabaseHas('password_reset_tokens', ['email' => $user->email]);
+    }
+
+    /**
+     * Submit the actual Filament form and deliver its queued notification synchronously.
+     *
+     * Expects a rendered reset e-mail addressed to the admin, without faking notifications.
+     */
+    #[DataProvider('resetMailLocales')]
+    public function test_filament_reset_form_delivers_email_with_synchronous_queue(string $locale, int $minutes, string $button, string $validity, string $subject): void
+    {
+        $user = User::factory()->create(['is_admin' => true]);
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        app()->setLocale($locale);
+        config(['app.name' => 'SplitNest', 'queue.default' => 'sync', 'mail.default' => 'array', 'auth.passwords.users.expire' => $minutes]);
+        Event::fake([MessageSent::class]);
+
+        Livewire::test(RequestPasswordReset::class)
+            ->fillForm(['email' => $user->email])
+            ->call('request')
+            ->assertHasNoFormErrors();
+
+        Event::assertDispatched(MessageSent::class, function (MessageSent $event) use ($user, $button, $validity, $subject): bool {
+            $this->assertSame($user->email, $event->message->getTo()[0]->getAddress());
+            $this->assertStringContainsString('/admin/password-reset/reset?', $event->message->getHtmlBody());
+            $this->assertStringContainsString($button, $event->message->getHtmlBody());
+            $this->assertStringContainsString($validity, $event->message->getHtmlBody());
+            $this->assertStringContainsString('/admin/password-reset/reset?', $event->message->getTextBody());
+            $this->assertStringContainsString($validity, $event->message->getTextBody());
+            $this->assertSame($subject, $event->message->getSubject());
+            $this->assertStringContainsString('cid:', $event->message->getHtmlBody());
+            $this->assertNotEmpty($event->message->getAttachments());
+
+            return true;
+        });
+        $this->assertDatabaseHas('password_reset_tokens', ['email' => $user->email]);
+        $this->assertDatabaseCount('jobs', 0);
+    }
+
+    /**
+     * Cover both shipped languages and a customized reset-token lifetime.
+     *
+     * @return array<string, array{string, int, string, string, string}>
+     */
+    public static function resetMailLocales(): array
+    {
+        return [
+            'english' => ['en', 1440, 'Reset password', 'This link is valid for 1440 minutes', 'SplitNest – Reset your password'],
+            'german' => ['de', 30, 'Passwort zurücksetzen', 'Dieser Link ist 30 Minuten gültig', 'SplitNest – Passwort zurücksetzen'],
+        ];
     }
 
     /**

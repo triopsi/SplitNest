@@ -6,7 +6,6 @@ use App\Filament\Auth\FirstUserRegister;
 use App\Filament\Auth\InvitationRegister;
 use App\Filament\Auth\Login;
 use App\Filament\Auth\Profile;
-use App\Filament\Resources\Users\UserResource;
 use App\Http\Middleware\EnsureHouseholdAdmin;
 use App\Http\Middleware\SetLocale;
 use Filament\Actions\Action;
@@ -19,8 +18,8 @@ use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Support\Icons\Heroicon;
 use Filament\View\PanelsRenderHook;
+use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -76,11 +75,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->routes(fn () => Route::get('/einladung/{token}', InvitationRegister::class)->name('invitation'))
             ->userMenuItems([
-                Action::make('users')
-                    ->label(__('users.menu'))
-                    ->icon(Heroicon::OutlinedShieldCheck)
-                    ->url(fn (): string => UserResource::getUrl())
-                    ->visible(fn (): bool => UserResource::canCreate()),
+                'profile' => fn (Action $action): Action => $action
+                    ->label(fn (): string => __('users.edit_profile'))
+                    ->icon(fn (): View => view('filament.profile-menu-avatar')),
             ])
             ->middleware([
                 EncryptCookies::class,

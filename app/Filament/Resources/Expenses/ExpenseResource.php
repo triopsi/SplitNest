@@ -151,7 +151,7 @@ class ExpenseResource extends Resource
             TextColumn::make('amount_cents')->label(__('expenses.table.amount'))->formatStateUsing(fn ($state) => Money::format($state))->sortable()->toggleable(),
             TextColumn::make('next_billing')->label(__('expenses.table.next_billing'))->toggleable()
                 ->getStateUsing(fn (Expense $record): string => ($next = $record->nextBillingMonth(now()->format('Y-m')))
-                    ? Carbon::createFromFormat('Y-m', $next)->format('m/Y') : '–'),
+                    ? Carbon::createFromFormat('!Y-m', $next)->format('m/Y') : '–'),
             TextColumn::make('split_mode')->label(__('expenses.table.split_mode'))->formatStateUsing(fn ($state) => Expense::modeLabels()[$state])->badge()->toggleable(),
             TextColumn::make('start_month')->label(__('expenses.table.from'))->sortable()->toggleable(isToggledHiddenByDefault: true),
             TextColumn::make('end_month')->label(__('expenses.table.until'))->placeholder(__('schedule.unlimited'))->toggleable(isToggledHiddenByDefault: true),
