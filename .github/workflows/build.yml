@@ -44,5 +44,26 @@ jobs:
           context: .
           target: production
           push: false
+          load: true
+          tags: splitnest:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Erststart und Neustart prüfen
+        run: |
+          trap 'docker logs splitnest-smoke; docker rm -f splitnest-smoke; docker volume rm splitnest-smoke-storage' EXIT
+          docker run -d --name splitnest-smoke \
+            -e APP_URL=http://localhost:8080 \
+            -e DB_CONNECTION=sqlite \
+            -e DB_DATABASE=/var/www/html/storage/database.sqlite \
+            -e AUTO_MIGRATE=true \
+            -e SESSION_SECURE_COOKIE=false \
+            -e LOG_CHANNEL=stderr \
+            -v splitnest-smoke-storage:/var/www/html/storage \
+            splitnest:ci
+          docker exec splitnest-smoke curl -fsSL --retry 20 --retry-connrefused --retry-delay 1 -o /tmp/setup.html http://localhost:8080/admin/register
+          docker exec splitnest-smoke test -s storage/database.sqlite
+          key_checksum="$(docker exec splitnest-smoke sha256sum storage/app.key)"
+          docker restart splitnest-smoke
+          docker exec splitnest-smoke curl -fsSL --retry 20 --retry-connrefused --retry-delay 1 -o /tmp/setup.html http://localhost:8080/admin/register
+          test "$key_checksum" = "$(docker exec splitnest-smoke sha256sum storage/app.key)"
