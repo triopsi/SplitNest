@@ -38,6 +38,7 @@ services:
       DB_CONNECTION: sqlite
       DB_DATABASE: /var/www/html/storage/database.sqlite
       AUTO_MIGRATE: "true"
+      QUEUE_CONNECTION: sync
       SESSION_SECURE_COOKIE: "false"
       LOG_CHANNEL: stderr
     volumes:
@@ -155,6 +156,7 @@ services:
       DB_USERNAME: household
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       AUTO_MIGRATE: "true"
+      QUEUE_CONNECTION: sync
       SESSION_SECURE_COOKIE: "false"
       LOG_CHANNEL: stderr
     volumes:
@@ -202,7 +204,7 @@ Run `docker compose up -d`, then open [localhost:8080/admin](http://localhost:80
 | `AUTH_PASSWORD_RESET_EXPIRE` | `1440` minutes |
 | `HOUSEHOLD_INVITATION_TTL` | `24` hours |
 | `CACHE_STORE` / `SESSION_DRIVER` | `database` |
-| `QUEUE_CONNECTION` | `database`; a worker is needed for jobs explicitly dispatched to the queue |
+| `QUEUE_CONNECTION` | `sync`; queued notifications and jobs run immediately, without a separate worker |
 | `LOG_CHANNEL` | The Compose examples use `stderr` for `docker compose logs` |
 
 Docker images already contain PHP dependencies and built frontend assets. Keep `APP_DEBUG` disabled on your server. For Compose's `.env` interpolation, escape literal dollar signs as `$$` in values written directly into the Compose file.

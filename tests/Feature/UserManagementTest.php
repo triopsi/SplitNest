@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Auth\Profile;
 use App\Filament\Resources\Users\Pages\ManageUsers;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
@@ -117,16 +118,23 @@ class UserManagementTest extends TestCase
     }
 
     /**
-     * Inspect the profile dropdown menu items as an admin.
+     * Open the profile page as an admin and inspect its navigation.
      *
-     * Expects a 'users' entry pointing to the user resource URL.
+     * Expects user management in the sidebar and the profile dropdown to link to the profile.
      */
-    public function test_profile_dropdown_shows_users_link_for_authorized_admins(): void
+    public function test_users_link_is_in_sidebar_and_profile_menu_links_to_profile(): void
     {
         $this->actingAsAdmin();
+
+        $this->get(Profile::getUrl())
+            ->assertOk()
+            ->assertSee('href="'.UserResource::getUrl().'"', false);
+
         $items = Filament::getPanel('admin')->getUserMenuItems();
-        $this->assertArrayHasKey('users', $items);
-        $this->assertSame(UserResource::getUrl(), $items['users']->getUrl());
+        $this->assertArrayNotHasKey('users', $items);
+        $this->assertArrayHasKey('profile', $items);
+        $this->assertSame(Profile::getUrl(), $items['profile']->getUrl());
+        $this->assertSame('Edit profile', $items['profile']->getLabel());
     }
 
     /**

@@ -15,6 +15,7 @@ services:
       DB_USERNAME: household
       DB_PASSWORD: local-development-only
       APP_URL: http://localhost:${APP_PORT:-8080}
+      QUEUE_CONNECTION: sync
     depends_on:
       db:
         condition: service_healthy
@@ -31,5 +32,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 volumes:
   database:
