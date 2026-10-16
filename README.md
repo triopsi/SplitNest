@@ -236,6 +236,12 @@ docker compose exec -T db sh -c 'exec mariadb-dump --single-transaction -u "$MAR
 - **Passkey button does nothing?** Use HTTPS or localhost, update to the current image, and reload the page. Check the browser console for failed asset requests.
 - **Invitations don't arrive?** Configure SMTP; the default mail driver only writes messages to the log.
 
+## Contributing
+
+Bug reports, feature ideas, translations and pull requests are welcome. Read the [contribution guidelines](CONTRIBUTING.md) to get started.
+
+For security vulnerabilities, please follow the [security policy](SECURITY.md) instead of posting details in a public issue.
+
 ## Development
 
 The root [compose.yaml](compose.yaml) is the development stack. For running a released image, use the quick start above.
@@ -284,4 +290,4 @@ New locales appear in the switcher automatically (add the native name to `App\Su
 
 ## License
 
-[MIT](LICENSE). Contributions, bug reports and translations are welcome.
+[MIT](LICENCE). Contributions, bug reports and translations are welcome.
