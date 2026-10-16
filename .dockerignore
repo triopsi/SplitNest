@@ -1,18 +1,84 @@
+# Version-control metadata and development-only configuration
 .git
+.github
+.devcontainer
+.gitignore
+.gitattributes
+.editorconfig
+.pre-commit-config.yaml
+
+# Environment files and credentials (keep setup templates)
 .env
 .env.*
 !.env.example
-!.env.production.example
+!.env.*.example
+auth.json
+.npmrc
+.ssh
+
+# Dependencies are installed inside their respective build stages
 vendor
 node_modules
+
+# Local databases, encryption keys, uploads, logs and framework runtime data
+# Retain directory placeholders so Laravel's storage tree exists in the image.
 database/*.sqlite*
-storage/logs/*
-storage/framework/cache/data/*
-storage/framework/sessions/*
-storage/framework/views/*
+storage/**
+!storage/**/.gitignore
 bootstrap/cache/*.php
+bootstrap/cache/*.json
+
+# Build assets in the frontend stage and publish Filament assets during Composer setup
+public/build
 public/css/filament
 public/js/filament
 public/fonts/filament
-tests
+public/fonts-manifest.dev.json
+public/hot
+public/storage
+
+# Local backups and scratch files are not application source
+backups
+splitnest-backup*.tar.gz
+splitnest-database*.sql
+household-backup*.sql
 work
+
+# Tests, test results and coverage reports are not needed in the production image
+tests
+phpunit.xml
+.phpunit.cache
+.phpunit.result.cache
+coverage
+coverage.xml
+junit.xml
+
+# Editor, IDE and AI-assistant files are not needed at runtime
+.codex
+.cursor
+.idea
+.nova
+.vscode
+.zed
+.claude
+.agents
+.phpactor.json
+AGENTS.md
+CLAUDE.md
+boost.json
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+Homestead.json
+Homestead.yaml
+
+# Logs, editor backups and operating-system metadata
+**/*.log
+**/npm-debug.log*
+**/*.swp
+**/*.swo
+**/*~
+**/.DS_Store
+**/._*
+**/Thumbs.db
+**/Desktop.ini
