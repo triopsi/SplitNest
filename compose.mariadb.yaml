@@ -23,7 +23,7 @@ services:
       db:
         condition: service_healthy
   db:
-    image: mariadb:11
+    image: mariadb:13
     environment:
       MARIADB_DATABASE: household
       MARIADB_USER: household
