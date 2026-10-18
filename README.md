@@ -20,6 +20,8 @@ SplitNest helps shared households split expenses fairly, track their budget and 
 
 [![SplitNest preview: monthly overview, shared cost breakdown, year planning, PDF statements and passkey sign-in](.github/assets/splitnest-preview.png)](.github/assets/splitnest-preview.png)
 
+[![SplitNest preview: monthly overview, shared cost breakdown, year planning, PDF statements and passkey sign-in](.github/assets/splitnest-preview.png)](.github/assets/splitnest-preview.png)
+
 [Quick start](#quick-start) · [HTTPS & reverse proxy](#https--reverse-proxy) · [Updates](#updates) · [User management](#user-management-from-the-console) · [Backups](#backups) · [Development](#development)
 
 ## Quick start
