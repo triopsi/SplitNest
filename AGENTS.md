@@ -63,6 +63,7 @@ Before relying on a package's API, confirm its installed version:
 - Use explicit return type declarations and type hints for all method parameters: `function isAccessible(User $user, ?string $path = null): bool`
 - Use TitleCase for Enum keys: `FavoritePerson`, `BestLake`, `Monthly`.
 - Prefer PHPDoc blocks over inline comments. Only add inline comments for exceptionally complex logic.
+- Document every class, trait and named method with a PHPDoc block directly above its declaration or attributes. Explain its purpose; type annotations alone are not enough.
 - Use array shape type definitions in PHPDoc blocks.
 
 === deployments rules ===
@@ -80,6 +81,7 @@ Before relying on a package's API, confirm its installed version:
 - When test coverage applies, run the affected tests and ensure they pass.
 - Test the changed behavior and its important failure modes, but do not add tests beyond them.
 - Read the `testing-best-practices` skill before writing tests.
+- Every PHPUnit test method needs a PHPDoc block describing the test goal and expected result, following the existing test conventions.
 
 === laravel/core rules ===
 

@@ -2,8 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\MonthlyClosing;
-use App\Services\SettlementCalculator;
+use App\Filament\Widgets\Concerns\InteractsWithSettlementReport;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Validation\ValidationException;
@@ -15,8 +14,11 @@ use Illuminate\Validation\ValidationException;
  */
 class MonthlyCostSharesChart extends ChartWidget
 {
-    /** Month shown in the chart (Y-m), passed down from the overview page. */
-    public string $month = '';
+    use InteractsWithSettlementReport;
+
+    protected static bool $isLazy = false;
+
+    protected ?string $pollingInterval = null;
 
     protected static bool $isDiscovered = false;
 
@@ -60,8 +62,7 @@ class MonthlyCostSharesChart extends ChartWidget
     public function getData(): array
     {
         try {
-            $closing = MonthlyClosing::where('month', $this->month)->whereNotNull('closed_at')->first();
-            $report = $closing?->snapshot ?? app(SettlementCalculator::class)->calculate($this->month);
+            $report = $this->settlementReport;
         } catch (ValidationException) {
             return ['datasets' => [], 'labels' => []];
         }
