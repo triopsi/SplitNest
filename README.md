@@ -20,7 +20,7 @@ SplitNest helps shared households split expenses fairly, track their budget and 
 
 [![SplitNest preview: monthly overview, shared cost breakdown, year planning, PDF statements and passkey sign-in](.github/assets/splitnest-preview.png)](.github/assets/splitnest-preview.png)
 
-[Quick start](#quick-start) · [HTTPS & reverse proxy](#https--reverse-proxy) · [Updates](#updates) · [Backups](#backups) · [Development](#development)
+[Quick start](#quick-start) · [HTTPS & reverse proxy](#https--reverse-proxy) · [Updates](#updates) · [User management](#user-management-from-the-console) · [Backups](#backups) · [Development](#development)
 
 ## Quick start
 
@@ -107,6 +107,57 @@ Your data and generated key stay in the volume. Database migrations run automati
 To use a specific release, replace `:latest` in the image name with the version number from [Releases](https://github.com/triopsi/SplitNest/releases). Use a release that includes automatic container initialization for the quick-start example.
 
 **Already running SplitNest with MariaDB and an `APP_KEY`?** Keep your existing database, volume mounts and key. You can update the image without switching to the SQLite example. An explicitly configured `APP_KEY` always takes priority over automatic key generation. Existing installations with a separate `migrate` service can keep using it; automatic migrations are enabled only when `AUTO_MIGRATE: "true"` is set.
+
+## User management from the console
+
+Run these commands from the folder containing your Compose file. Inside an app container or devcontainer, use `php artisan ...` directly without `docker compose exec app`.
+
+**Find your login account:**
+
+```sh
+docker compose exec app php artisan splitnest:users
+```
+
+The list shows user IDs, names, e-mail addresses and administrator status. Add `--admins` to show only administrators. Sign in using the account's e-mail address.
+
+**Forgot your password?** Replace `1` with your user ID from the list:
+
+```sh
+docker compose exec app php artisan splitnest:user-edit 1 --password
+```
+
+Enter the new password twice when prompted. Input is hidden and passwords must contain at least 12 characters. The old password cannot be displayed because only its hash is stored. Existing password-reset links for the account are invalidated when its password or e-mail changes.
+
+**Edit an existing account interactively:**
+
+```sh
+docker compose exec app php artisan splitnest:user-edit 1
+```
+
+The command asks for the name, e-mail, optional new password and administrator access. Press Enter to keep the current name or e-mail, and leave the password empty to keep it. You can use the current e-mail address instead of the ID.
+
+For specific changes, use options:
+
+```sh
+# Change the display name and e-mail; keep the existing password
+docker compose exec app php artisan splitnest:user-edit 1 --name="Alex" --email="alex@example.org"
+
+# Grant administrator access
+docker compose exec app php artisan splitnest:user-edit 1 --admin
+
+# Remove administrator access
+docker compose exec app php artisan splitnest:user-edit 1 --no-admin
+```
+
+Only administrators can access the app. The command prevents removing administrator access from the last administrator.
+
+**Create another administrator:**
+
+```sh
+docker compose exec app php artisan splitnest:user admin@example.org --name="Administrator"
+```
+
+The password is requested privately. To see all editing options, run `docker compose exec app php artisan splitnest:user-edit --help`.
 
 ## Optional configuration
 
