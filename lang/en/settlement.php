@@ -5,6 +5,18 @@
  */
 return [
     'title' => 'Monthly overview',
+    'layout' => [
+        'edit' => 'Customize view',
+        'save' => 'Save view',
+        'cancel' => 'Cancel',
+        'reset' => 'Reset to default',
+        'hint' => 'Drag the handle to move a widget; drag its bottom-right corner to resize. You can also use arrow keys on the handle, or Shift + arrow keys to resize. Your view is personal and applies to every month.',
+        'mobile' => 'Open this dashboard on a wider screen to customize its layout.',
+        'saved' => 'Your view has been saved.',
+        'error' => 'The view could not be saved. Your changes are still here; please try again.',
+        'invalid' => 'The layout contains invalid widget sizes or overlapping positions.',
+        'move' => 'Move :widget',
+    ],
     'hero' => [
         'kicker' => 'Plan together · Split fairly',
         'title' => 'One month. Everything at a glance.',

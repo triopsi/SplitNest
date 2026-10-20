@@ -55,6 +55,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasPasske
     protected function casts(): array
     {
         return [
+            'monthly_dashboard_layout' => 'array',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
