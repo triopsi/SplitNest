@@ -26,7 +26,7 @@ class MonthlyCostSharesChart extends ChartWidget
 
     protected ?string $description = null;
 
-    protected ?string $maxHeight = '18rem';
+    protected ?string $maxHeight = null;
 
     protected int|string|array $columnSpan = 'full';
 
@@ -84,6 +84,7 @@ class MonthlyCostSharesChart extends ChartWidget
     {
         return RawJs::make(<<<'JS'
             {
+                maintainAspectRatio: false,
                 plugins: {
                     legend: { position: 'right' },
                     tooltip: {
