@@ -8,6 +8,7 @@ return [
     'label' => 'User',
     'plural' => 'Users',
     'menu' => 'Users',
+    'edit_profile' => 'Edit profile',
     'or' => 'OR',
     'fields' => [
         'name' => 'Name',
@@ -50,6 +51,20 @@ return [
         'password' => 'Password (at least 12 characters)',
         'password_repeat' => 'Repeat password',
         'success' => 'Login for :email created. This user may manage the whole household.',
+    ],
+    'list_command' => [
+        'empty' => 'No matching users found. Create an administrator with splitnest:user.',
+        'yes' => 'Yes',
+        'no' => 'No',
+    ],
+    'edit_command' => [
+        'not_found' => 'User :user was not found. Run splitnest:users to list accounts.',
+        'conflicting_roles' => 'Use either --admin or --no-admin, not both.',
+        'interaction_required' => 'An interactive terminal is required for password entry or editing without options. Omit --no-interaction.',
+        'optional_password' => 'New password (at least 12 characters; leave empty to keep the current password)',
+        'admin_question' => 'May this user administer the household?',
+        'last_admin' => 'The last administrator must keep administrator access. Grant it to another user first.',
+        'success' => 'User #:id (:email) updated.',
     ],
     'passkeys' => [
         'heading' => 'Passkeys',

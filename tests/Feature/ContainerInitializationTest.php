@@ -104,6 +104,28 @@ class ContainerInitializationTest extends TestCase
     }
 
     /**
+     * Default to immediate job delivery while preserving explicit queue backends.
+     *
+     * Read configuration in a separate process so PHPUnit's sync override cannot hide regressions.
+     */
+    public function test_queue_defaults_to_sync_and_respects_explicit_backend(): void
+    {
+        foreach ([[false, 'sync'], ['database', 'database']] as [$connection, $expected]) {
+            $process = new Process([
+                PHP_BINARY,
+                '-r',
+                'require $argv[1]."/vendor/autoload.php"; $config = require $argv[1]."/config/queue.php"; echo $config["default"];',
+                base_path(),
+            ], null, ['QUEUE_CONNECTION' => $connection]);
+
+            $process->run();
+
+            $this->assertSame(0, $process->getExitCode(), $process->getErrorOutput());
+            $this->assertSame($expected, $process->getOutput());
+        }
+    }
+
+    /**
      * Run the real startup initializer against an isolated installation directory.
      *
      * @param  array<string, string|false>  $environment

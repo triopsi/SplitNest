@@ -17,5 +17,8 @@
     "optionalDependencies": {
         "@laravel/multiplex": "^0.4.1"
     },
-    "name": "splitnest"
+    "name": "splitnest",
+    "dependencies": {
+        "gridstack": "^14.0.0"
+    }
 }

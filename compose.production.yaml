@@ -9,6 +9,7 @@ services:
       DB_CONNECTION: sqlite
       DB_DATABASE: /var/www/html/storage/database.sqlite
       AUTO_MIGRATE: "true"
+      QUEUE_CONNECTION: sync
       SESSION_SECURE_COOKIE: "false"
       LOG_CHANNEL: stderr
     volumes:
