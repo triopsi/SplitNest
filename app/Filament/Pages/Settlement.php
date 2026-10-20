@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\MonthlyClosing;
 use App\Models\Participant;
+use App\Models\User;
 use App\Services\CloseMonth;
 use App\Services\ReopenMonth;
 use App\Services\SettlementCalculator;
@@ -220,9 +221,9 @@ class Settlement extends Dashboard
     #[Renderless]
     public function saveDashboardLayout(array $layout): array
     {
-        abort_unless(Auth::user()?->is_admin, 403);
+        $user = $this->dashboardUser();
         $layout = MonthlyDashboardLayout::validate($layout);
-        Auth::user()->forceFill(['monthly_dashboard_layout' => $layout])->save();
+        $user->forceFill(['monthly_dashboard_layout' => $layout])->save();
         unset($this->dashboardLayout);
 
         return $layout;
@@ -236,11 +237,23 @@ class Settlement extends Dashboard
     #[Renderless]
     public function resetDashboardLayout(): array
     {
-        abort_unless(Auth::user()?->is_admin, 403);
-        Auth::user()->forceFill(['monthly_dashboard_layout' => null])->save();
+        $this->dashboardUser()->forceFill(['monthly_dashboard_layout' => null])->save();
         unset($this->dashboardLayout);
 
         return MonthlyDashboardLayout::defaults();
+    }
+
+    /**
+     * Resolve the concrete Eloquent account and reject missing or revoked administrator access.
+     */
+    private function dashboardUser(): User
+    {
+        $user = Auth::user();
+        if (! $user instanceof User || ! $user->is_admin) {
+            abort(403);
+        }
+
+        return $user;
     }
 
     /**
