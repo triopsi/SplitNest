@@ -49,6 +49,8 @@ class AdminPanelProvider extends PanelProvider
             ->brandName(fn (): string => config('app.name'))
             ->brandLogo(fn () => asset('brand/splitnest-logo-light.svg'))
             ->darkModeBrandLogo(fn () => asset('brand/splitnest-logo-dark.svg'))
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+            ->globalSearchFieldKeyBindingSuffix()
             ->brandLogoHeight('2.5rem')
             ->favicon(fn () => asset('brand/favicon.svg'))
             ->font('Inter', url: fn (): string => asset('fonts/filament/filament/inter/index.css'), provider: LocalFontProvider::class)
