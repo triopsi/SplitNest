@@ -9,6 +9,9 @@ return [
     'plural' => 'Users',
     'menu' => 'Users',
     'edit_profile' => 'Edit profile',
+    'profile' => [
+        'account' => 'Account',
+    ],
     'or' => 'OR',
     'fields' => [
         'name' => 'Name',

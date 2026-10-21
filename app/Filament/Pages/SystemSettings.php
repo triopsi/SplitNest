@@ -10,6 +10,8 @@ use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
@@ -74,21 +76,35 @@ class SystemSettings extends Page implements HasSchemas
     public function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('settings.avatars'))
-                ->description(__('settings.avatars_desc'))
-                ->schema([
-                    Toggle::make('gravatar_enabled')->label(__('settings.gravatar'))->live()
-                        ->helperText(__('settings.gravatar_hint')),
-                    Select::make('gravatar_style')->label(__('settings.gravatar_style'))
-                        ->options(__('settings.gravatar_styles'))->required()
-                        ->visible(fn (Get $get): bool => (bool) $get('gravatar_enabled'))
-                        ->helperText(__('settings.gravatar_style_hint')),
-                ]),
-            Section::make(__('settings.closing_mail'))
-                ->description(__('settings.closing_mail_desc'))
-                ->schema([
-                    Textarea::make('mail_body')->label(__('settings.mail_body'))->rows(10)->required()
-                        ->helperText(__('settings.mail_body_hint')),
+            Tabs::make(__('settings.title'))
+                ->extraAttributes(['class' => 'sn-settings-tabs'])
+                ->columnSpanFull()
+                ->tabs([
+                    Tab::make(__('settings.avatars'))
+                        ->icon(Heroicon::OutlinedUserCircle)
+                        ->schema([
+                            Section::make(__('settings.avatars'))
+                                ->contained(false)
+                                ->description(__('settings.avatars_desc'))
+                                ->schema([
+                                    Toggle::make('gravatar_enabled')->label(__('settings.gravatar'))->live()
+                                        ->helperText(__('settings.gravatar_hint')),
+                                    Select::make('gravatar_style')->label(__('settings.gravatar_style'))
+                                        ->options(__('settings.gravatar_styles'))->required()
+                                        ->visible(fn (Get $get): bool => (bool) $get('gravatar_enabled'))
+                                        ->helperText(__('settings.gravatar_style_hint')),
+                                ]),
+                        ]),
+                    Tab::make(__('settings.closing_mail'))
+                        ->icon(Heroicon::OutlinedEnvelope)
+                        ->schema([
+                            Section::make(__('settings.closing_mail'))
+                                ->contained(false)
+                                ->schema([
+                                    Textarea::make('mail_body')->label(__('settings.mail_body'))->rows(10)->required()
+                                        ->helperText(__('settings.mail_body_hint')),
+                                ]),
+                        ]),
                 ]),
         ])->statePath('data');
     }
