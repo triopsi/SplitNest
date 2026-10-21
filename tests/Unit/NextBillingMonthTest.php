@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Expense;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class NextBillingMonthTest extends TestCase
@@ -83,5 +84,33 @@ class NextBillingMonthTest extends TestCase
     {
         $e = $this->expense('2026-01', 6, '2026-06');
         $this->assertNull($e->nextBillingMonth('2026-07'));
+    }
+
+    /**
+     * Keep half-yearly billing on its month rhythm regardless of today's day.
+     */
+    #[DataProvider('halfYearlySchedules')]
+    public function test_half_yearly_schedule_ignores_the_current_day(string $today, string $start, string $expected, ?string $end): void
+    {
+        $this->travelTo($today.' 12:00:00');
+        $expense = $this->expense($start, 6, $end);
+
+        $this->assertSame($expected, $expense->nextBillingMonth(now()->format('Y-m')));
+    }
+
+    /**
+     * Cover the reported January schedule and month-end overflow boundaries.
+     *
+     * @return array<string, array{string, string, string, string|null}>
+     */
+    public static function halfYearlySchedules(): array
+    {
+        return [
+            'january start viewed in october' => ['2026-10-16', '2026-01', '2027-01', null],
+            'february after a 31-day month' => ['2026-10-31', '2026-02', '2027-02', null],
+            'june after a 31-day month' => ['2026-03-31', '2025-06', '2026-06', null],
+            'february in a leap year' => ['2024-01-31', '2023-02', '2024-02', null],
+            'final occurrence in february' => ['2026-10-31', '2026-02', '2027-02', '2027-02'],
+        ];
     }
 }

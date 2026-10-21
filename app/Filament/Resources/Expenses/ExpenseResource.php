@@ -23,6 +23,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -151,7 +152,7 @@ class ExpenseResource extends Resource
             TextColumn::make('amount_cents')->label(__('expenses.table.amount'))->formatStateUsing(fn ($state) => Money::format($state))->sortable()->toggleable(),
             TextColumn::make('next_billing')->label(__('expenses.table.next_billing'))->toggleable()
                 ->getStateUsing(fn (Expense $record): string => ($next = $record->nextBillingMonth(now()->format('Y-m')))
-                    ? Carbon::createFromFormat('Y-m', $next)->format('m/Y') : '–'),
+                    ? Carbon::createFromFormat('!Y-m', $next)->format('m/Y') : '–'),
             TextColumn::make('split_mode')->label(__('expenses.table.split_mode'))->formatStateUsing(fn ($state) => Expense::modeLabels()[$state])->badge()->toggleable(),
             TextColumn::make('start_month')->label(__('expenses.table.from'))->sortable()->toggleable(isToggledHiddenByDefault: true),
             TextColumn::make('end_month')->label(__('expenses.table.until'))->placeholder(__('schedule.unlimited'))->toggleable(isToggledHiddenByDefault: true),
@@ -159,7 +160,21 @@ class ExpenseResource extends Resource
         ])->filters([
             SelectFilter::make('payer')->relationship('payer', 'name')->label(__('expenses.filters.payer')),
             SelectFilter::make('split_mode')->label(__('expenses.filters.split_mode'))->options(Expense::modeLabels()),
-        ])->recordActions([EditAction::make(), DeleteAction::make()]);
+        ])->recordActions([EditAction::make(), DeleteAction::make(),
+        ])->groups([
+            Group::make('interval_months')
+                ->collapsible()
+                ->label(__('incomes.table.interval'))
+                ->getTitleFromRecordUsing(fn (Expense $record): string => $record->interval_months ? __('schedule.every_x_months', ['count' => $record->interval_months]) : __('schedule.one_off')),
+            Group::make('split_mode')
+                ->collapsible()
+                ->label(__('expenses.table.split_mode'))
+                ->getTitleFromRecordUsing(fn (Expense $record): string => Expense::modeLabels()[$record->split_mode]),
+            Group::make('payer.name')
+                ->collapsible()
+                ->label(__('expenses.table.payer'))
+                ->getTitleFromRecordUsing(fn (Expense $record): string => $record->payer->name),
+        ])->defaultGroup('interval_months');
     }
 
     /**

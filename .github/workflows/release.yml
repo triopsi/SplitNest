@@ -3,12 +3,15 @@ name: Release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Existing release version to publish as version and latest (without v)"
+        required: true
+        type: string
 
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
-  packages: write
+  contents: read
 
 concurrency:
   group: release
@@ -17,13 +20,18 @@ concurrency:
 jobs:
   release:
     name: Semantic Release
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     outputs:
       published: ${{ steps.semantic.outputs.new_release_published }}
       version: ${{ steps.semantic.outputs.new_release_version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -37,40 +45,54 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   docker:
-    name: Docker-Image veröffentlichen
+    name: Auf Docker Hub veröffentlichen
     needs: release
-    if: needs.release.outputs.published == 'true'
+    if: always() && (needs.release.outputs.published == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
+    env:
+      RELEASE_VERSION: ${{ inputs.version || needs.release.outputs.version }}
     steps:
-      - name: Checkout (Release-Tag)
-        uses: actions/checkout@v5
-        with:
-          ref: v${{ needs.release.outputs.version }}
+      - name: Release-Version prüfen
+        shell: bash
+        run: |
+          if [[ ! "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Provide an existing stable release version, for example 1.2.3 (without v)."
+            exit 1
+          fi
 
-      - name: Image-Name normalisieren
-        id: image
-        run: echo "name=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+      - name: Checkout (Release-Tag)
+        uses: actions/checkout@v7
+        with:
+          ref: v${{ env.RELEASE_VERSION }}
+
+      - name: QEMU einrichten
+        uses: docker/setup-qemu-action@v3
 
       - name: Buildx einrichten
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
-      - name: Bei GHCR anmelden
-        uses: docker/login-action@v3
+      - name: Bei Docker Hub anmelden
+        uses: docker/login-action@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Image bauen und pushen
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           target: production
+          platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-            APP_VERSION=${{ needs.release.outputs.version }}
+            APP_VERSION=${{ env.RELEASE_VERSION }}
           tags: |
-            ${{ steps.image.outputs.name }}:${{ needs.release.outputs.version }}
-            ${{ steps.image.outputs.name }}:latest
+            triopsi/splitnest:${{ env.RELEASE_VERSION }}
+            triopsi/splitnest:latest
+          labels: |
+            org.opencontainers.image.title=SplitNest
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ env.RELEASE_VERSION }}
+            org.opencontainers.image.licenses=MIT
           cache-from: type=gha
           cache-to: type=gha,mode=max

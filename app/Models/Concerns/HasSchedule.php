@@ -76,7 +76,7 @@ trait HasSchedule
             $next = $start;
         } else {
             $offset = ($this->interval_months - ($distance % $this->interval_months)) % $this->interval_months;
-            $next = Carbon::createFromFormat('Y-m', $from)->addMonths($offset)->format('Y-m');
+            $next = Carbon::createFromFormat('!Y-m', $from)->addMonths($offset)->format('Y-m');
         }
 
         return $this->end_month && $next > $this->end_month ? null : $next;

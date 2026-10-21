@@ -13,4 +13,15 @@
 .hh-form{padding:0 1.5rem}.hh-form .fi-sc-actions{padding:0}
 .dark .hh-card,.dark .hh-section{background:#182728;border-color:#34494b}.dark .hh-number{color:#d8f0ec}.dark .hh-table th{background:#213738;color:#c0d9d5}.dark .hh-table th,.dark .hh-table td,.dark .hh-section-head,.dark .hh-transfer{border-color:#34494b}.dark .hh-card label,.dark .hh-muted,.dark .hh-note{color:#a4bcb7}.dark .hh-icon{color:#66dac4}
 .dark .hh-transfer strong,.dark .hh-link{color:#66dac4}.dark .hh-negative{color:#ff98a1!important}
+.sn-settings-tabs{border-radius:.85rem;overflow:hidden}
+.sn-settings-tabs > .fi-tabs{padding:.65rem .75rem}
+.sn-settings-tabs .fi-tabs-item{min-height:2.25rem}
+.dark .sn-settings-tabs{background:#18181b}
+.dark .sn-settings-tabs > .fi-tabs{border-color:#303034}
+.dark .sn-settings-tabs .fi-tabs-item.fi-active{background:#27272a}
+.sn-profile-tabs .fi-sc-form{gap:1.5rem}
+.fi-simple-main:has(.sn-profile-tabs){background:transparent;box-shadow:none;--tw-ring-shadow:0 0 transparent;padding:0;margin:0}
+.fi-simple-main-ctn:has(.sn-profile-tabs){align-items:flex-start;justify-content:center;padding:6rem 1.5rem 3rem}
+.fi-simple-page:has(.sn-profile-tabs) .fi-simple-header{align-items:flex-start;text-align:start}
+@media(max-width:639px){.fi-simple-main-ctn:has(.sn-profile-tabs){padding-top:4rem}.sn-settings-tabs .fi-sc-tabs-tab.fi-active{padding:1rem}}
 </style>

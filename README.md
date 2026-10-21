@@ -18,7 +18,9 @@
 
 SplitNest helps shared households split expenses fairly, track their budget and create monthly statements. Available in English and German, with passwordless sign-in using passkeys.
 
-[Quick start](#quick-start) · [HTTPS & reverse proxy](#https--reverse-proxy) · [Updates](#updates) · [Backups](#backups) · [Development](#development)
+[![SplitNest preview: monthly overview, shared cost breakdown, year planning, PDF statements and passkey sign-in](.github/assets/splitnest-preview.png)](.github/assets/splitnest-preview.png)
+
+[Quick start](#quick-start) · [HTTPS & reverse proxy](#https--reverse-proxy) · [Updates](#updates) · [User management](#user-management-from-the-console) · [Backups](#backups) · [Development](#development)
 
 ## Quick start
 
@@ -29,7 +31,7 @@ You need [Docker with Docker Compose](https://docs.docker.com/get-started/get-do
 ```yaml
 services:
   app:
-    image: ghcr.io/triopsi/splitnest:latest
+    image: triopsi/splitnest:latest
     restart: unless-stopped
     ports:
       - "127.0.0.1:8080:8080"
@@ -38,6 +40,7 @@ services:
       DB_CONNECTION: sqlite
       DB_DATABASE: /var/www/html/storage/database.sqlite
       AUTO_MIGRATE: "true"
+      QUEUE_CONNECTION: sync
       SESSION_SECURE_COOKIE: "false"
       LOG_CHANNEL: stderr
     volumes:
@@ -105,6 +108,57 @@ To use a specific release, replace `:latest` in the image name with the version 
 
 **Already running SplitNest with MariaDB and an `APP_KEY`?** Keep your existing database, volume mounts and key. You can update the image without switching to the SQLite example. An explicitly configured `APP_KEY` always takes priority over automatic key generation. Existing installations with a separate `migrate` service can keep using it; automatic migrations are enabled only when `AUTO_MIGRATE: "true"` is set.
 
+## User management from the console
+
+Run these commands from the folder containing your Compose file. Inside an app container or devcontainer, use `php artisan ...` directly without `docker compose exec app`.
+
+**Find your login account:**
+
+```sh
+docker compose exec app php artisan splitnest:users
+```
+
+The list shows user IDs, names, e-mail addresses and administrator status. Add `--admins` to show only administrators. Sign in using the account's e-mail address.
+
+**Forgot your password?** Replace `1` with your user ID from the list:
+
+```sh
+docker compose exec app php artisan splitnest:user-edit 1 --password
+```
+
+Enter the new password twice when prompted. Input is hidden and passwords must contain at least 12 characters. The old password cannot be displayed because only its hash is stored. Existing password-reset links for the account are invalidated when its password or e-mail changes.
+
+**Edit an existing account interactively:**
+
+```sh
+docker compose exec app php artisan splitnest:user-edit 1
+```
+
+The command asks for the name, e-mail, optional new password and administrator access. Press Enter to keep the current name or e-mail, and leave the password empty to keep it. You can use the current e-mail address instead of the ID.
+
+For specific changes, use options:
+
+```sh
+# Change the display name and e-mail; keep the existing password
+docker compose exec app php artisan splitnest:user-edit 1 --name="Alex" --email="alex@example.org"
+
+# Grant administrator access
+docker compose exec app php artisan splitnest:user-edit 1 --admin
+
+# Remove administrator access
+docker compose exec app php artisan splitnest:user-edit 1 --no-admin
+```
+
+Only administrators can access the app. The command prevents removing administrator access from the last administrator.
+
+**Create another administrator:**
+
+```sh
+docker compose exec app php artisan splitnest:user admin@example.org --name="Administrator"
+```
+
+The password is requested privately. To see all editing options, run `docker compose exec app php artisan splitnest:user-edit --help`.
+
 ## Optional configuration
 
 Add settings under `services.app.environment`, then run `docker compose up -d`.
@@ -142,7 +196,7 @@ For a new MariaDB installation, use this Compose file instead of the quick-start
 ```yaml
 services:
   app:
-    image: ghcr.io/triopsi/splitnest:latest
+    image: triopsi/splitnest:latest
     restart: unless-stopped
     ports:
       - "127.0.0.1:8080:8080"
@@ -155,6 +209,7 @@ services:
       DB_USERNAME: household
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       AUTO_MIGRATE: "true"
+      QUEUE_CONNECTION: sync
       SESSION_SECURE_COOKIE: "false"
       LOG_CHANNEL: stderr
     volumes:
@@ -202,7 +257,7 @@ Run `docker compose up -d`, then open [localhost:8080/admin](http://localhost:80
 | `AUTH_PASSWORD_RESET_EXPIRE` | `1440` minutes |
 | `HOUSEHOLD_INVITATION_TTL` | `24` hours |
 | `CACHE_STORE` / `SESSION_DRIVER` | `database` |
-| `QUEUE_CONNECTION` | `database`; a worker is needed for jobs explicitly dispatched to the queue |
+| `QUEUE_CONNECTION` | `sync`; queued notifications and jobs run immediately, without a separate worker |
 | `LOG_CHANNEL` | The Compose examples use `stderr` for `docker compose logs` |
 
 Docker images already contain PHP dependencies and built frontend assets. Keep `APP_DEBUG` disabled on your server. For Compose's `.env` interpolation, escape literal dollar signs as `$$` in values written directly into the Compose file.
@@ -236,6 +291,12 @@ docker compose exec -T db sh -c 'exec mariadb-dump --single-transaction -u "$MAR
 - **Passkey button does nothing?** Use HTTPS or localhost, update to the current image, and reload the page. Check the browser console for failed asset requests.
 - **Invitations don't arrive?** Configure SMTP; the default mail driver only writes messages to the log.
 
+## Contributing
+
+Bug reports, feature ideas, translations and pull requests are welcome. Read the [contribution guidelines](CONTRIBUTING.md) to get started.
+
+For security vulnerabilities, please follow the [security policy](SECURITY.md) instead of posting details in a public issue.
+
 ## Development
 
 The root [compose.yaml](compose.yaml) is the development stack. For running a released image, use the quick start above.
@@ -268,7 +329,7 @@ Git hooks via [pre-commit](https://pre-commit.com) run gitleaks, Pint, the PHPDo
 
 - **Tests** workflow: Pint, PHPDoc coverage, PHPUnit and gitleaks on pushes/PRs
 - **Build** workflow: frontend assets plus a production Docker test build
-- **Release** workflow: [semantic-release](https://semantic-release.gitbook.io/) creates tags, GitHub releases and the changelog (attached as a release asset), then publishes the Docker image to GHCR with the version baked in as `APP_VERSION` (shown in the panel footer)
+- **Release** workflow: [semantic-release](https://semantic-release.gitbook.io/) creates tags, GitHub releases and the changelog (attached as a release asset), then publishes the Docker image to [Docker Hub](https://hub.docker.com/r/triopsi/splitnest) with the version baked in as `APP_VERSION` (shown in the panel footer). Images support `linux/amd64` and `linux/arm64` and are tagged with the release version and `latest`.
 
 ## Translations
 
@@ -284,4 +345,4 @@ New locales appear in the switcher automatically (add the native name to `App\Su
 
 ## License
 
-[MIT](LICENSE). Contributions, bug reports and translations are welcome.
+[MIT](LICENCE). Contributions, bug reports and translations are welcome.

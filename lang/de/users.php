@@ -8,6 +8,10 @@ return [
     'label' => 'Benutzer',
     'plural' => 'Benutzer',
     'menu' => 'Benutzer',
+    'edit_profile' => 'Profil ändern',
+    'profile' => [
+        'account' => 'Konto',
+    ],
     'or' => 'ODER',
     'fields' => [
         'name' => 'Name',
@@ -50,6 +54,20 @@ return [
         'password' => 'Passwort (mindestens 12 Zeichen)',
         'password_repeat' => 'Passwort wiederholen',
         'success' => 'Login für :email erstellt. Dieser Benutzer darf den gesamten Haushalt verwalten.',
+    ],
+    'list_command' => [
+        'empty' => 'Keine passenden Benutzer gefunden. Mit splitnest:user kannst du einen Administrator erstellen.',
+        'yes' => 'Ja',
+        'no' => 'Nein',
+    ],
+    'edit_command' => [
+        'not_found' => 'Benutzer :user wurde nicht gefunden. Mit splitnest:users kannst du die Konten auflisten.',
+        'conflicting_roles' => 'Verwende entweder --admin oder --no-admin, nicht beide Optionen.',
+        'interaction_required' => 'Für die Passworteingabe oder das Bearbeiten ohne Optionen wird ein interaktives Terminal benötigt. Lass --no-interaction weg.',
+        'optional_password' => 'Neues Passwort (mindestens 12 Zeichen; leer lassen, um das bisherige zu behalten)',
+        'admin_question' => 'Darf dieser Benutzer den Haushalt verwalten?',
+        'last_admin' => 'Der letzte Administrator muss seine Admin-Rechte behalten. Vergib sie zuerst an einen anderen Benutzer.',
+        'success' => 'Benutzer #:id (:email) aktualisiert.',
     ],
     'passkeys' => [
         'heading' => 'Passkeys',

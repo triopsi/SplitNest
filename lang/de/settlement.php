@@ -5,6 +5,18 @@
  */
 return [
     'title' => 'Monatsübersicht',
+    'layout' => [
+        'edit' => 'Ansicht anpassen',
+        'save' => 'Ansicht speichern',
+        'cancel' => 'Abbrechen',
+        'reset' => 'Standard wiederherstellen',
+        'hint' => 'Ziehe am Griff zum Verschieben oder an der unteren rechten Ecke zum Vergrößern. Am Griff kannst du auch die Pfeiltasten nutzen, mit Umschalt zum Ändern der Größe. Deine Ansicht gilt für alle Monate und nur für dich.',
+        'mobile' => 'Öffne das Dashboard auf einem breiteren Bildschirm, um die Ansicht anzupassen.',
+        'saved' => 'Deine Ansicht wurde gespeichert.',
+        'error' => 'Die Ansicht konnte nicht gespeichert werden. Deine Änderungen sind noch da; bitte versuche es erneut.',
+        'invalid' => 'Die Ansicht enthält ungültige Widget-Größen oder überlappende Positionen.',
+        'move' => ':widget verschieben',
+    ],
     'hero' => [
         'kicker' => 'Gemeinsam planen · Fair aufteilen',
         'title' => 'Ein Monat. Alles im Blick.',
