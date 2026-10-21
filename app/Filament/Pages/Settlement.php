@@ -2,28 +2,26 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Widgets\MonthlyCostSharesChart;
-use App\Filament\Widgets\MonthlyExpensesTable;
-use App\Filament\Widgets\MonthlyExpenseStat;
-use App\Filament\Widgets\MonthlyIncomeStat;
-use App\Filament\Widgets\MonthlyParticipantsTable;
-use App\Filament\Widgets\MonthlyRemainingStat;
-use App\Filament\Widgets\MonthlyTransfers;
 use App\Models\MonthlyClosing;
 use App\Models\Participant;
+use App\Models\User;
 use App\Services\CloseMonth;
 use App\Services\ReopenMonth;
 use App\Services\SettlementCalculator;
+use App\Support\MonthlyDashboardLayout;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Dashboard;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\View;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Renderless;
 use Livewire\Attributes\Url;
 
 /**
@@ -192,15 +190,70 @@ class Settlement extends Dashboard
      */
     public function getWidgets(): array
     {
-        return [
-            MonthlyIncomeStat::class,
-            MonthlyExpenseStat::class,
-            MonthlyRemainingStat::class,
-            MonthlyCostSharesChart::class,
-            MonthlyTransfers::class,
-            MonthlyParticipantsTable::class,
-            MonthlyExpensesTable::class,
-        ];
+        return array_column(MonthlyDashboardLayout::widgets(), 'widget');
+    }
+
+    /**
+     * Render the personal grid while keeping the hero and closing controls outside it.
+     */
+    public function getWidgetsContentComponent(): Component
+    {
+        return View::make('filament.widgets.monthly-dashboard-grid');
+    }
+
+    /**
+     * Resolve the current account's layout without accepting another user's identifier.
+     *
+     * @return list<array{id: string, x: int, y: int, w: int, h: int}>
+     */
+    #[Computed]
+    public function dashboardLayout(): array
+    {
+        return MonthlyDashboardLayout::resolve(Auth::user()?->monthly_dashboard_layout);
+    }
+
+    /**
+     * Validate and save only the authenticated administrator's widget geometry.
+     *
+     * @param  array<array-key, mixed>  $layout
+     * @return list<array{id: string, x: int, y: int, w: int, h: int}>
+     */
+    #[Renderless]
+    public function saveDashboardLayout(array $layout): array
+    {
+        $user = $this->dashboardUser();
+        $layout = MonthlyDashboardLayout::validate($layout);
+        $user->forceFill(['monthly_dashboard_layout' => $layout])->save();
+        unset($this->dashboardLayout);
+
+        return $layout;
+    }
+
+    /**
+     * Clear only the authenticated account's preferences and return the standard layout.
+     *
+     * @return list<array{id: string, x: int, y: int, w: int, h: int}>
+     */
+    #[Renderless]
+    public function resetDashboardLayout(): array
+    {
+        $this->dashboardUser()->forceFill(['monthly_dashboard_layout' => null])->save();
+        unset($this->dashboardLayout);
+
+        return MonthlyDashboardLayout::defaults();
+    }
+
+    /**
+     * Resolve the concrete Eloquent account and reject missing or revoked administrator access.
+     */
+    private function dashboardUser(): User
+    {
+        $user = Auth::user();
+        if (! $user instanceof User || ! $user->is_admin) {
+            abort(403);
+        }
+
+        return $user;
     }
 
     /**

@@ -75,15 +75,21 @@ class PasskeyTest extends TestCase
     /**
      * Open the profile page as an admin.
      *
-     * Expects the full admin layout (not the centered simple box) and the
-     * passkey section with the management component to be rendered.
+     * Expects the standalone profile with account and passkey tabs, including
+     * the passkey management component and its registration script.
      */
     public function test_profile_page_shows_passkey_management(): void
     {
         $script = $this->expectPasskeyScript();
-        $this->assertFalse(Profile::isSimple());
+        $this->assertTrue(Profile::isSimple());
         $this->actingAs($this->admin());
-        $this->get(Profile::getUrl())->assertOk()->assertSee('Passkeys')->assertSeeLivewire(PasskeysComponent::class)->assertSee($script, false);
+        $this->get(Profile::getUrl())
+            ->assertOk()
+            ->assertSee('role="tab"', false)
+            ->assertSee('Account')
+            ->assertSee('Passkeys')
+            ->assertSeeLivewire(PasskeysComponent::class)
+            ->assertSee($script, false);
     }
 
     /**

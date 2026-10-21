@@ -1,0 +1,43 @@
+name: Security Audit
+
+on:
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  composer-audit:
+    name: Composer Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: PHP 8.4 einrichten
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+
+      - name: Composer Audit
+        run: composer audit --locked --no-interaction
+
+  npm-audit:
+    name: npm Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: npm Audit
+        run: npm audit --package-lock-only --audit-level=high
