@@ -10,7 +10,7 @@
 # -----------------------------------------------------------------------------
 # Stage: base – Laufzeit-Basis (PHP 8.4 + Apache auf Debian Bookworm)
 # -----------------------------------------------------------------------------
-FROM php:8.4-apache-bookworm AS base
+FROM php:8.5-apache-bookworm AS base
 
 # -- Systempakete -------------------------------------------------------------
 # Laufzeit- und Header-Bibliotheken für die PHP-Extensions (alphabetisch),
