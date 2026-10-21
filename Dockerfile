@@ -96,7 +96,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # -----------------------------------------------------------------------------
 # Stage: frontend – baut die Vite-Assets (Tailwind) nach /app/public/build
 # -----------------------------------------------------------------------------
-FROM node:22-bookworm-slim AS frontend
+FROM node:26-bookworm-slim AS frontend
 WORKDIR /app
 
 # Erst nur die Manifeste kopieren -> npm-Layer bleibt gecacht, solange sich
