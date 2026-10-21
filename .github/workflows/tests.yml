@@ -33,16 +33,20 @@ jobs:
         run: php scripts/check-phpdocs.php
 
   phpunit:
-    name: Unit- & Feature-Tests
+    name: Unit- & Filament-Tests (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: PHP 8.4 einrichten
+      - name: PHP ${{ matrix.php }} einrichten
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: ${{ matrix.php }}
           extensions: bcmath, gd, intl, mbstring, pdo_sqlite, zip
           coverage: none
 
@@ -54,8 +58,81 @@ jobs:
           cp .env.example .env
           php artisan key:generate --no-interaction
 
-      - name: Tests ausführen
-        run: php artisan test
+      - name: Unit-Tests ausführen
+        run: php artisan test --testsuite=Unit
+
+      - name: Feature- und Filament-/Livewire-Tests ausführen
+        run: php artisan test --testsuite=Feature
+
+  migrations:
+    name: Migrationen (PostgreSQL & MariaDB)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: splitnest_ci
+          POSTGRES_USER: splitnest
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd="pg_isready -U splitnest -d splitnest_ci"
+          --health-interval=5s --health-timeout=5s --health-retries=10
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_DATABASE: splitnest_ci
+          MARIADB_USER: splitnest
+          MARIADB_PASSWORD: ci-only-password
+          MARIADB_RANDOM_ROOT_PASSWORD: 'yes'
+        ports:
+          - 3306/tcp
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=10
+    env:
+      APP_ENV: testing
+      DB_HOST: 127.0.0.1
+      DB_DATABASE: splitnest_ci
+      DB_USERNAME: splitnest
+      DB_PASSWORD: ci-only-password
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: PHP 8.4 einrichten
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, gd, intl, mbstring, pdo_pgsql, pdo_mysql, zip
+          coverage: none
+
+      - name: Abhängigkeiten installieren
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Umgebung vorbereiten
+        run: |
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+
+      - name: PostgreSQL-Migrationen vorwärts und rückwärts prüfen
+        env:
+          DB_CONNECTION: pgsql
+          DB_PORT: ${{ job.services.postgres.ports['5432'] }}
+        run: |
+          php artisan migrate --force --no-interaction
+          php artisan migrate:reset --force --no-interaction
+          php artisan migrate --force --no-interaction
+
+      - name: MariaDB-Migrationen vorwärts und rückwärts prüfen
+        env:
+          DB_CONNECTION: mariadb
+          DB_PORT: ${{ job.services.mariadb.ports['3306'] }}
+        run: |
+          php artisan migrate --force --no-interaction
+          php artisan migrate:reset --force --no-interaction
+          php artisan migrate --force --no-interaction
 
   gitleaks:
     name: Secret-Scan (Gitleaks)

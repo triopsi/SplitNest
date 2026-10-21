@@ -37,4 +37,12 @@ return new class extends Migration
             $table->timestamps();
         });
     }
+
+    /**
+     * Remove passkey credentials before the referenced authentication table is rolled back.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('passkeys');
+    }
 };
