@@ -45,7 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ->login(Login::class)
             ->registration(FirstUserRegister::class)
             ->passwordReset()
-            ->profile(Profile::class, isSimple: false)
+            ->profile(Profile::class)
             ->brandName(fn (): string => config('app.name'))
             ->brandLogo(fn () => asset('brand/splitnest-logo-light.svg'))
             ->darkModeBrandLogo(fn () => asset('brand/splitnest-logo-dark.svg'))

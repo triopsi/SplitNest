@@ -118,17 +118,20 @@ class UserManagementTest extends TestCase
     }
 
     /**
-     * Open the profile page as an admin and inspect its navigation.
+     * Open user management and the standalone profile as an admin.
      *
-     * Expects user management in the sidebar and the profile dropdown to link to the profile.
+     * Expects user management in the panel sidebar and the profile dropdown
+     * to link to the reachable standalone profile.
      */
     public function test_users_link_is_in_sidebar_and_profile_menu_links_to_profile(): void
     {
         $this->actingAsAdmin();
 
-        $this->get(Profile::getUrl())
+        $this->get(UserResource::getUrl())
             ->assertOk()
             ->assertSee('href="'.UserResource::getUrl().'"', false);
+
+        $this->get(Profile::getUrl())->assertOk();
 
         $items = Filament::getPanel('admin')->getUserMenuItems();
         $this->assertArrayNotHasKey('users', $items);
