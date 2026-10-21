@@ -28,7 +28,9 @@ Write "None" if existing installations need no special steps.
 <!-- Check the applicable items and remove any that do not apply. -->
 
 - [ ] The PR title follows Conventional Commits (e.g. `fix: correct monthly totals`).
+- [ ] The contribution comes from a dedicated branch in my fork and targets `triopsi/SplitNest:main`.
 - [ ] Tests cover changed behavior and relevant failure cases, and the affected tests pass.
+- [ ] Filament/Livewire changes cover saving, validation or authorization as applicable.
 - [ ] Modified PHP files are formatted with Laravel Pint.
 - [ ] New or changed interface text is translated into English and German.
 - [ ] Documentation is updated for changes to setup, configuration or user-facing behavior.

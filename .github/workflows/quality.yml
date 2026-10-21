@@ -1,0 +1,39 @@
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  composer:
+    name: Composer-Konfiguration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: PHP 8.4 einrichten
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+
+      - name: Composer-Dateien validieren
+        run: composer validate --strict --no-check-publish
+
+  workflows:
+    name: GitHub-Workflows (actionlint)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Workflow-Syntax und eingebettete Shell-Befehle prüfen
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color
