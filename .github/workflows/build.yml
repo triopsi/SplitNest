@@ -47,6 +47,7 @@ jobs:
         with:
           context: .
           target: production
+          pull: true
           push: false
           load: true
           tags: splitnest:ci
