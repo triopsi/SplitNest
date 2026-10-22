@@ -6,6 +6,20 @@ Security fixes target the latest stable SplitNest release. Older releases are no
 
 Development branches and prereleases may contain incomplete changes and are not recommended for production use.
 
+## PHP runtime security
+
+Use PHP 8.4.27 or later within the 8.4 branch, or PHP 8.5.12 or later within the 8.5 branch. Earlier patch versions in these branches are affected by the [PHP2Shell vulnerabilities](https://www.php.net/ChangeLog-8.php). Keep the PHP runtime updated as further security fixes become available.
+
+After a security release, pull the updated SplitNest image and recreate the container. Restarting an existing container does not update its PHP runtime. If you pin a SplitNest version, first change the image tag in your Compose file to the fixed release.
+
+```bash
+docker compose pull
+docker compose up -d --force-recreate
+docker compose exec app php -v
+```
+
+Check that the running PHP version meets the minimum patch version above. Removing old images from a registry does not update containers that are already deployed.
+
 ## Reporting a vulnerability
 
 Please report suspected vulnerabilities privately. Do not include vulnerability details, exploit code or sensitive data in a public issue or pull request.
