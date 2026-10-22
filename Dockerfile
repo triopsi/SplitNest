@@ -8,14 +8,16 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Stage: base – Laufzeit-Basis (PHP 8.4 + Apache auf Debian Bookworm)
+# Stage: base – Laufzeit-Basis (PHP 8.4 + Apache auf Debian Trixie)
 # -----------------------------------------------------------------------------
-FROM php:8.4-apache-bookworm AS base
+FROM php:8.4-apache-trixie AS base
 
 # -- Systempakete -------------------------------------------------------------
 # Laufzeit- und Header-Bibliotheken für die PHP-Extensions (alphabetisch),
 # dazu: curl (Healthcheck), git + unzip (Composer holt Pakete aus Quellen).
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Apply distribution security fixes even when the upstream image predates them.
+RUN apt-get update && apt-get upgrade -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
     curl \
     git \
     libfreetype6-dev \
@@ -96,7 +98,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # -----------------------------------------------------------------------------
 # Stage: frontend – baut die Vite-Assets (Tailwind) nach /app/public/build
 # -----------------------------------------------------------------------------
-FROM node:22-bookworm-slim AS frontend
+FROM node:22-trixie-slim AS frontend
 WORKDIR /app
 
 # Erst nur die Manifeste kopieren -> npm-Layer bleibt gecacht, solange sich
