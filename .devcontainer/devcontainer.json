@@ -5,7 +5,7 @@
   "workspaceFolder": "/var/www/html",
   "remoteUser": "root",
   "shutdownAction": "stopCompose",
-  "forwardPorts": [8080],
+  "forwardPorts": [8080, 5173],
   "mounts": [
     // SSH-Schluessel vom Host readonly einbinden; dev-setup.sh kopiert sie
     // mit korrekten Rechten nach /root/.ssh (ssh verlangt passende Ownership)
