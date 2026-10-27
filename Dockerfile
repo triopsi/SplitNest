@@ -7,6 +7,9 @@
 #   production  Schlankes Produktions-Image (Standard-Target für Release-Builds)
 # =============================================================================
 
+# Gemeinsame Node-Version für Devcontainer und Frontend-Build.
+FROM node:22-trixie-slim AS node
+
 # -----------------------------------------------------------------------------
 # Stage: base – Laufzeit-Basis (PHP 8.4 + Apache auf Debian Trixie)
 # -----------------------------------------------------------------------------
@@ -78,6 +81,14 @@ EXPOSE 8080
 FROM base AS development
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
+# Node.js samt npm/npx aus derselben Debian-Variante übernehmen.
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
+    && node --version \
+    && npm --version
+
 # -- Werkzeuge für Git und die Pre-Commit-Hooks --------------------------------
 # openssh-client: ssh/ssh-keyscan für git per SSH (Host-Keys kommen per
 # Readonly-Mount in den Container, siehe .devcontainer/devcontainer.json)
@@ -95,10 +106,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${arch}.tar.gz" \
     | tar -xz -C /usr/local/bin gitleaks
 
+# Die Testsuite mit PDF-Erzeugung benötigt mehr als das PHP-Standardlimit (128M).
+RUN echo 'memory_limit=512M' > "$PHP_INI_DIR/conf.d/zz-development.ini"
+
 # -----------------------------------------------------------------------------
 # Stage: frontend – baut die Vite-Assets (Tailwind) nach /app/public/build
 # -----------------------------------------------------------------------------
-FROM node:22-trixie-slim AS frontend
+FROM node AS frontend
 WORKDIR /app
 
 # Erst nur die Manifeste kopieren -> npm-Layer bleibt gecacht, solange sich

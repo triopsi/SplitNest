@@ -1,6 +1,8 @@
 #!/bin/sh
 set -eu
 composer install --no-interaction --prefer-dist
+npm ci --no-audit --no-fund
+npm run build
 if [ ! -f .env ]; then cp .env.example .env; fi
 if ! grep -q '^APP_KEY=base64:' .env; then php artisan key:generate --no-interaction; fi
 # Pre-Commit-Hooks aktivieren (Konfiguration: .pre-commit-config.yaml).
