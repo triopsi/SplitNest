@@ -44,7 +44,7 @@ class LanguageSwitchTest extends TestCase
         $admin = User::factory()->create();
         $admin->is_admin = true;
         $admin->save();
-        Participant::create(['name' => 'Daniel']);
+        Participant::create(['name' => 'Max']);
         $this->actingAs($admin);
         $this->withSession(['locale' => 'de'])->get('/admin')->assertSee('Monatsübersicht');
         $this->withSession(['locale' => 'en'])->get('/admin')->assertSee('Monthly overview');
@@ -72,7 +72,7 @@ class LanguageSwitchTest extends TestCase
         $admin = User::factory()->create();
         $admin->is_admin = true;
         $admin->save();
-        Participant::create(['name' => 'Daniel']);
+        Participant::create(['name' => 'Max']);
         $this->actingAs($admin);
         $this->get('/admin')->assertOk()->assertSee(route('language.switch', 'de'), false)->assertSee('Deutsch');
     }

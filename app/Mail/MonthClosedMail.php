@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\MonthlyClosing;
+use App\Support\Month;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
@@ -37,7 +38,7 @@ class MonthClosedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('mail.closing_subject', ['app' => config('app.name'), 'month' => $this->closing->month]),
+            subject: __('mail.closing_subject', ['app' => config('app.name'), 'month' => Month::format($this->closing->month)]),
         );
     }
 

@@ -42,8 +42,8 @@ class FirstRunRegistrationTest extends TestCase
     public function test_first_user_can_register_via_the_web_form(): void
     {
         Livewire::test(FirstUserRegister::class)
-            ->set('data.name', 'Daniel')
-            ->set('data.email', 'Daniel@Example.Test')
+            ->set('data.name', 'Max')
+            ->set('data.email', 'Max@Example.Test')
             ->set('data.password', 'A-long-test-password!')
             ->set('data.passwordConfirmation', 'A-long-test-password!')
             ->call('register')
@@ -51,7 +51,7 @@ class FirstRunRegistrationTest extends TestCase
 
         $user = User::firstOrFail();
         $this->assertTrue($user->is_admin);
-        $this->assertSame('daniel@example.test', $user->email);
+        $this->assertSame('max@example.test', $user->email);
         $this->assertTrue(Hash::check('A-long-test-password!', $user->password));
         $this->assertAuthenticatedAs($user);
     }

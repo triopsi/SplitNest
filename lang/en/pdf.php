@@ -4,6 +4,21 @@
  * PDF statement for a closed month.
  */
 return [
+    'personal' => [
+        'title' => 'Your monthly statement :month',
+        'scope' => 'This statement includes only your own costs, contributions and transfers.',
+        'to_pay' => 'Total for you to transfer',
+        'to_receive' => 'Payments planned for you to receive',
+        'payments' => 'Your transfers',
+        'no_payments' => 'No transfers are planned for you this month.',
+        'costs' => 'Your costs and contributions',
+        'kind' => 'Type',
+        'your_amount' => 'Your amount',
+        'share' => 'Own cost share',
+        'contribution' => 'Contribution / forwarding',
+        'no_costs' => 'No costs or contributions are recorded for you this month.',
+        'note' => 'Amounts in EUR. Costs show your own share, not the full price of a bill. Planned transfers appear above; bills you paid yourself may reduce balancing amounts. Contributions and forwarding payments are already included in the transfers and must not be added again. This is not confirmation of a bank payment.',
+    ],
     'title' => 'Household statement :month',
     'heading' => 'Statement :month',
     'saved_on' => 'Binding monthly plan · saved on :date',

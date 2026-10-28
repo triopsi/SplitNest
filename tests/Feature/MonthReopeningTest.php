@@ -41,7 +41,7 @@ class MonthReopeningTest extends TestCase
      */
     private function closeMonthWithExpense(): MonthlyClosing
     {
-        [$a, $b] = [Participant::create(['name' => 'Daniel']), Participant::create(['name' => 'Svenja'])];
+        [$a, $b] = [Participant::create(['name' => 'Max']), Participant::create(['name' => 'Erika'])];
         Expense::create(['name' => 'Miete', 'payer_id' => $a->id, 'amount' => '100.01', 'split_mode' => 'percentage', 'shares' => [['participant_id' => $a->id, 'percentage' => 50], ['participant_id' => $b->id, 'percentage' => 50]], 'start_month' => '2027-01', 'interval_months' => 1]);
 
         return app(CloseMonth::class)->close('2027-01', $this->admin()->id);

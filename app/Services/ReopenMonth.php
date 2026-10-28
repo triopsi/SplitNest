@@ -30,6 +30,10 @@ final class ReopenMonth
             if (! $closing?->closed_at) {
                 throw ValidationException::withMessages(['month' => __('settlement.closing.not_closed')]);
             }
+            $laterClosings = MonthlyClosing::where('month', '>', $month)->whereNotNull('closed_at')->get();
+            if ($laterClosings->contains(fn (MonthlyClosing $later): bool => ! empty($later->snapshot['budgets']))) {
+                throw ValidationException::withMessages(['month' => __('funding.later_closing')]);
+            }
             $closing->update(['snapshot' => null, 'closed_by' => null, 'closed_at' => null]);
 
             return $closing;

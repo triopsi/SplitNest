@@ -22,7 +22,7 @@ final class SettlementCalculator
      * Sums up incomes and expenses per participant, splits every expense
      * according to its split mode and derives the balancing transfers.
      *
-     * @return array{version: int, month: string, currency: string, participants: list<array{id: int, name: string, income_cents: int, paid_cents: int, share_cents: int, balance_cents: int, remaining_cents: int}>, incomes: list<array{name: string, participant_id: int, amount_cents: int}>, expenses: list<array{id: int, name: string, amount_cents: int, payer_id: int, split_mode: string, weights: array<int, int>, allocations: array<int, int>}>, total_expense_cents: int, total_income_cents: int, transfers: list<array{from_id: int, from_name: string, to_id: int, to_name: string, amount_cents: int}>}
+     * @return array{version: int, month: string, currency: string, participants: list<array<string, mixed>>, incomes: list<array<string, mixed>>, expenses: list<array<string, mixed>>, budgets: list<array<string, mixed>>, total_expense_cents: int, total_income_cents: int, allocation_income_cents: int, other_income_cents: int, remaining_cents: int, transfers: list<array<string, mixed>>, payment_instructions: list<array<string, mixed>>}
      *
      * @throws ValidationException When the month is invalid, no participants exist or an expense cannot be allocated.
      */
@@ -32,19 +32,36 @@ final class SettlementCalculator
         $people = Participant::orderBy('id')->get()->mapWithKeys(fn ($p) => [$p->id => [
             'id' => $p->id, 'name' => $p->name, 'income_cents' => 0, 'paid_cents' => 0,
             'share_cents' => 0, 'balance_cents' => 0, 'remaining_cents' => 0,
+            'allocation_income_cents' => 0, 'other_income_cents' => 0, 'reserved_cents' => 0, 'opening_reserved_cents' => 0,
         ]])->all();
         if (! $people) {
             throw ValidationException::withMessages(['month' => __('settlement.calculator.no_participants')]);
         }
         $incomeLines = [];
-        foreach (Income::orderBy('id')->get() as $income) {
+        $incomes = Income::with(['budget', 'expense', 'sender'])->orderBy('id')->get();
+        $expenses = Expense::orderBy('id')->get();
+        $funding = app(BudgetFunding::class)->calculate($month, $incomes, $expenses);
+        foreach ($funding['budgets'] as $budget) {
+            foreach ($budget['balances'] as $participantId => $cents) {
+                $people[$participantId]['reserved_cents'] += $cents;
+            }
+            foreach ($budget['opening_balances'] as $participantId => $cents) {
+                $people[$participantId]['opening_reserved_cents'] += $cents;
+            }
+        }
+        foreach ($incomes as $income) {
             if ($income->appliesTo($month)) {
                 $people[$income->participant_id]['income_cents'] += $income->amount_cents;
-                $incomeLines[] = ['name' => $income->name, 'participant_id' => $income->participant_id, 'amount_cents' => $income->amount_cents];
+                $relevant = $income->affects_allocation && ! $income->budget_id && ! $income->expense_id && ! $income->sender_id;
+                $people[$income->participant_id][$relevant ? 'allocation_income_cents' : 'other_income_cents'] += $income->amount_cents;
+                $incomeLines[] = ['name' => $income->name, 'participant_id' => $income->participant_id, 'amount_cents' => $income->amount_cents, 'affects_allocation' => $relevant, 'budget_name' => $income->budget?->name, 'expense_name' => $income->expense?->name,
+                    'sender_id' => $income->sender_id, 'sender_name' => $income->sender?->name ?? $income->sender_name,
+                    'include_in_payment_plan' => $income->include_in_payment_plan,
+                ];
             }
         }
         $lines = [];
-        foreach (Expense::orderBy('id')->get() as $expense) {
+        foreach ($expenses as $expense) {
             if (! $expense->appliesTo($month)) {
                 continue;
             }
@@ -53,15 +70,20 @@ final class SettlementCalculator
             foreach ($expense->shares as $share) {
                 $id = (int) $share['participant_id'];
                 $weights[$id] = match ($expense->split_mode) {
-                    'income' => $people[$id]['income_cents'],
+                    'income' => $people[$id]['allocation_income_cents'],
                     'percentage' => Money::cents($share['percentage'], 'shares'),
                     default => 1,
                 };
             }
-            if (array_sum($weights) === 0) {
+            $funded = $funding['expenses'][$expense->id];
+            $uncovered = $expense->amount_cents - $funded['reimbursed_cents'] - $funded['budget_cents'];
+            if ($uncovered > 0 && array_sum($weights) === 0) {
                 throw ValidationException::withMessages(['month' => __('settlement.calculator.missing_income', ['name' => $expense->name])]);
             }
-            $allocations = $this->allocate($expense->amount_cents, $weights);
+            $allocations = $uncovered > 0 ? $this->allocate($uncovered, $weights) : array_fill_keys(array_keys($weights), 0);
+            foreach ($funded['allocations'] as $id => $cents) {
+                $allocations[$id] = ($allocations[$id] ?? 0) + $cents;
+            }
             foreach ($allocations as $id => $cents) {
                 $people[$id]['share_cents'] += $cents;
             }
@@ -70,20 +92,28 @@ final class SettlementCalculator
                 'id' => $expense->id, 'name' => $expense->name, 'amount_cents' => $expense->amount_cents,
                 'payer_id' => $expense->payer_id, 'split_mode' => $expense->split_mode,
                 'weights' => $weights, 'allocations' => $allocations,
+                'reimbursed_cents' => $funded['reimbursed_cents'], 'budget_cents' => $funded['budget_cents'],
+                'uncovered_cents' => $uncovered,
             ];
         }
         foreach ($people as &$person) {
             $person['balance_cents'] = $person['paid_cents'] - $person['share_cents'];
-            $person['remaining_cents'] = $person['income_cents'] - $person['share_cents'];
+            $person['remaining_cents'] = $person['income_cents'] - $person['share_cents'] - $person['reserved_cents'] + $person['opening_reserved_cents'];
         }
         unset($person);
+        $transfers = $this->transfers($people);
 
         return [
-            'version' => 1, 'month' => $month, 'currency' => 'EUR',
+            'version' => 3, 'month' => $month, 'currency' => 'EUR',
             'participants' => array_values($people), 'incomes' => $incomeLines, 'expenses' => $lines,
+            'budgets' => $funding['budgets'],
+            'allocation_income_cents' => array_sum(array_column($people, 'allocation_income_cents')),
+            'other_income_cents' => array_sum(array_column($people, 'other_income_cents')),
+            'remaining_cents' => array_sum(array_column($people, 'remaining_cents')),
             'total_expense_cents' => array_sum(array_column($lines, 'amount_cents')),
             'total_income_cents' => array_sum(array_column($people, 'income_cents')),
-            'transfers' => $this->transfers($people),
+            'transfers' => $transfers,
+            'payment_instructions' => app(PaymentPlan::class)->calculate($transfers, $incomeLines, $people),
         ];
     }
 

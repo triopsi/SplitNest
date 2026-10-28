@@ -5,6 +5,8 @@ namespace App\Filament\Pages;
 use App\Models\MonthlyClosing;
 use App\Models\Participant;
 use App\Services\SettlementCalculator;
+use App\Support\Month;
+use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Illuminate\Validation\ValidationException;
 
@@ -41,7 +43,22 @@ class ParticipantMonth extends Page
      */
     public function getTitle(): string
     {
-        return $this->participant->name.' · '.$this->month;
+        return $this->participant->name.' · '.Month::format($this->month);
+    }
+
+    /** Preview the PDF this participant would receive for a closed month.
+     * @return array<Action>
+     */
+    protected function getHeaderActions(): array
+    {
+        $closing = MonthlyClosing::where('month', $this->month)->whereNotNull('closed_at')->first();
+        if (! $closing) {
+            return [];
+        }
+
+        return [Action::make('recipientPdf')->label(__('participants.detail.recipient_pdf'))
+            ->icon('heroicon-o-arrow-down-tray')
+            ->url(route('closings.participant.pdf', ['closing' => $closing, 'participant' => $this->participant]))];
     }
 
     /**

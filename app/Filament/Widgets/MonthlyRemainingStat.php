@@ -33,11 +33,11 @@ class MonthlyRemainingStat extends StatsOverviewWidget
     protected function getStats(): array
     {
         $report = $this->settlementReport;
-        $amount = $report['total_income_cents'] - $report['total_expense_cents'];
+        $amount = $report['remaining_cents'] ?? $report['total_income_cents'] - $report['total_expense_cents'];
 
         return [
             Stat::make(__('settlement.cards.left'), Money::format($amount))
-                ->description(__('settlement.cards.left_hint'))
+                ->description(isset($report['remaining_cents']) ? __('funding.remaining_help') : __('settlement.cards.left_hint'))
                 ->icon(Heroicon::OutlinedWallet)
                 ->color($amount < 0 ? 'danger' : 'primary'),
         ];

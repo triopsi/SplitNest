@@ -5,8 +5,10 @@ namespace App\Filament\Resources\Expenses;
 use App\Filament\Resources\Expenses\Pages\ManageExpenses;
 use App\Filament\Support\ScheduleFields;
 use App\Models\Expense;
+use App\Models\Income;
 use App\Models\Participant;
 use App\Support\Money;
+use App\Support\Month;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -25,7 +27,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
-use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -85,6 +86,9 @@ class ExpenseResource extends Resource
                                 }
                             })
                             ->helperText(__('expenses.fields.payer_hint')),
+                        Select::make('budget_id')->label(__('funding.budget'))->relationship('budget', 'name')->preload()->searchable()
+                            ->helperText(__('funding.budget_expense_help'))
+                            ->createOptionForm([TextInput::make('name')->label(__('funding.name'))->required()->maxLength(255)]),
                     ]),
                 Section::make(__('expenses.sections.schedule'))
                     ->description(__('expenses.sections.schedule_desc'))
@@ -145,22 +149,25 @@ class ExpenseResource extends Resource
      */
     public static function table(Table $table): Table
     {
-        return $table->columns([
+        return $table->paginationPageOptions([10, 25, 50, 100])->defaultPaginationPageOption(100)->columns([
             TextColumn::make('name')->label(__('expenses.table.name'))->searchable()->sortable()->toggleable(),
             TextColumn::make('payer.name')->label(__('expenses.table.payer'))->sortable()->html()->toggleable()
                 ->formatStateUsing(fn (Expense $record): string => view('components.person', ['name' => $record->payer->name, 'email' => $record->payer->email])->render()),
             TextColumn::make('amount_cents')->label(__('expenses.table.amount'))->formatStateUsing(fn ($state) => Money::format($state))->sortable()->toggleable(),
+            TextColumn::make('budget.name')->label(__('funding.budget'))->placeholder('–')->toggleable(),
             TextColumn::make('next_billing')->label(__('expenses.table.next_billing'))->toggleable()
                 ->getStateUsing(fn (Expense $record): string => ($next = $record->nextBillingMonth(now()->format('Y-m')))
-                    ? Carbon::createFromFormat('!Y-m', $next)->format('m/Y') : '–'),
+                    ? Month::format($next) : '–'),
             TextColumn::make('split_mode')->label(__('expenses.table.split_mode'))->formatStateUsing(fn ($state) => Expense::modeLabels()[$state])->badge()->toggleable(),
-            TextColumn::make('start_month')->label(__('expenses.table.from'))->sortable()->toggleable(isToggledHiddenByDefault: true),
-            TextColumn::make('end_month')->label(__('expenses.table.until'))->placeholder(__('schedule.unlimited'))->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('start_month')->formatStateUsing(fn (string $state): string => Month::format($state))->label(__('expenses.table.from'))->sortable()->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('end_month')->formatStateUsing(fn (string $state): string => Month::format($state))->label(__('expenses.table.until'))->placeholder(__('schedule.unlimited'))->toggleable(isToggledHiddenByDefault: true),
             TextColumn::make('interval_months')->label(__('incomes.table.interval'))->formatStateUsing(fn ($state) => $state ? __('schedule.every_x_months', ['count' => $state]) : __('schedule.one_off'))->toggleable(),
         ])->filters([
             SelectFilter::make('payer')->relationship('payer', 'name')->label(__('expenses.filters.payer')),
             SelectFilter::make('split_mode')->label(__('expenses.filters.split_mode'))->options(Expense::modeLabels()),
-        ])->recordActions([EditAction::make(), DeleteAction::make(),
+        ])->recordActions([EditAction::make(), DeleteAction::make()
+            ->disabled(fn (Expense $record): bool => Income::where('expense_id', $record->id)->exists())
+            ->tooltip(fn (Expense $record): ?string => Income::where('expense_id', $record->id)->exists() ? __('funding.remove_refunds_first') : null),
         ])->groups([
             Group::make('interval_months')
                 ->collapsible()

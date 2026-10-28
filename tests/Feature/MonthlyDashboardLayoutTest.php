@@ -186,6 +186,29 @@ class MonthlyDashboardLayoutTest extends TestCase
         $this->assertSame(MonthlyDashboardLayout::defaults(), $page->instance()->dashboardLayout());
     }
 
+    /** Expand old short payment widgets and shift following rows without resetting personal widths. */
+    public function test_short_saved_transfer_widgets_expand_without_overlapping_the_next_rows(): void
+    {
+        $legacy = MonthlyDashboardLayout::defaults();
+        $legacy[0]['x'] = 8;
+        $legacy[2]['x'] = 0;
+        $legacy[4]['h'] = 3;
+        $legacy[5]['y'] = 13;
+        $legacy[6]['y'] = 18;
+        $legacy[7]['y'] = 26;
+
+        $layout = MonthlyDashboardLayout::resolve($legacy);
+        $widgets = collect($layout)->keyBy('id');
+
+        $this->assertSame(8, $widgets['income']['x']);
+        $this->assertSame(0, $widgets['remaining']['x']);
+        $this->assertSame(5, $widgets['transfers']['h']);
+        $this->assertSame(15, $widgets['participants']['y']);
+        $this->assertSame(20, $widgets['costs']['y']);
+        $this->assertSame(28, $widgets['budgets']['y']);
+        $this->assertSame($layout, MonthlyDashboardLayout::validate($layout));
+    }
+
     /**
      * Revoke administrator access before an existing page attempts to save or reset.
      *

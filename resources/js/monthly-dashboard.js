@@ -24,7 +24,7 @@ window.monthlyDashboard = (initialLayout, messages) => {
             this.$nextTick(() => {
                 grid = GridStack.init({
                     column: 12,
-                    cellHeight: 64,
+                    cellHeight: 96,
                     margin: 8,
                     minRow: 1,
                     maxRow: 120,

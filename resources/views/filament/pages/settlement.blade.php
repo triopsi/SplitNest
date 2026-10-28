@@ -25,7 +25,7 @@
                     <x-filament::button tag="a" href="{{ route('closings.pdf', $closing) }}" icon="heroicon-o-arrow-down-tray">{{ __('settlement.pdf_button') }}</x-filament::button>
                     {{ $this->reopenMonthAction }}
                 @else
-                    <span class="hh-badge">{{ __('settlement.open_badge', ['month' => $month]) }}</span>
+                    <span class="hh-badge">{{ __('settlement.open_badge', ['month' => \App\Support\Month::format($month)]) }}</span>
                     {{ $this->closeMonthAction }}
                     <span class="hh-muted">{{ __('settlement.close_hint') }}</span>
                 @endif

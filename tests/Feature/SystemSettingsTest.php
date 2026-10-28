@@ -26,7 +26,7 @@ class SystemSettingsTest extends TestCase
         $admin = User::factory()->create();
         $admin->is_admin = true;
         $admin->save();
-        Participant::create(['name' => 'Daniel', 'email' => 'daniel@example.test']);
+        Participant::create(['name' => 'Max', 'email' => 'max@example.test']);
         $this->actingAs($admin);
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
@@ -44,7 +44,7 @@ class SystemSettingsTest extends TestCase
 
         // User menu avatar and participant avatars appear.
         $this->assertSame('https://www.gravatar.com/avatar/'.md5($admin->email).'?s=80&d=initials', $admin->getFilamentAvatarUrl());
-        $this->get('/admin?month=2027-01')->assertSee('gravatar.com/avatar/'.md5('daniel@example.test'), false);
+        $this->get('/admin?month=2027-01')->assertSee('gravatar.com/avatar/'.md5('max@example.test'), false);
     }
 
     /**
