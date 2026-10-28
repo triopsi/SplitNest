@@ -23,6 +23,8 @@ use Spatie\LaravelPasskeys\Models\Concerns\InteractsWithPasskeys;
  * Only admins may access the Filament panel (see also the
  * {@see EnsureHouseholdAdmin} middleware). Users can register passkeys for
  * passwordless login.
+ *
+ * @property string|null $locale Preferred UI language, or null to use the session/application default.
  */
 #[Fillable(['name', 'email', 'password', 'is_admin'])]
 #[Hidden(['password', 'remember_token'])]

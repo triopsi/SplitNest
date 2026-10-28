@@ -8,21 +8,23 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Applies the UI language chosen in the language switcher (stored in the
- * session) on top of the APP_LOCALE default.
+ * Applies the saved account language, then the guest/session choice, then APP_LOCALE.
  */
 class SetLocale
 {
     /**
-     * Set the application locale from the session when it holds a valid locale.
+     * Resolve available locales on each request so account preferences survive a fresh session.
      *
      * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $request->session()->get('locale');
-        if (is_string($locale) && Locales::isAvailable($locale)) {
-            app()->setLocale($locale);
+        foreach ([$request->user()?->locale, $request->session()->get('locale'), config('app.locale')] as $locale) {
+            if (is_string($locale) && Locales::isAvailable($locale)) {
+                app()->setLocale($locale);
+
+                break;
+            }
         }
 
         return $next($request);

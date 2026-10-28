@@ -13,6 +13,12 @@ return [
     'include_payment_help' => 'Enable only when this forwarding payment or deposit should be planned as a separate payment. It remains the same receipt and recipient; no second income is created. Leave disabled for payments already handled separately. This planning option applies to every scheduled month, not as a monthly paid status.',
     'payment_count' => ':count planned payments',
     'payment_plan_note' => 'Household balancing plus explicitly planned forwarding payments and deposits. Payments with the same payer and recipient are grouped with their individual reasons below. Personal balances still show the cost settlement alone. These are plans, not confirmed bank payments.',
+    'payment_payer' => 'Payer',
+    'payment_recipient' => 'Recipient',
+    'payment_amount' => 'Amount to transfer',
+    'payment_breakdown' => 'How the transfer amount adds up',
+    'payment_reference' => 'Payment reference',
+    'payment_help' => 'How is the transfer plan calculated?',
     'settlement_part' => 'Household balancing',
     'budgets' => 'Earmarked budgets',
     'help' => [

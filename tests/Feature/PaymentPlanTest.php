@@ -75,7 +75,19 @@ class PaymentPlanTest extends TestCase
         $this->assertSame(30000, $report['payment_instructions'][0]['settlement_cents']);
         $this->assertSame([['name' => 'Childcare subsidy', 'amount_cents' => 9400]], $report['payment_instructions'][0]['reasons']);
         Livewire::test(MonthlyTransfers::class, ['month' => '2027-01', 'report' => $report])
-            ->assertSee('Erika')->assertSee('Max')->assertSee('394,00 €')->assertSee('94,00 €')->assertSee('300,00 €');
+            ->assertSee('Erika')->assertSee('Max')
+            ->assertSeeInOrder([__('funding.settlement_part'), '300,00 €', '+', 'Childcare subsidy', '94,00 €', '=', __('funding.payment_amount'), '394,00 €']);
+    }
+
+    /** Every planned addition remains named between the household base and the final transfer total. */
+    public function test_widget_lists_each_subsidy_before_the_combined_transfer_total(): void
+    {
+        [$recipient, $payer] = $this->household();
+        $this->income($recipient, 9400, ['name' => 'Childcare subsidy', 'sender_id' => $payer->id, 'include_in_payment_plan' => true]);
+        $this->income($recipient, 499, ['name' => 'Subscription contribution', 'sender_id' => $payer->id, 'include_in_payment_plan' => true]);
+
+        Livewire::test(MonthlyTransfers::class, ['month' => '2027-01'])
+            ->assertSeeInOrder([__('funding.settlement_part'), '300,00 €', '+', 'Childcare subsidy', '94,00 €', '+', 'Subscription contribution', '4,99 €', '=', __('funding.payment_amount'), '398,99 €']);
     }
 
     /** A friend's reimbursement appears without making the friend a household participant. */

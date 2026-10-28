@@ -12,6 +12,7 @@
 .hh-dashboard .hh-widget-body { flex: 1; min-height: 0; min-width: 0; overflow: auto; }
 .hh-dashboard .hh-widget-body > .fi-wi-widget { height: 100%; display: flex; flex-direction: column; }
 .hh-dashboard .fi-wi-widget > .fi-section { flex: 1; min-height: 0; }
+.hh-dashboard [gs-id="transfers"] .hh-widget-body > .fi-wi-widget { height: auto; flex: none; }
 .hh-dashboard .fi-wi-stats-overview .fi-sc, .hh-dashboard .fi-wi-stats-overview .fi-sc-component, .hh-dashboard .fi-wi-stats-overview .fi-wi-stats-overview-stat { height: 100%; }
 .hh-dashboard .fi-wi-stats-overview-stat { padding: 1.25rem; }
 .hh-dashboard .fi-wi-chart > .fi-section { display: flex; flex-direction: column; }

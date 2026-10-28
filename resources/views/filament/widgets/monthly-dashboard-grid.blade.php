@@ -45,6 +45,9 @@
                 gs-w="{{ $item['w'] }}" gs-h="{{ $item['h'] }}"
                 gs-min-w="{{ $definition['minW'] }}" gs-min-h="{{ $definition['minH'] }}"
                 gs-max-h="20"
+                @if($item['id'] === 'transfers')
+                    gs-size-to-content="true"
+                @endif
             >
                 <div class="grid-stack-item-content" wire:ignore.self>
                     <button
