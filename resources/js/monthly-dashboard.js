@@ -11,6 +11,8 @@ window.monthlyDashboard = (initialLayout, messages) => {
     let savedLayout = structuredClone(initialLayout);
     let media;
     let onBreakpoint;
+    let transferObserver;
+    let transferFrame;
 
     return {
         editing: false,
@@ -46,12 +48,24 @@ window.monthlyDashboard = (initialLayout, messages) => {
                 media.addEventListener('change', onBreakpoint);
                 onBreakpoint();
                 grid.on('resizestop dragstop', () => this.resizeCharts());
+                const transferElement = grid.getGridItems().find((item) => item.gridstackNode.id === 'transfers');
+                if (transferElement) {
+                    transferElement.gridstackNode.resizeToContentParent = '.hh-widget-body';
+                }
+                const transferContent = transferElement?.querySelector('.hh-widget-body > .fi-wi-widget');
+                if (transferContent) {
+                    transferObserver = new ResizeObserver(() => this.fitTransfers());
+                    transferObserver.observe(transferContent);
+                }
+                this.fitTransfers();
             });
         },
 
         /** Remove library listeners when Livewire navigation destroys this dashboard. */
         destroy() {
             media?.removeEventListener('change', onBreakpoint);
+            transferObserver?.disconnect();
+            cancelAnimationFrame(transferFrame);
             grid?.destroy(false);
         },
 
@@ -131,7 +145,17 @@ window.monthlyDashboard = (initialLayout, messages) => {
 
         /** Allow Filament's Chart.js canvases to refit after a widget or viewport changes size. */
         resizeCharts() {
+            this.fitTransfers();
             requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+        },
+
+        /** Fit payment cards after content, width or disclosure changes and push following widgets down. */
+        fitTransfers() {
+            cancelAnimationFrame(transferFrame);
+            transferFrame = requestAnimationFrame(() => {
+                const element = grid?.getGridItems().find((item) => item.gridstackNode.id === 'transfers');
+                if (element) grid.resizeToContent(element);
+            });
         },
     };
 };

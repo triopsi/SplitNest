@@ -37,7 +37,7 @@ class CompleteBackupTest extends TestCase
      */
     private function source(): array
     {
-        $user = User::factory()->create(['id' => 42, 'is_admin' => true, 'password' => Hash::make('RecoveryPassword123!'), 'monthly_dashboard_layout' => MonthlyDashboardLayout::defaults()]);
+        $user = User::factory()->create(['id' => 42, 'is_admin' => true, 'locale' => 'de', 'password' => Hash::make('RecoveryPassword123!'), 'monthly_dashboard_layout' => MonthlyDashboardLayout::defaults()]);
         Passkey::factory()->create(['authenticatable_id' => $user->id]);
         HouseholdInvitation::factory()->create(['invited_by' => $user->id]);
         Settings::set('mail_body', 'A restored mail template for {name}');
@@ -106,6 +106,7 @@ class CompleteBackupTest extends TestCase
         $restored = User::findOrFail($user->id);
         $this->assertTrue(Hash::check('RecoveryPassword123!', $restored->password));
         $this->assertTrue($restored->is_admin);
+        $this->assertSame('de', $restored->locale);
         $this->assertSame(MonthlyDashboardLayout::defaults(), $restored->monthly_dashboard_layout);
         $this->assertSame($user->id, MonthlyClosing::sole()->closed_by);
         $this->assertTrue(Participant::findOrFail($person->id)->only_own_report);

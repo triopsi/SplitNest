@@ -5,12 +5,16 @@ namespace Tests\Feature;
 use App\Models\Participant;
 use App\Models\User;
 use App\Support\Locales;
+use Filament\Auth\Pages\Login;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
  * Language switcher: the dropdown in the topbar stores the UI language in
- * the session, on top of the APP_LOCALE default.
+ * the account for signed-in users and the session for guests.
  */
 class LanguageSwitchTest extends TestCase
 {
@@ -59,6 +63,67 @@ class LanguageSwitchTest extends TestCase
     {
         $this->get('/language/xx')->assertNotFound();
         $this->assertNull(session('locale'));
+    }
+
+    /** A chosen language survives logout and a fresh password login, independently of session state. */
+    public function test_account_language_is_restored_after_a_new_login(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true, 'password' => 'a-long-test-password']);
+        $this->actingAs($admin);
+        $this->get('/language/de')->assertRedirect()->assertSessionHas('locale', 'de');
+        $this->assertSame('de', $admin->fresh()->locale);
+        Auth::logout();
+        $this->flushSession();
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        Livewire::test(Login::class)->fillForm(['email' => $admin->email, 'password' => 'a-long-test-password'])
+            ->call('authenticate')->assertHasNoFormErrors();
+
+        $this->assertAuthenticatedAs($admin);
+        $this->get('/admin')->assertOk()->assertSee('Monatsübersicht');
+    }
+
+    /** Switching updates only the authenticated account and each account overrides a different session locale. */
+    public function test_each_account_keeps_its_own_last_selected_language(): void
+    {
+        $first = User::factory()->create(['is_admin' => true, 'locale' => 'de']);
+        $second = User::factory()->create(['is_admin' => true, 'locale' => 'en']);
+
+        $this->actingAs($first)->withSession(['locale' => 'en'])->get('/admin')->assertOk()->assertSee('Monatsübersicht');
+        $this->actingAs($second)->withSession(['locale' => 'de'])->get('/admin')->assertOk()->assertSee('Monthly overview');
+        $this->get('/language/de')->assertRedirect();
+        $this->get('/language/en')->assertRedirect();
+
+        $this->assertSame('de', $first->fresh()->locale);
+        $this->assertSame('en', $second->fresh()->locale);
+        $this->assertSame('en', session('locale'));
+    }
+
+    /** Unsupported choices cannot replace an account preference or the current session language. */
+    public function test_unknown_language_leaves_the_saved_preference_unchanged(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true, 'locale' => 'de']);
+
+        $this->actingAs($admin)->withSession(['locale' => 'de'])->get('/language/xx')->assertNotFound();
+
+        $this->assertSame('de', $admin->fresh()->locale);
+        $this->assertSame('de', session('locale'));
+    }
+
+    /** Removed translations fall back to an available session language. */
+    public function test_unavailable_saved_language_uses_available_fallbacks(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true, 'locale' => 'xx']);
+        $this->actingAs($admin)->withSession(['locale' => 'de'])->get('/admin')->assertOk()->assertSee('Monatsübersicht');
+    }
+
+    /** With no available account or session choice, the configured default remains usable. */
+    public function test_unavailable_account_and_session_languages_use_the_application_default(): void
+    {
+        config(['app.locale' => 'en']);
+        $admin = User::factory()->create(['is_admin' => true, 'locale' => 'xx']);
+
+        $this->actingAs($admin)->withSession(['locale' => 'xx'])->get('/admin')->assertOk()->assertSee('Monthly overview');
     }
 
     /**

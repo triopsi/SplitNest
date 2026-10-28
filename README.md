@@ -211,7 +211,7 @@ Port `587` typically uses `smtp` with automatic STARTTLS; for implicit TLS on po
       APP_LOCALE: de
 ```
 
-English is the default. Users can also switch languages in the topbar.
+English is the default. Signed-in users can switch languages in the topbar; their last selection is saved on their account and restored after login, including on another device. Guest selections last for the current session.
 
 <details>
 <summary><strong>Use MariaDB instead of SQLite</strong></summary>
@@ -364,7 +364,7 @@ Git hooks via [pre-commit](https://pre-commit.com) run gitleaks, Pint, the PHPDo
 
 ## Translations
 
-The UI base language is **English**; German is included as a complete translation. Users switch the language in the topbar dropdown next to the user menu (remembered per session); the default for fresh sessions is set with `APP_LOCALE` (e.g. `APP_LOCALE=de` in your `.env`). Panel chrome (buttons, pagination, login form) is translated by Filament itself.
+The UI base language is **English**; German is included as a complete translation. Users switch the language in the topbar dropdown next to the user menu. For signed-in users, the last choice is stored on their account and restored on future logins; guests use a session preference. Accounts without a saved choice use the session preference or `APP_LOCALE` (e.g. `APP_LOCALE=de` in your `.env`). Panel chrome (buttons, pagination, login form) is translated by Filament itself.
 
 Missing your language? **Contributions are very welcome!** Translations live in `lang/<locale>/` as plain PHP array files, grouped by area (`settlement.php`, `yearplan.php`, `expenses.php`, `incomes.php`, `funding.php`, `participants.php`, `schedule.php`, `users.php`, `backup.php`, `settings.php`, `mail.php`, `pdf.php`, `nav.php`). Displayed calendar months use full localized names and years; stored schedule values remain in `YYYY-MM` format. To add your language:
 

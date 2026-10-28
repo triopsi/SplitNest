@@ -13,6 +13,12 @@ return [
     'include_payment_help' => 'Nur aktivieren, wenn diese Weiterleitung oder Einzahlung als eigene Zahlung geplant werden soll. Betrag und Empfänger bleiben dieselbe Einnahme; es entsteht keine zweite Einnahme. Für bereits separat erledigte Zahlungen deaktiviert lassen. Dies ist eine Planungsoption für alle Monate des Eintrags, kein monatlicher Bezahlt-Status.',
     'payment_count' => ':count geplante Zahlungen',
     'payment_plan_note' => 'Haushaltsausgleich plus ausdrücklich eingeplante Weiterleitungen und Einzahlungen. Zahlungen mit demselben Zahler und Empfänger werden zusammengefasst; die Bestandteile stehen darunter. Die persönliche Bilanz zeigt weiterhin nur den Kostenausgleich. Es handelt sich um eine Planung, nicht um bestätigte Bankzahlungen.',
+    'payment_payer' => 'Zahler',
+    'payment_recipient' => 'Empfänger',
+    'payment_amount' => 'Überweisungsbetrag',
+    'payment_breakdown' => 'So ergibt sich der Überweisungsbetrag',
+    'payment_reference' => 'Verwendungszweck',
+    'payment_help' => 'Wie setzt sich der Überweisungsplan zusammen?',
     'settlement_part' => 'Haushaltsausgleich',
     'budgets' => 'Zweckgebundene Budgets',
     'help' => [
