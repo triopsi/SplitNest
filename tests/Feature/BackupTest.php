@@ -37,8 +37,8 @@ class BackupTest extends TestCase
     #[Group('critical')]
     public function test_export_import_roundtrip_restores_all_data(): void
     {
-        $a = Participant::create(['name' => 'Daniel']);
-        $b = Participant::create(['name' => 'Svenja']);
+        $a = Participant::create(['name' => 'Max']);
+        $b = Participant::create(['name' => 'Erika']);
         Income::create(['participant_id' => $a->id, 'name' => 'Gehalt', 'amount_cents' => 340000, 'start_month' => '2027-01', 'interval_months' => 1]);
         Expense::create(['name' => 'Miete', 'payer_id' => $a->id, 'amount_cents' => 10000, 'split_mode' => 'percentage', 'shares' => [['participant_id' => $a->id, 'percentage' => '50'], ['participant_id' => $b->id, 'percentage' => '50']], 'start_month' => '2027-01', 'interval_months' => 1]);
         $u = User::factory()->create();
@@ -77,7 +77,7 @@ class BackupTest extends TestCase
     #[Group('critical')]
     public function test_import_action_accepts_a_real_export_zip(): void
     {
-        Participant::create(['name' => 'Daniel']);
+        Participant::create(['name' => 'Max']);
         $path = tempnam(sys_get_temp_dir(), 'backup-test-');
         app(HouseholdBackup::class)->exportToZip($path);
 
@@ -95,7 +95,7 @@ class BackupTest extends TestCase
             ->callMountedAction()
             ->assertHasNoActionErrors();
         $this->assertDatabaseCount('participants', 1);
-        $this->assertSame('Daniel', Participant::firstOrFail()->name);
+        $this->assertSame('Max', Participant::firstOrFail()->name);
         unlink($path);
     }
 
@@ -126,7 +126,7 @@ class BackupTest extends TestCase
      */
     public function test_import_replaces_existing_data_completely(): void
     {
-        $a = Participant::create(['name' => 'Daniel']);
+        $a = Participant::create(['name' => 'Max']);
         $path = tempnam(sys_get_temp_dir(), 'backup-test-');
         app(HouseholdBackup::class)->exportToZip($path);
 
@@ -137,7 +137,7 @@ class BackupTest extends TestCase
         unlink($path);
 
         $this->assertDatabaseCount('participants', 1);
-        $this->assertSame('Daniel', Participant::firstOrFail()->name);
+        $this->assertSame('Max', Participant::firstOrFail()->name);
     }
 
     /**

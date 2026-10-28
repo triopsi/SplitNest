@@ -41,13 +41,13 @@ class HouseholdTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * Create the two standard participants Daniel and Svenja.
+     * Create the two standard participants Max and Erika.
      *
      * @return array{Participant, Participant}
      */
     private function people(): array
     {
-        return [Participant::create(['name' => 'Daniel']), Participant::create(['name' => 'Svenja'])];
+        return [Participant::create(['name' => 'Max']), Participant::create(['name' => 'Erika'])];
     }
 
     /**
@@ -82,7 +82,7 @@ class HouseholdTest extends TestCase
      * Calculate a 100.01 € settlement split 50/50.
      *
      * Expects shares 5001/5000 (remainder to the lowest ID), one 50.00 €
-     * transfer from Svenja to Daniel and balances that sum to exactly zero —
+     * transfer from Erika to Max and balances that sum to exactly zero —
      * no cent may be lost.
      */
     #[Group('critical')]
@@ -111,7 +111,7 @@ class HouseholdTest extends TestCase
         $this->income($a, '3400');
         $this->income($b, '2800');
         $this->expense($a, $b, ['amount' => '620', 'split_mode' => 'income']);
-        $this->expense($a, $b, ['name' => 'Svenjas Einkauf', 'payer_id' => $b->id, 'amount' => '100', 'split_mode' => 'equal']);
+        $this->expense($a, $b, ['name' => 'Erikas Einkauf', 'payer_id' => $b->id, 'amount' => '100', 'split_mode' => 'equal']);
         $this->expense($a, $b, ['name' => 'Persönlich', 'amount' => '20', 'split_mode' => 'personal', 'shares' => [['participant_id' => $b->id]]]);
         $r = app(SettlementCalculator::class)->calculate('2027-01');
         $this->assertSame([39000, 35000], array_column($r['participants'], 'share_cents'));
@@ -215,7 +215,7 @@ class HouseholdTest extends TestCase
         $again = app(CloseMonth::class)->close('2027-01', $u->id);
         $this->assertSame($c->id, $again->id);
         $this->assertSame(10001, $again->snapshot['total_expense_cents']);
-        $this->assertSame('Daniel', $again->snapshot['participants'][0]['name']);
+        $this->assertSame('Max', $again->snapshot['participants'][0]['name']);
         $this->assertDatabaseCount('monthly_closings', 1);
         $this->expectException(ValidationException::class);
         $c->update(['snapshot' => []]);
@@ -302,10 +302,10 @@ class HouseholdTest extends TestCase
     #[Group('critical')]
     public function test_terminal_command_creates_admin_with_hashed_password(): void
     {
-        $this->artisan('splitnest:user', ['email' => 'daniel@example.test', '--name' => 'Daniel'])
+        $this->artisan('splitnest:user', ['email' => 'max@example.test', '--name' => 'Max'])
             ->expectsQuestion('Password (at least 12 characters)', 'A-long-test-password!')
             ->expectsQuestion('Repeat password', 'A-long-test-password!')->assertSuccessful();
-        $u = User::where('email', 'daniel@example.test')->firstOrFail();
+        $u = User::where('email', 'max@example.test')->firstOrFail();
         $this->assertTrue($u->is_admin);
         $this->assertTrue(Hash::check('A-long-test-password!', $u->password));
     }
@@ -447,7 +447,7 @@ class HouseholdTest extends TestCase
         $e = $this->expense($a, $b);
 
         $data = Livewire::test(MonthlyCostSharesChart::class, ['month' => '2027-01'])->instance()->getData();
-        $this->assertSame(['Daniel', 'Svenja'], $data['labels']);
+        $this->assertSame(['Max', 'Erika'], $data['labels']);
         $this->assertSame([50.01, 50.0], $data['datasets'][0]['data']);
 
         app(CloseMonth::class)->close('2027-01', $this->admin()->id);
@@ -490,25 +490,25 @@ class HouseholdTest extends TestCase
     }
 
     /**
-     * Open the participant detail page for Svenja with shared and personal costs.
+     * Open the participant detail page for Erika with shared and personal costs.
      *
      * Expects her shared costs, her personal cost and her income to be shown —
-     * and Daniel's personal cost to be hidden.
+     * and Max's personal cost to be hidden.
      */
     public function test_participant_month_page_shows_only_their_costs(): void
     {
         [$a, $b] = $this->people();
         $this->expense($a, $b, ['name' => 'Miete', 'amount' => '100']);
-        $this->expense($a, $b, ['name' => 'Svenjas Handy', 'split_mode' => 'personal', 'shares' => [['participant_id' => $b->id]]]);
-        $this->expense($a, $b, ['name' => 'Daniels Server', 'split_mode' => 'personal', 'shares' => [['participant_id' => $a->id]]]);
+        $this->expense($a, $b, ['name' => 'Erikas Handy', 'split_mode' => 'personal', 'shares' => [['participant_id' => $b->id]]]);
+        $this->expense($a, $b, ['name' => 'Maxs Server', 'split_mode' => 'personal', 'shares' => [['participant_id' => $a->id]]]);
         $this->income($b, '2800');
         $this->actingAs($this->admin());
         Filament::setCurrentPanel(Filament::getPanel('admin'));
         Livewire::test(ParticipantMonth::class, ['participant' => $b, 'month' => '2027-01'])
             ->assertSee('Miete')
-            ->assertSee('Svenjas Handy')
+            ->assertSee('Erikas Handy')
             ->assertSee('Gehalt')
-            ->assertDontSee('Daniels Server');
+            ->assertDontSee('Maxs Server');
     }
 
     /**
@@ -532,26 +532,26 @@ class HouseholdTest extends TestCase
     public function test_closing_a_month_sends_summary_mails_with_pdf(): void
     {
         Mail::fake();
-        $a = Participant::create(['name' => 'Daniel', 'email' => 'daniel@example.test']);
-        $b = Participant::create(['name' => 'Svenja', 'email' => 'svenja@example.test']);
+        $a = Participant::create(['name' => 'Max', 'email' => 'max@example.test']);
+        $b = Participant::create(['name' => 'Erika', 'email' => 'erika@example.test']);
         $this->expense($a, $b);
         app(CloseMonth::class)->close('2027-01', $this->admin()->id);
 
         Mail::assertSent(MonthClosedMail::class, 2);
         Mail::assertSent(MonthClosedMail::class, function (MonthClosedMail $mail) {
-            if (! $mail->hasTo('svenja@example.test')) {
+            if (! $mail->hasTo('erika@example.test')) {
                 return false;
             }
             $this->assertCount(1, $mail->attachments());
-            $mail->assertSeeInText('Hello Svenja');
-            $mail->assertSeeInText('50,00 € to Daniel');
-            $mail->assertSeeInHtml('Hello Svenja');
+            $mail->assertSeeInText('Hello Erika');
+            $mail->assertSeeInText('50,00 € to Max');
+            $mail->assertSeeInHtml('Hello Erika');
             $mail->assertSeeInHtml('January 2027');
 
             return true;
         });
         Mail::assertSent(MonthClosedMail::class, function (MonthClosedMail $mail) {
-            if (! $mail->hasTo('daniel@example.test')) {
+            if (! $mail->hasTo('max@example.test')) {
                 return false;
             }
             $mail->assertSeeInText('None — you are even.');
@@ -570,16 +570,16 @@ class HouseholdTest extends TestCase
     {
         Mail::fake();
         Settings::set('mail_body', 'Hi {name}! Monat: {monat}. Zahlungen: {ueberweisungen}');
-        $a = Participant::create(['name' => 'Daniel', 'email' => 'daniel@example.test']);
-        $b = Participant::create(['name' => 'Svenja', 'email' => 'svenja@example.test']);
+        $a = Participant::create(['name' => 'Max', 'email' => 'max@example.test']);
+        $b = Participant::create(['name' => 'Erika', 'email' => 'erika@example.test']);
         $this->expense($a, $b);
         app(CloseMonth::class)->close('2027-01', $this->admin()->id);
 
         Mail::assertSent(MonthClosedMail::class, function (MonthClosedMail $mail) {
-            if (! $mail->hasTo('svenja@example.test')) {
+            if (! $mail->hasTo('erika@example.test')) {
                 return false;
             }
-            $mail->assertSeeInText('Hi Svenja! Monat: January 2027. Zahlungen: - 50,00 € to Daniel');
+            $mail->assertSeeInText('Hi Erika! Monat: January 2027. Zahlungen: - 50,00 € to Max');
 
             return true;
         });

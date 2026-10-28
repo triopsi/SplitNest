@@ -4,6 +4,21 @@
  * PDF-Abrechnung eines abgeschlossenen Monats.
  */
 return [
+    'personal' => [
+        'title' => 'Deine Monatsabrechnung :month',
+        'scope' => 'Diese Abrechnung enthält nur deine eigenen Kosten, Beiträge und Überweisungen.',
+        'to_pay' => 'Von dir insgesamt zu überweisen',
+        'to_receive' => 'Für dich vorgesehene Zahlungseingänge',
+        'payments' => 'Deine Überweisungen',
+        'no_payments' => 'Für dich sind in diesem Monat keine Überweisungen vorgesehen.',
+        'costs' => 'Deine Kosten und Beiträge',
+        'kind' => 'Art',
+        'your_amount' => 'Dein Betrag',
+        'share' => 'Eigener Kostenanteil',
+        'contribution' => 'Beitrag / Weiterleitung',
+        'no_costs' => 'Für dich sind in diesem Monat keine Kosten oder Beiträge hinterlegt.',
+        'note' => 'Beträge in EUR. Die Kosten zeigen deinen eigenen Anteil, nicht den Gesamtpreis einer Rechnung. Oben stehen die geplanten Überweisungen; bereits selbst bezahlte Rechnungen können den Ausgleich mindern. Beiträge und Weiterleitungen sind in den Überweisungen enthalten und werden nicht nochmals addiert. Dies ist keine Bestätigung einer Bankzahlung.',
+    ],
     'title' => 'Haushaltsabrechnung :month',
     'heading' => 'Abrechnung :month',
     'saved_on' => 'Verbindlicher Monatsplan · gespeichert am :date',

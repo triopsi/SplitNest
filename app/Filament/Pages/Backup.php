@@ -9,6 +9,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -74,10 +75,18 @@ class Backup extends Page
                 FileUpload::make('file')->label(__('backup.file'))->disk('local')->directory('backup-uploads')
                     ->rules(['extensions:zip'])->required(),
             ])
-            ->action(function (array $data): void {
+            ->action(function (array $data) {
                 try {
-                    app(HouseholdBackup::class)->importFromZip(Storage::disk('local')->path($data['file']));
-                    Notification::make()->success()->title(__('backup.imported'))->send();
+                    $accountsRestored = app(HouseholdBackup::class)->importFromZip(Storage::disk('local')->path($data['file']));
+                    if ($accountsRestored) {
+                        Auth::logout();
+                        session()->invalidate();
+                        session()->regenerateToken();
+                        Notification::make()->success()->title(__('backup.imported_accounts'))->send();
+
+                        return redirect()->route('filament.admin.auth.login');
+                    }
+                    Notification::make()->success()->title(__('backup.imported_legacy'))->send();
                 } catch (ValidationException $e) {
                     Notification::make()->danger()->title(__('backup.import_failed'))
                         ->body(collect($e->errors())->flatten()->implode(' '))->send();

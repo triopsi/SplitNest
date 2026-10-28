@@ -20,7 +20,7 @@ SplitNest helps shared households split expenses fairly, track their budget and 
 
 [![SplitNest preview: monthly overview, shared cost breakdown, year planning, PDF statements and passkey sign-in](.github/assets/splitnest-preview.png)](.github/assets/splitnest-preview.png)
 
-[Quick start](#quick-start) · [HTTPS & reverse proxy](#https--reverse-proxy) · [Updates](#updates) · [User management](#user-management-from-the-console) · [Backups](#backups) · [Development](#development)
+[Quick start](#quick-start) · [Budgets & transfers](#budgets-reimbursements-and-planned-transfers) · [Monthly statements](#personal-monthly-statements) · [HTTPS & reverse proxy](#https--reverse-proxy) · [Updates](#updates) · [User management](#user-management-from-the-console) · [Backups](#backups) · [Development](#development)
 
 ## Quick start
 
@@ -65,13 +65,38 @@ The example is for a local HTTP setup. For a server or passkeys, continue with H
 ## What you can do
 
 - **Split expenses fairly** — equal shares, fixed percentages, income-based shares or personal expenses.
-- **See who owes whom** — monthly income, expenses, remaining budgets and balancing transfers.
+- **Separate salary from other receipts** — choose which incomes determine income-based cost shares.
+- **Reserve money for a purpose** — budgets fund related bills and carry unspent money forward.
+- **Apply reimbursements** — link a contribution to a bill before its remaining cost is split.
+- **See who owes whom** — household balancing plus explicitly planned forwarding payments and external contributions.
 - **Plan recurring costs** — one-off expenses and recurring schedules, with a year overview and charts.
 - **Close a month** — save a snapshot, generate a PDF statement and send it by e-mail. Reopen a month when something needs correcting.
+- **Limit a participant's statement** — send only their own cost shares, contributions and directly involving transfers.
+- **Arrange your dashboard** — move, resize or hide widgets, including monthly budget balances; layouts are saved per user.
 - **Manage your household** — invite users by e-mail and manage accounts as an administrator.
 - **Sign in with passkeys** — register a passkey on your profile for passwordless login over HTTPS or localhost.
-- **Keep a backup** — export and restore your household data from the app.
+- **Keep a backup** — export and restore durable application data, including accounts, settings and budgets.
 - **Choose your language** — switch between English and German in the topbar.
+
+## Budgets, reimbursements and planned transfers
+
+Under **Incomes**, enable **Include in cost allocation income** for net salary. Disable it for receipts that should not change income-based cost shares, such as child benefit or subscription contributions. These amounts still count as receipts. **Recipient** identifies the person who receives and uses the money in the plan; it does not imply a payment from another participant.
+
+A **budget** is a virtual pool for a purpose, not a separate bank account or a spending limit. Create a budget and assign both receipts and related expenses to it. Assigned receipts are excluded from allocation income automatically. For example, €353 of earmarked receipts cover €300 of related bills and leave €53 reserved for later months. If the bills total €400, only the uncovered €47 uses the selected cost-splitting rule. Money remains on the recipients' accounts; the calculation tracks who holds it. Bills draw on a budget in creation order.
+
+For a **reimbursement**, record the receipt under Incomes and select the original bill under **Reimbursement for**. Keep the full amount on the bill: a €20 bill and a €4.99 reimbursement leave €15.01 to split. Reimbursements are applied before budget funds, then any remainder is split. The receipt and bill must be due in the same month, and reimbursements cannot exceed the bill. Each receipt can fund either a budget or a reimbursement.
+
+To plan a forwarded subsidy or external contribution, choose a **household payer** or enter an **external payer**, select the final recipient and enable **Also show this payment in the transfer plan**. Record forwarded money only once at its final recipient and exclude it from the forwarding person's net salary. Payments with the same payer and recipient are grouped, with their components shown separately. Leave the option disabled for payments handled separately. The plan shows expected payments, not confirmed bank transactions; the option applies to every scheduled occurrence.
+
+The **Budget balances for this month** dashboard widget shows carryovers, receipts, spending and remaining reserves. Open months are projections; closing a month freezes its amounts. To correct earlier months, reopen later closed months first so their budget carryovers can be recalculated. Reserved funds are excluded from freely available money.
+
+## Personal monthly statements
+
+In **Participants**, enable **Show only own costs and transfers in monthly statements** for someone who should only see their own part, for example a participant sharing a subscription. Their e-mail PDF contains their cost shares, planned contributions and directly involving transfers. Other participants' salaries, budget balances and unrelated household costs are omitted. Select the participant as payer on their contributions so these appear in their statement.
+
+After closing a month, administrators can inspect the recipient's PDF using **PDF as sent by e-mail** on the participant's monthly detail page. Delivery and preview use the participant's current visibility preference, including for older closings; saved amounts stay frozen. Without an e-mail address, no statement is sent. With the option disabled, the participant receives the full household statement.
+
+Participants and login accounts are separate. This PDF preference does not grant or restrict application access; only administrators can access the app and its full reports. An external payer entered as a free name can appear in the transfer plan but needs a participant record and e-mail address to receive a statement.
 
 ## HTTPS & reverse proxy
 
@@ -266,9 +291,13 @@ Docker images already contain PHP dependencies and built frontend assets. Keep `
 
 ## Backups
 
-For a household-data export, open **Backup** in the app. The ZIP includes participants, incomes, expenses and monthly closings. User accounts are excluded.
+Open **Backup** in the app to download a ZIP containing all durable application data: participants, budgets, incomes, expenses, monthly closing snapshots, user accounts and password hashes, passkeys, invitations, system settings and personal dashboard layouts. Checksums detect damaged datasets before import. Validation runs before replacement, and a database failure rolls back the restore.
 
-For a complete backup of the SQLite quick-start installation, stop the app briefly and archive its storage volume:
+To restore into another instance, prepare a compatible SplitNest installation with migrations applied, sign in as its administrator and upload the ZIP under **Backup**. Import replaces its application data, including accounts. You are signed out afterward; sign in with an account and password from the backup. Restore into the same application version when possible. Older household-only backups remain importable, but cannot recover accounts or settings they never contained; those remain unchanged on the target instance. Download a new ZIP after upgrading to include the additional datasets.
+
+The application ZIP excludes server configuration, `.env`, the encryption key, sessions, password-reset links, caches, queues and temporary uploads. Configure the target's database, SMTP and public URL separately. Existing sessions and reset links are cleared after a complete restore. Passkeys remain bound to their original domain; after a domain change, sign in with a password and register new passkeys. Keep ZIPs private because they contain sensitive account and household data.
+
+For a backup of the SQLite quick-start installation's storage, including its database and generated encryption key, stop the app briefly and archive its storage volume:
 
 ```sh
 docker compose stop app
@@ -304,16 +333,18 @@ The root [compose.yaml](compose.yaml) is the development stack. For running a re
 With Docker, VS Code and the Dev Containers extension installed:
 
 1. Clone the repository and open it in VS Code.
-2. Run **Dev Containers: Reopen in Container**. `scripts/dev-setup.sh` installs dependencies, generates the development key and runs migrations.
+2. Run **Dev Containers: Reopen in Container**. `scripts/dev-setup.sh` installs PHP and npm dependencies, builds frontend assets, generates the development key and runs migrations.
 3. Open [localhost:8080/admin](http://localhost:8080/admin) and register the first administrator.
 
 Development uses PostgreSQL by default. [compose.mariadb.yaml](compose.mariadb.yaml) provides a MariaDB development variant.
+
+The development image includes Node.js 22, npm and npx. Rebuild an existing devcontainer after updating its Dockerfile. To use Vite with live updates, run `npm run dev -- --host 0.0.0.0` inside the container; port `5173` is forwarded. Otherwise, rebuild assets with `npm run build` after frontend changes.
 
 ```sh
 php artisan test                   # in-memory SQLite, independent of development data
 php artisan test --group=critical  # money, authentication and other critical behaviour
 vendor/bin/pint                     # fix PHP code style
-npm run build                      # rebuild frontend assets when Node.js is available
+npm run build                      # rebuild frontend assets
 ```
 
 ### Code standards
@@ -335,7 +366,7 @@ Git hooks via [pre-commit](https://pre-commit.com) run gitleaks, Pint, the PHPDo
 
 The UI base language is **English**; German is included as a complete translation. Users switch the language in the topbar dropdown next to the user menu (remembered per session); the default for fresh sessions is set with `APP_LOCALE` (e.g. `APP_LOCALE=de` in your `.env`). Panel chrome (buttons, pagination, login form) is translated by Filament itself.
 
-Missing your language? **Contributions are very welcome!** Translations live in `lang/<locale>/` as plain PHP array files, grouped by area (`settlement.php`, `yearplan.php`, `expenses.php`, `incomes.php`, `participants.php`, `schedule.php`, `users.php`, `backup.php`, `settings.php`, `mail.php`, `pdf.php`, `nav.php`). To add your language:
+Missing your language? **Contributions are very welcome!** Translations live in `lang/<locale>/` as plain PHP array files, grouped by area (`settlement.php`, `yearplan.php`, `expenses.php`, `incomes.php`, `funding.php`, `participants.php`, `schedule.php`, `users.php`, `backup.php`, `settings.php`, `mail.php`, `pdf.php`, `nav.php`). Displayed calendar months use full localized names and years; stored schedule values remain in `YYYY-MM` format. To add your language:
 
 1. Copy the English files: `cp -r lang/en lang/<your-locale>` (e.g. `lang/fr`)
 2. Translate the values — keep the keys and `:placeholder`/`{placeholder}` names untouched

@@ -57,9 +57,9 @@ class UserManagementTest extends TestCase
     {
         $this->actingAsAdmin();
         Livewire::test(ManageUsers::class)
-            ->callAction('create', data: ['name' => 'Daniel', 'email' => 'Daniel@Example.Test', 'password' => 'A-long-test-password!', 'is_admin' => true])
+            ->callAction('create', data: ['name' => 'Max', 'email' => 'Max@Example.Test', 'password' => 'A-long-test-password!', 'is_admin' => true])
             ->assertHasNoActionErrors();
-        $u = User::where('email', 'daniel@example.test')->firstOrFail();
+        $u = User::where('email', 'max@example.test')->firstOrFail();
         $this->assertTrue($u->is_admin);
         $this->assertTrue(Hash::check('A-long-test-password!', $u->password));
     }

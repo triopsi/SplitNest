@@ -16,6 +16,7 @@ use Illuminate\Validation\ValidationException;
  * representation is exposed through the {@see Expense::$amount} accessor.
  *
  * @property int $payer_id ID of the participant who pays the bill.
+ * @property int|null $budget_id Pool used before splitting uncovered costs.
  * @property string $name
  * @property string $amount Decimal amount (mapped to cents on write).
  * @property int $amount_cents
@@ -32,7 +33,7 @@ class Expense extends Model
     /** Available cost-splitting strategies (keys, see {@see Expense::modeLabels()}). */
     public const MODE_KEYS = ['percentage', 'income', 'equal', 'personal'];
 
-    protected $fillable = ['payer_id', 'name', 'amount', 'amount_cents', 'split_mode', 'shares', 'start_month', 'end_month', 'interval_months', 'notes'];
+    protected $fillable = ['payer_id', 'name', 'amount', 'amount_cents', 'split_mode', 'shares', 'start_month', 'end_month', 'interval_months', 'notes', 'budget_id'];
 
     protected $appends = ['amount'];
 
@@ -52,6 +53,12 @@ class Expense extends Model
     public function payer(): BelongsTo
     {
         return $this->belongsTo(Participant::class, 'payer_id');
+    }
+
+    /** The earmarked pool used before splitting the remaining cost. */
+    public function budget(): BelongsTo
+    {
+        return $this->belongsTo(Budget::class);
     }
 
     /**
@@ -84,7 +91,8 @@ class Expense extends Model
      */
     public function validateAllocation(): void
     {
-        Validator::make(['payer_id' => $this->payer_id, 'split_mode' => $this->split_mode, 'shares' => $this->shares], [
+        Validator::make(['payer_id' => $this->payer_id, 'split_mode' => $this->split_mode, 'shares' => $this->shares, 'budget_id' => $this->budget_id], [
+            'budget_id' => ['nullable', 'exists:budgets,id'],
             'payer_id' => ['required', 'exists:participants,id'],
             'split_mode' => ['required', 'in:percentage,income,equal,personal'],
             'shares' => ['required', 'array', 'min:1'],

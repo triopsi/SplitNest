@@ -8,10 +8,12 @@ use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -63,6 +65,8 @@ class ParticipantResource extends Resource
         return $schema->components([
             TextInput::make('name')->label(__('participants.fields.name'))->required()->maxLength(255),
             TextInput::make('email')->label(__('participants.fields.email'))->email()->maxLength(255),
+            Toggle::make('only_own_report')->label(__('participants.fields.only_own_report'))->default(false)
+                ->helperText(__('participants.fields.only_own_report_hint'))->columnSpanFull(),
             Textarea::make('notes')->label(__('participants.fields.notes'))->columnSpanFull(),
         ]);
     }
@@ -76,6 +80,7 @@ class ParticipantResource extends Resource
             TextColumn::make('name')->label(__('participants.table.name'))->searchable()->sortable()->html()
                 ->formatStateUsing(fn (Participant $record): string => view('components.person', ['name' => $record->name, 'email' => $record->email])->render()),
             TextColumn::make('email')->label(__('participants.table.email'))->placeholder(__('participants.table.no_email')),
+            IconColumn::make('only_own_report')->label(__('participants.table.only_own_report'))->boolean(),
         ])->recordActions([EditAction::make()]);
     }
 

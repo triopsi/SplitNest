@@ -22,7 +22,7 @@ class ScheduleValidationTest extends TestCase
      */
     private function makeExpense(array $extra = []): Expense
     {
-        $p = Participant::firstOrCreate(['name' => 'Daniel']);
+        $p = Participant::firstOrCreate(['name' => 'Max']);
 
         return Expense::create(array_replace([
             'name' => 'Test', 'payer_id' => $p->id, 'amount_cents' => 1000,
@@ -138,8 +138,8 @@ class ScheduleValidationTest extends TestCase
     #[Group('critical')]
     public function test_personal_split_requires_exactly_one_participant(): void
     {
-        $b = Participant::create(['name' => 'Svenja']);
-        $p = Participant::firstOrCreate(['name' => 'Daniel']);
+        $b = Participant::create(['name' => 'Erika']);
+        $p = Participant::firstOrCreate(['name' => 'Max']);
         $this->expectException(ValidationException::class);
         $this->makeExpense(['shares' => [['participant_id' => $p->id], ['participant_id' => $b->id]]]);
     }
@@ -151,7 +151,7 @@ class ScheduleValidationTest extends TestCase
      */
     public function test_single_share_may_not_exceed_100_percent(): void
     {
-        $p = Participant::firstOrCreate(['name' => 'Daniel']);
+        $p = Participant::firstOrCreate(['name' => 'Max']);
         $this->expectException(ValidationException::class);
         $this->makeExpense(['split_mode' => 'percentage', 'shares' => [['participant_id' => $p->id, 'percentage' => '100,01']]]);
     }
@@ -165,8 +165,8 @@ class ScheduleValidationTest extends TestCase
     #[Group('critical')]
     public function test_percentage_shares_must_sum_to_exactly_100(): void
     {
-        $p = Participant::firstOrCreate(['name' => 'Daniel']);
-        $b = Participant::create(['name' => 'Svenja']);
+        $p = Participant::firstOrCreate(['name' => 'Max']);
+        $b = Participant::create(['name' => 'Erika']);
         $this->expectException(ValidationException::class);
         $this->makeExpense(['split_mode' => 'percentage', 'shares' => [['participant_id' => $p->id, 'percentage' => '50'], ['participant_id' => $b->id, 'percentage' => '40']]]);
     }

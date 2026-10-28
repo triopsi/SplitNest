@@ -11,10 +11,22 @@ use Illuminate\Validation\ValidationException;
  *
  * Participants are durable identities: they can never be deleted, because
  * historical closings and JSON allocations keep referring to their IDs.
+ *
+ * @property bool $only_own_report Limit emailed statements to personal costs and payments.
  */
 class Participant extends Model
 {
-    protected $fillable = ['name', 'email', 'notes'];
+    protected $fillable = ['name', 'email', 'notes', 'only_own_report'];
+
+    protected $attributes = ['only_own_report' => false];
+
+    /** Cast the recipient's statement visibility preference.
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return ['only_own_report' => 'boolean'];
+    }
 
     /**
      * All incomes of this participant.

@@ -37,7 +37,9 @@ class MonthlyIncomeStat extends StatsOverviewWidget
 
         return [
             Stat::make(__('settlement.cards.income'), Money::format($amount))
-                ->description(__('settlement.cards.income_hint'))
+                ->description(isset($report['allocation_income_cents'])
+                    ? __('funding.income_breakdown', ['salary' => Money::format($report['allocation_income_cents']), 'other' => Money::format($report['other_income_cents'])])
+                    : __('settlement.cards.income_hint'))
                 ->icon(Heroicon::OutlinedBanknotes)
                 ->color($amount < 0 ? 'danger' : 'primary'),
         ];

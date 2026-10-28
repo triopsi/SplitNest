@@ -55,6 +55,14 @@ class MonthlyExpensesTable extends TableWidget
                     ->label(__('settlement.costs.total'))
                     ->alignEnd()
                     ->formatStateUsing(fn (int $state): string => Money::format($state)),
+                TextColumn::make('funded_cents')->label(__('funding.covered'))
+                    ->state(fn (array $record): int => ($record['budget_cents'] ?? 0) + ($record['reimbursed_cents'] ?? 0))
+                    ->alignEnd()->formatStateUsing(fn (int $state): string => Money::format($state))
+                    ->description(fn (array $record): string => __('funding.expense_breakdown', [
+                        'refund' => Money::format($record['reimbursed_cents'] ?? 0),
+                        'budget' => Money::format($record['budget_cents'] ?? 0),
+                        'rest' => Money::format($record['uncovered_cents'] ?? $record['amount_cents']),
+                    ]))->toggleable(),
                 ...array_map(fn (array $participant): TextColumn => TextColumn::make('allocation_'.$participant['id'])
                     ->label(view('components.person', [
                         'name' => $participant['name'],

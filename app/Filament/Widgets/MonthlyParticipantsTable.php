@@ -42,6 +42,15 @@ class MonthlyParticipantsTable extends TableWidget
                         'href' => ParticipantMonth::getUrl(['participant' => $record['id'], 'month' => $this->month]),
                     ])),
                 $this->moneyColumn('income_cents', 'income'),
+                TextColumn::make('allocation_income_cents')->label(__('funding.allocation_income'))
+                    ->state(fn (array $record): int => $record['allocation_income_cents'] ?? $record['income_cents'])
+                    ->alignEnd()->formatStateUsing(fn (int $state): string => Money::format($state))->toggleable(),
+                TextColumn::make('other_income_cents')->label(__('funding.other_income'))
+                    ->state(fn (array $record): int => $record['other_income_cents'] ?? 0)
+                    ->alignEnd()->formatStateUsing(fn (int $state): string => Money::format($state))->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('reserved_cents')->label(__('funding.reserved'))
+                    ->state(fn (array $record): int => $record['reserved_cents'] ?? 0)
+                    ->alignEnd()->formatStateUsing(fn (int $state): string => Money::format($state))->toggleable(),
                 $this->moneyColumn('share_cents', 'share'),
                 TextColumn::make('share_percentage')
                     ->label(__('settlement.overview.share_pct'))
@@ -55,7 +64,7 @@ class MonthlyParticipantsTable extends TableWidget
                     ->weight(FontWeight::Bold)
                     ->color(fn (int $state): ?string => $state < 0 ? 'danger' : null),
             ])
-            ->contentFooter(fn (): View => view('filament.widgets.monthly-participants-footer'));
+            ->contentFooter(fn (): View => view('filament.widgets.monthly-participants-footer', ['report' => $this->settlementReport]));
     }
 
     /**

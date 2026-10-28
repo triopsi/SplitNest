@@ -23,8 +23,9 @@ class ExpenseScheduleTest extends TestCase
      * Save a half-yearly expense and display the next month on its actual schedule.
      */
     #[DataProvider('halfYearlyTableSchedules')]
-    public function test_half_yearly_expense_form_and_next_billing_column(string $today, string $start, string $expected): void
+    public function test_half_yearly_expense_form_and_next_billing_column(string $today, string $start, string $expected, string $locale): void
     {
+        app()->setLocale($locale);
         $this->travelTo($today.' 12:00:00');
         $this->actingAs(User::factory()->create(['is_admin' => true]));
         Filament::setCurrentPanel(Filament::getPanel('admin'));
@@ -51,13 +52,14 @@ class ExpenseScheduleTest extends TestCase
     /**
      * Cover the reported January start and formatting a short month on the 31st.
      *
-     * @return array<string, array{string, string, string}>
+     * @return array<string, array{string, string, string, string}>
      */
     public static function halfYearlyTableSchedules(): array
     {
         return [
-            'january start viewed in october' => ['2026-10-16', '2026-01', '01/2027'],
-            'february viewed on october 31' => ['2026-10-31', '2026-02', '02/2027'],
+            'january start viewed in october' => ['2026-10-16', '2026-01', 'January 2027', 'en'],
+            'february viewed on october 31' => ['2026-10-31', '2026-02', 'February 2027', 'en'],
+            'german month names' => ['2026-10-28', '2026-10', 'Oktober 2026', 'de'],
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\MonthClosed;
+use App\Models\Budget;
 use App\Models\MonthlyClosing;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -35,6 +36,9 @@ final class CloseMonth
             $closing = MonthlyClosing::where('month', $month)->lockForUpdate()->firstOrFail();
             if ($closing->closed_at) {
                 return $closing;
+            }
+            if (Budget::exists() && MonthlyClosing::where('month', '>', $month)->whereNotNull('closed_at')->exists()) {
+                throw ValidationException::withMessages(['month' => __('funding.later_closing')]);
             }
             $closing->update(['snapshot' => $this->calculator->calculate($month), 'closed_by' => $userId, 'closed_at' => now()]);
             MonthClosed::dispatch($closing);
