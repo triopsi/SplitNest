@@ -27,6 +27,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -79,7 +80,7 @@ class ExpenseResource extends Resource
                     ->schema([
                         TextInput::make('name')->label(__('expenses.fields.name'))->placeholder(__('expenses.fields.name_placeholder'))->required()->maxLength(255)
                             ->helperText(__('expenses.fields.name_hint')),
-                        Select::make('payer_id')->label(__('expenses.fields.payer'))->relationship('payer', 'name')->preload()->searchable()->required()->live()
+                        Select::make('payer_id')->label(__('expenses.fields.payer'))->relationship('payer', 'name', modifyQueryUsing: fn (Builder $query, Get $get): Builder => $query->where(fn (Builder $query): Builder => $query->whereNull('archived_from_month')->orWhereKey($get('payer_id'))))->preload()->searchable()->required()->live()
                             ->afterStateUpdated(function (Set $set, Get $get, mixed $state): void {
                                 if ($get('split_mode') === 'personal') {
                                     $set('shares', [['participant_id' => $state, 'percentage' => null]]);
@@ -92,7 +93,15 @@ class ExpenseResource extends Resource
                     ]),
                 Section::make(__('expenses.sections.schedule'))
                     ->description(__('expenses.sections.schedule_desc'))
-                    ->schema([...ScheduleFields::make()]),
+                    ->schema([
+                        ...ScheduleFields::make(),
+                        Repeater::make('price_changes')->label(__('expenses.prices.title'))->defaultItems(0)->reorderable(false)
+                            ->addActionLabel(__('expenses.prices.add'))->helperText(__('expenses.prices.help'))
+                            ->schema([
+                                TextInput::make('month')->label(__('expenses.prices.from'))->type('month')->required()->rules(['date_format:Y-m'])->distinct(),
+                                TextInput::make('amount')->label(__('schedule.amount'))->suffix('€')->required()->rules(['regex:/^\d{1,7}([.,]\d{1,2})?$/D']),
+                            ])->columns(2),
+                    ]),
                 Section::make(__('expenses.sections.split'))
                     ->description(__('expenses.sections.split_desc'))
                     ->schema([
@@ -117,9 +126,9 @@ class ExpenseResource extends Resource
                             ->addable(fn (Get $get): bool => $get('split_mode') !== 'personal')
                             ->deletable(fn (Get $get): bool => $get('split_mode') !== 'personal')
                             ->maxItems(fn (Get $get) => $get('split_mode') === 'personal' ? 1 : 100)
-                            ->default(fn () => Participant::orderBy('id')->limit(2)->get()->map(fn ($p) => ['participant_id' => $p->id, 'percentage' => '50'])->all())
+                            ->default(fn () => Participant::whereNull('archived_from_month')->orderBy('id')->limit(2)->get()->map(fn ($p) => ['participant_id' => $p->id, 'percentage' => '50'])->all())
                             ->schema([
-                                Select::make('participant_id')->label(__('expenses.fields.participant'))->options(fn () => Participant::orderBy('name')->pluck('name', 'id'))
+                                Select::make('participant_id')->label(__('expenses.fields.participant'))->options(fn (Get $get) => Participant::where(fn (Builder $query): Builder => $query->whereNull('archived_from_month')->orWhereKey($get('participant_id')))->orderBy('name')->pluck('name', 'id'))
                                     ->searchable()->required()->distinct()->disableOptionsWhenSelectedInSiblingRepeaterItems(),
                                 TextInput::make('percentage')->label(__('expenses.fields.percentage'))->suffix('%')->default('50')
                                     ->visible(fn (Get $get) => $get('../../split_mode') === 'percentage')
@@ -153,7 +162,12 @@ class ExpenseResource extends Resource
             TextColumn::make('name')->label(__('expenses.table.name'))->searchable()->sortable()->toggleable(),
             TextColumn::make('payer.name')->label(__('expenses.table.payer'))->sortable()->html()->toggleable()
                 ->formatStateUsing(fn (Expense $record): string => view('components.person', ['name' => $record->payer->name, 'email' => $record->payer->email])->render()),
-            TextColumn::make('amount_cents')->label(__('expenses.table.amount'))->formatStateUsing(fn ($state) => Money::format($state))->sortable()->toggleable(),
+            TextColumn::make('amount_cents')->label(__('expenses.table.amount'))->formatStateUsing(fn ($state) => Money::format($state))->sortable()->toggleable()
+                ->description(function (Expense $record): ?string {
+                    $next = $record->nextBillingMonth(now()->format('Y-m'));
+
+                    return $record->price_changes && $next !== null ? __('expenses.prices.next', ['amount' => Money::format($record->amountForMonth($next))]) : null;
+                }),
             TextColumn::make('budget.name')->label(__('funding.budget'))->placeholder('–')->toggleable(),
             TextColumn::make('next_billing')->label(__('expenses.table.next_billing'))->toggleable()
                 ->getStateUsing(fn (Expense $record): string => ($next = $record->nextBillingMonth(now()->format('Y-m')))

@@ -23,6 +23,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Filament resource for managing participant incomes.
@@ -68,9 +69,9 @@ class IncomeResource extends Resource
     {
         return $schema->components([
             TextInput::make('name')->label(__('incomes.fields.name'))->placeholder(__('incomes.fields.name_placeholder'))->required()->maxLength(255),
-            Select::make('participant_id')->label(__('incomes.fields.participant'))->relationship('participant', 'name')->searchable()->preload()->required()
+            Select::make('participant_id')->label(__('incomes.fields.participant'))->relationship('participant', 'name', modifyQueryUsing: fn (Builder $query, Get $get): Builder => $query->where(fn (Builder $query): Builder => $query->whereNull('archived_from_month')->orWhereKey($get('participant_id'))))->searchable()->preload()->required()
                 ->helperText(__('incomes.fields.participant_hint')),
-            Select::make('sender_id')->label(__('funding.sender_household'))->relationship('sender', 'name')->searchable()->preload()->live()
+            Select::make('sender_id')->label(__('funding.sender_household'))->relationship('sender', 'name', modifyQueryUsing: fn (Builder $query, Get $get): Builder => $query->where(fn (Builder $query): Builder => $query->whereNull('archived_from_month')->orWhereKey($get('sender_id'))))->searchable()->preload()->live()
                 ->helperText(__('funding.sender_household_help'))
                 ->afterStateUpdated(function (Set $set, mixed $state): void {
                     if ($state) {

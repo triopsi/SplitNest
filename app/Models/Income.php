@@ -61,6 +61,9 @@ class Income extends Model
                 'sender_name' => ['nullable', 'string', 'max:255'],
                 'include_in_payment_plan' => ['required', 'boolean'],
             ])->validate();
+            foreach (Participant::whereIn('id', array_filter([$income->participant_id, $income->sender_id]))->get() as $participant) {
+                $participant->validateSchedule($income, 'participant_id');
+            }
             if ($income->budget_id || $income->expense_id || $income->sender_id) {
                 $income->affects_allocation = false;
             }

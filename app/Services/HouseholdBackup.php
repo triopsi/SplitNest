@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Expense;
+use App\Models\Participant;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -161,6 +163,13 @@ final class HouseholdBackup
                         DB::table($table)->insert($chunk);
                     }
                 }
+                try {
+                    foreach (Participant::whereNotNull('archived_from_month')->get() as $participant) {
+                        app(ArchiveParticipant::class)->validate($participant, $participant->archived_from_month);
+                    }
+                } catch (ValidationException) {
+                    throw ValidationException::withMessages(['file' => __('backup.errors.invalid_rows', ['table' => 'participants'])]);
+                }
                 $this->resetIdSequences($tables, $previousMaxIds);
             });
         } catch (QueryException) {
@@ -197,7 +206,7 @@ final class HouseholdBackup
         $columns = Schema::getColumnListing($table);
         $seen = [];
         $jsonFields = match ($table) {
-            'expenses' => ['shares'],
+            'expenses' => ['shares', 'price_changes'],
             'monthly_closings' => ['snapshot'],
             'users' => ['monthly_dashboard_layout'],
             'passkeys' => ['data'],
@@ -210,6 +219,9 @@ final class HouseholdBackup
             default => [],
         };
         foreach ($rows as $row) {
+            if ($table === 'participants' && ($row['archived_from_month'] ?? null) !== null && (! is_string($row['archived_from_month']) || preg_match('/^\d{4}-(0[1-9]|1[0-2])$/D', $row['archived_from_month']) !== 1)) {
+                throw ValidationException::withMessages(['file' => __('backup.errors.invalid_rows', ['table' => $table])]);
+            }
             $id = is_array($row) ? ($row[$key] ?? null) : null;
             if (! is_array($row) || ($key === 'id' ? (! is_int($id) || $id < 1) : (! is_string($id) || $id === '')) || isset($seen[$id]) || array_diff(array_keys($row), $columns)) {
                 throw ValidationException::withMessages(['file' => __('backup.errors.invalid_rows', ['table' => $table])]);
@@ -234,6 +246,13 @@ final class HouseholdBackup
                 }
             }
             $seen[$id] = true;
+            if ($table === 'expenses') {
+                try {
+                    (new Expense)->setRawAttributes($row)->validatePriceChanges();
+                } catch (ValidationException) {
+                    throw ValidationException::withMessages(['file' => __('backup.errors.invalid_rows', ['table' => $table])]);
+                }
+            }
         }
     }
 

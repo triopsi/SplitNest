@@ -8,6 +8,7 @@ use App\Filament\Resources\Budgets\BudgetResource;
 use App\Filament\Resources\Budgets\Pages\ManageBudgets;
 use App\Filament\Resources\Expenses\Pages\ManageExpenses;
 use App\Filament\Resources\Incomes\Pages\ManageIncomes;
+use App\Filament\Widgets\MonthlyExpensesTable;
 use App\Models\Budget;
 use App\Models\Expense;
 use App\Models\Income;
@@ -80,6 +81,86 @@ class IncomeFundingTest extends TestCase
         $this->assertSame([5000, 5000], array_column($report['participants'], 'share_cents'));
         $this->assertSame(5000, $report['transfers'][0]['amount_cents']);
         $this->assertSame(120900, $report['participants'][0]['remaining_cents']);
+    }
+
+    /** A partially funded bill retains its configured split even with unequal salaries and a different budget holder. */
+    #[DataProvider('partiallyFundedSplits')]
+    public function test_budget_shortfall_uses_the_expenses_own_split_rule(string $mode, array $shares, array $expectedTotals): void
+    {
+        [$first, $second] = $this->household();
+        Income::where('participant_id', $first->id)->update(['amount_cents' => 500000]);
+        $budget = Budget::factory()->create();
+        $this->income($first, 3000, ['budget_id' => $budget->id]);
+        $participants = [$first, $second];
+        $expenseShares = array_map(fn (array $share): array => ['participant_id' => $participants[$share['person']]->id] + (isset($share['percentage']) ? ['percentage' => $share['percentage']] : []), $shares);
+        $this->expense($first, $second, 12000, ['budget_id' => $budget->id, 'split_mode' => $mode, 'shares' => $expenseShares]);
+
+        $report = app(SettlementCalculator::class)->calculate('2027-01');
+
+        $this->assertSame(3000, $report['expenses'][0]['budget_cents']);
+        $this->assertSame(9000, $report['expenses'][0]['uncovered_cents']);
+        $this->assertSame($expectedTotals, [$report['expenses'][0]['allocations'][$first->id] ?? 0, $report['expenses'][0]['allocations'][$second->id] ?? 0]);
+        $this->assertSame(12000, array_sum($report['expenses'][0]['allocations']));
+    }
+
+    /** Expected totals include the first participant's 30-euro budget funding plus the correctly split 90-euro remainder.
+     * @return array<string, array{string, list<array{person: int, percentage?: int}>, list<int>}>
+     */
+    public static function partiallyFundedSplits(): array
+    {
+        return [
+            'equal ignores unequal salaries' => ['equal', [['person' => 0], ['person' => 1]], [7500, 4500]],
+            'fixed percentages apply to remainder' => ['percentage', [['person' => 0, 'percentage' => 25], ['person' => 1, 'percentage' => 75]], [5250, 6750]],
+            'income weighting applies only when selected' => ['income', [['person' => 0], ['person' => 1]], [10500, 1500]],
+            'personal remainder stays with selected participant' => ['personal', [['person' => 1]], [3000, 9000]],
+        ];
+    }
+
+    /** Saved split weights explain a frozen bill even after its live rule and budget receipts change. */
+    public function test_expense_widget_explains_the_frozen_remainder_separately_from_budget_money(): void
+    {
+        [$first, $second] = $this->household();
+        $budget = Budget::factory()->create();
+        $receipt = $this->income($first, 3000, ['budget_id' => $budget->id]);
+        $expense = $this->expense($first, $second, 12000, ['budget_id' => $budget->id, 'split_mode' => 'equal']);
+        $closing = app(CloseMonth::class)->close('2027-01', User::factory()->create(['is_admin' => true])->id);
+        $receipt->update(['amount_cents' => 12000]);
+        $expense->update(['split_mode' => 'percentage', 'shares' => [['participant_id' => $first->id, 'percentage' => 10], ['participant_id' => $second->id, 'percentage' => 90]]]);
+
+        $widget = Livewire::test(MonthlyExpensesTable::class, ['month' => '2027-01']);
+        $record = $closing->snapshot['expenses'][0];
+        $column = $widget->instance()->getTable()->getColumn('allocation_'.$first->id)->record($record);
+        $html = $column->formatState($record['allocations'][$first->id])->toHtml();
+        $text = preg_replace('/\s+/u', ' ', trim(strip_tags($html)));
+
+        $this->assertStringContainsString(__('funding.own_remainder').' 45,00 €', $text);
+        $this->assertStringContainsString('45,00 €', $html);
+        $this->assertStringContainsString(__('funding.remainder_percentage', ['percent' => '50,00', 'amount' => '90,00 €']), $html);
+        $this->assertStringContainsString('30,00 €', $html);
+        $this->assertStringContainsString('75,00 €', $html);
+        $this->assertStringNotContainsString('63 %', $html);
+        $this->assertSame($record, $closing->fresh()->snapshot['expenses'][0]);
+    }
+
+    /** Fully financed bills show zero own contribution and keep the funding attribution visible. */
+    public function test_fully_funded_expense_widget_does_not_show_budget_money_as_own_contribution(): void
+    {
+        [$first, $second] = $this->household();
+        $budget = Budget::factory()->create();
+        $this->income($first, 12000, ['budget_id' => $budget->id]);
+        $this->expense($first, $second, 12000, ['budget_id' => $budget->id, 'split_mode' => 'equal']);
+        $report = app(SettlementCalculator::class)->calculate('2027-01');
+
+        $widget = Livewire::test(MonthlyExpensesTable::class, ['month' => '2027-01', 'report' => $report]);
+        $record = $report['expenses'][0];
+        $column = $widget->instance()->getTable()->getColumn('allocation_'.$first->id)->record($record);
+        $html = $column->formatState($record['allocations'][$first->id])->toHtml();
+        $text = preg_replace('/\s+/u', ' ', trim(strip_tags($html)));
+
+        $this->assertStringContainsString(__('funding.own_remainder').' 0,00 €', $text);
+        $this->assertStringContainsString('120,00 €', $html);
+        $this->assertStringContainsString(__('funding.fully_funded'), $html);
+        $this->assertStringNotContainsString('%', $html);
     }
 
     /** Recurring earmarked receipts stop at their end month and carry reserves across a year boundary. */

@@ -334,16 +334,16 @@ class HouseholdTest extends TestCase
     /**
      * Look for the delete action on the participant table.
      *
-     * Expects no delete action to exist, because participants with linked
-     * records must never be removed via the UI.
+     * Expects an unused record to be removed through the confirmed delete action.
      */
-    public function test_participants_cannot_be_deleted_via_ui(): void
+    public function test_unused_participants_can_be_deleted_via_ui(): void
     {
         [$a] = $this->people();
         $this->actingAs($this->admin());
         Filament::setCurrentPanel(Filament::getPanel('admin'));
         Livewire::test(ManageParticipants::class)
-            ->assertActionDoesNotExist(TestAction::make('delete')->table($a));
+            ->callTableAction('delete', $a)->assertHasNoTableActionErrors();
+        $this->assertModelMissing($a);
     }
 
     /**
@@ -586,13 +586,14 @@ class HouseholdTest extends TestCase
     }
 
     /**
-     * Delete a participant directly via the model.
+     * Delete a participant with an income directly via the model.
      *
      * Expects a ValidationException; the record must stay in the database.
      */
-    public function test_participant_cannot_be_deleted(): void
+    public function test_participant_with_income_cannot_be_deleted(): void
     {
         [$a] = $this->people();
+        $this->income($a, '100');
         try {
             $a->delete();
             $this->fail('Participant deletion allowed');
