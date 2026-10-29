@@ -34,7 +34,7 @@ class SendClosingSummaryEmails
         $monthName = Month::format($closing->month);
         $fullPdfData = null;
 
-        foreach (Participant::query()->whereNotNull('email')->where('email', '!=', '')->get() as $participant) {
+        foreach (Participant::activeInMonth($closing->month)->whereNotNull('email')->where('email', '!=', '')->get() as $participant) {
             $pdfData = $participant->only_own_report
                 ? $this->pdf->render($closing, $participant)
                 : ($fullPdfData ??= $this->pdf->render($closing));

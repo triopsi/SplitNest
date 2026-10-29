@@ -29,7 +29,7 @@ final class SettlementCalculator
     public function calculate(string $month): array
     {
         Validator::make(['month' => $month], ['month' => ['required', 'date_format:Y-m']])->validate();
-        $people = Participant::orderBy('id')->get()->mapWithKeys(fn ($p) => [$p->id => [
+        $people = Participant::activeInMonth($month)->orderBy('id')->get()->mapWithKeys(fn ($p) => [$p->id => [
             'id' => $p->id, 'name' => $p->name, 'income_cents' => 0, 'paid_cents' => 0,
             'share_cents' => 0, 'balance_cents' => 0, 'remaining_cents' => 0,
             'allocation_income_cents' => 0, 'other_income_cents' => 0, 'reserved_cents' => 0, 'opening_reserved_cents' => 0,
@@ -43,10 +43,18 @@ final class SettlementCalculator
         $funding = app(BudgetFunding::class)->calculate($month, $incomes, $expenses);
         foreach ($funding['budgets'] as $budget) {
             foreach ($budget['balances'] as $participantId => $cents) {
-                $people[$participantId]['reserved_cents'] += $cents;
+                if (isset($people[$participantId])) {
+                    $people[$participantId]['reserved_cents'] += $cents;
+                } elseif ($cents > 0) {
+                    throw ValidationException::withMessages(['month' => __('participants.archive.has_reserves', ['name' => Participant::find($participantId)?->name])]);
+                }
             }
             foreach ($budget['opening_balances'] as $participantId => $cents) {
-                $people[$participantId]['opening_reserved_cents'] += $cents;
+                if (isset($people[$participantId])) {
+                    $people[$participantId]['opening_reserved_cents'] += $cents;
+                } elseif ($cents > 0) {
+                    throw ValidationException::withMessages(['month' => __('participants.archive.has_reserves', ['name' => Participant::find($participantId)?->name])]);
+                }
             }
         }
         foreach ($incomes as $income) {
@@ -76,7 +84,7 @@ final class SettlementCalculator
                 };
             }
             $funded = $funding['expenses'][$expense->id];
-            $uncovered = $expense->amount_cents - $funded['reimbursed_cents'] - $funded['budget_cents'];
+            $uncovered = $expense->amountForMonth($month) - $funded['reimbursed_cents'] - $funded['budget_cents'];
             if ($uncovered > 0 && array_sum($weights) === 0) {
                 throw ValidationException::withMessages(['month' => __('settlement.calculator.missing_income', ['name' => $expense->name])]);
             }
@@ -87,9 +95,9 @@ final class SettlementCalculator
             foreach ($allocations as $id => $cents) {
                 $people[$id]['share_cents'] += $cents;
             }
-            $people[$expense->payer_id]['paid_cents'] += $expense->amount_cents;
+            $people[$expense->payer_id]['paid_cents'] += $expense->amountForMonth($month);
             $lines[] = [
-                'id' => $expense->id, 'name' => $expense->name, 'amount_cents' => $expense->amount_cents,
+                'id' => $expense->id, 'name' => $expense->name, 'amount_cents' => $expense->amountForMonth($month),
                 'payer_id' => $expense->payer_id, 'split_mode' => $expense->split_mode,
                 'weights' => $weights, 'allocations' => $allocations,
                 'reimbursed_cents' => $funded['reimbursed_cents'], 'budget_cents' => $funded['budget_cents'],

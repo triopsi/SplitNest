@@ -62,7 +62,7 @@ final class BudgetFunding
                     $line = $funding[$income->expense_id] ?? ['reimbursed_cents' => 0, 'budget_cents' => 0, 'allocations' => []];
                     $line['reimbursed_cents'] += $income->amount_cents;
                     $line['allocations'][$income->participant_id] = ($line['allocations'][$income->participant_id] ?? 0) + $income->amount_cents;
-                    if ($line['reimbursed_cents'] > $activeExpenses[$income->expense_id]->amount_cents) {
+                    if ($line['reimbursed_cents'] > $activeExpenses[$income->expense_id]->amountForMonth($currentMonth)) {
                         throw ValidationException::withMessages(['month' => __('funding.refund_exceeds_cost', ['name' => $activeExpenses[$income->expense_id]->name])]);
                     }
                     $funding[$income->expense_id] = $line;
@@ -72,7 +72,7 @@ final class BudgetFunding
                 $line = $funding[$expense->id] ?? ['reimbursed_cents' => 0, 'budget_cents' => 0, 'allocations' => []];
                 if ($expense->budget_id) {
                     $available = array_sum($balances[$expense->budget_id] ?? []);
-                    $amount = min($expense->amount_cents - $line['reimbursed_cents'], $available);
+                    $amount = min($expense->amountForMonth($currentMonth) - $line['reimbursed_cents'], $available);
                     if ($amount > 0) {
                         $withdrawals = $calculator->allocate($amount, $balances[$expense->budget_id]);
                         foreach ($withdrawals as $participantId => $cents) {

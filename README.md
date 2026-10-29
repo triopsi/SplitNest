@@ -69,11 +69,11 @@ The example is for a local HTTP setup. For a server or passkeys, continue with H
 - **Reserve money for a purpose** — budgets fund related bills and carry unspent money forward.
 - **Apply reimbursements** — link a contribution to a bill before its remaining cost is split.
 - **See who owes whom** — household balancing plus explicitly planned forwarding payments and external contributions.
-- **Plan recurring costs** — one-off expenses and recurring schedules, with a year overview and charts.
+- **Plan recurring costs** — one-off expenses and recurring schedules, with a year overview and charts. Schedule price changes from a month without duplicating the bill.
 - **Close a month** — save a snapshot, generate a PDF statement and send it by e-mail. Reopen a month when something needs correcting.
 - **Limit a participant's statement** — send only their own cost shares, contributions and directly involving transfers.
 - **Arrange your dashboard** — move, resize or hide widgets, including monthly budget balances; layouts are saved per user.
-- **Manage your household** — invite users by e-mail and manage accounts as an administrator.
+- **Manage your household** — invite users by e-mail, archive departed participants from a chosen month and manage accounts as an administrator.
 - **Sign in with passkeys** — register a passkey on your profile for passwordless login over HTTPS or localhost.
 - **Keep a backup** — export and restore durable application data, including accounts, settings and budgets.
 - **Choose your language** — switch between English and German in the topbar.
@@ -97,6 +97,18 @@ In **Participants**, enable **Show only own costs and transfers in monthly state
 After closing a month, administrators can inspect the recipient's PDF using **PDF as sent by e-mail** on the participant's monthly detail page. Delivery and preview use the participant's current visibility preference, including for older closings; saved amounts stay frozen. Without an e-mail address, no statement is sent. With the option disabled, the participant receives the full household statement.
 
 Participants and login accounts are separate. This PDF preference does not grant or restrict application access; only administrators can access the app and its full reports. An external payer entered as a free name can appear in the transfer plan but needs a participant record and e-mail address to receive a statement.
+
+## Archive participants
+
+Use **Archive** in the participant table and select the first month in which the person should no longer appear in planning. Earlier months, saved closings and PDF history retain the participant. End or reassign any incomes, forwarding payments and expense assignments scheduled from that month first. Budget reserves held by the participant must also be resolved; the action explains what still prevents archiving. A boundary cannot contradict an existing closed report.
+
+The table initially shows active records. Use **Participant status** to find archived participants, then **Reactivate** to bring them back. Archived people are omitted from new assignment choices and later closing e-mails. Their independent login accounts are unaffected.
+
+## Schedule price changes
+
+Edit a cost item and add entries under **Price changes from month**, each with an effective month and a new amount. Keep the original amount as the starting price. For example, a €40 monthly bill with a €45 change from January uses €40 before January and €45 afterward. Several changes can be scheduled, including decreases and zero-cost periods.
+
+The latest effective amount is used on each original due date; changing the price does not restart the billing interval. A quarterly bill starting in January with a new price from February is next charged in April at the new price. Budget projections and reimbursement limits use each month's applicable price. Saved closings remain frozen, and timelines are included in application backups. Changes must have unique months within the bill's start/end period; a one-off bill can only change its price in its occurrence month.
 
 ## HTTPS & reverse proxy
 

@@ -274,6 +274,9 @@ class CompleteBackupTest extends TestCase
             'bad snapshot' => $rows[0]['snapshot'] = '{',
             'no admin' => $rows[0]['is_admin'] = false,
             'bad passkey' => $rows[0]['data'] = '{}',
+            'bad prices' => $rows[0]['price_changes'] = '[{"month":"2027-02","amount":"-1"}]',
+            'bad archive month' => $rows[0]['archived_from_month'] = '2027-13',
+            'archive with obligations' => $rows[0]['archived_from_month'] = '2027-02',
         };
         $this->rewrite($path, $table, $rows);
 
@@ -298,6 +301,9 @@ class CompleteBackupTest extends TestCase
             'unknown columns' => ['participants', 'unknown column'], 'duplicate IDs' => ['participants', 'duplicate key'],
             'invalid boolean' => ['participants', 'bad boolean'], 'invalid snapshot JSON' => ['monthly_closings', 'bad snapshot'],
             'no administrator' => ['users', 'no admin'], 'invalid passkey data' => ['passkeys', 'bad passkey'],
+            'invalid price timeline' => ['expenses', 'bad prices'],
+            'invalid archive boundary' => ['participants', 'bad archive month'],
+            'archived recipient with future obligations' => ['participants', 'archive with obligations'],
         ];
     }
 

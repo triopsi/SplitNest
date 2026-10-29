@@ -26,6 +26,13 @@ return [
         'settlement_title' => 'Cost share and transfer amount are different',
         'settlement_text' => 'The monthly overview accounts for both your cost shares and the bills you are scheduled to pay. This determines household balancing. Do not transfer your cost share on top of the calculated balancing payment. Explicitly planned subsidies and contributions are itemized there separately. Amounts are planned; actual bank payments are not marked as completed.',
     ],
+    'prices' => [
+        'title' => 'Price changes from month',
+        'add' => 'Add price change',
+        'from' => 'Effective from month',
+        'help' => 'The normal amount remains the original price. Add new prices effective from a calendar month here. Each occurrence uses the latest effective price; the billing interval stays the same. Earlier months retain their earlier prices and saved closings remain unchanged. Changes must fall between the start and end months.',
+        'next' => 'Next occurrence: :amount',
+    ],
     'sections' => [
         'what' => 'What is being paid?',
         'what_desc' => 'What is the expense for and who pays the bill?',

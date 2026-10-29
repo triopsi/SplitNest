@@ -4,7 +4,11 @@ namespace App\Filament\Resources\Participants;
 
 use App\Filament\Resources\Participants\Pages\ManageParticipants;
 use App\Models\Participant;
+use App\Services\ArchiveParticipant;
+use App\Support\Month;
 use BackedEnum;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -15,13 +19,13 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 /**
  * Filament resource for managing household participants.
  *
- * Participants cannot be deleted here on purpose: historical closings keep
- * referring to them, so the table offers no delete action at all.
+ * Deletion is available for unused records while linked household data stays protected.
  */
 class ParticipantResource extends Resource
 {
@@ -72,7 +76,7 @@ class ParticipantResource extends Resource
     }
 
     /**
-     * Define the participants table (edit only, no delete action).
+     * Define participant editing and confirmed deletion with an explanation for protected records.
      */
     public static function table(Table $table): Table
     {
@@ -81,7 +85,27 @@ class ParticipantResource extends Resource
                 ->formatStateUsing(fn (Participant $record): string => view('components.person', ['name' => $record->name, 'email' => $record->email])->render()),
             TextColumn::make('email')->label(__('participants.table.email'))->placeholder(__('participants.table.no_email')),
             IconColumn::make('only_own_report')->label(__('participants.table.only_own_report'))->boolean(),
-        ])->recordActions([EditAction::make()]);
+            TextColumn::make('archived_from_month')->label(__('participants.archive.from'))
+                ->formatStateUsing(fn (string $state): string => Month::format($state))
+                ->placeholder(__('participants.archive.active'))->badge(),
+        ])->filters([
+            TernaryFilter::make('archived_from_month')->label(__('participants.archive.filter'))->nullable()
+                ->trueLabel(__('participants.archive.archived'))->falseLabel(__('participants.archive.active'))->default(false),
+        ])->recordActions([
+            EditAction::make(),
+            Action::make('archive')->label(__('participants.archive.action'))->icon('heroicon-o-archive-box')->color('warning')
+                ->visible(fn (Participant $record): bool => $record->archived_from_month === null)
+                ->requiresConfirmation()->modalDescription(__('participants.archive.help'))
+                ->schema([TextInput::make('archived_from_month')->label(__('participants.archive.from'))->type('month')->required()->rules(['date_format:Y-m'])->default(now()->format('Y-m'))])
+                ->action(fn (Participant $record, array $data) => app(ArchiveParticipant::class)->archive($record, $data['archived_from_month'])),
+            Action::make('restore')->label(__('participants.archive.restore'))->icon('heroicon-o-arrow-uturn-left')
+                ->visible(fn (Participant $record): bool => $record->archived_from_month !== null)->requiresConfirmation()
+                ->action(fn (Participant $record): bool => $record->forceFill(['archived_from_month' => null])->save()),
+            DeleteAction::make()->requiresConfirmation()
+                ->modalDescription(__('participants.delete_confirmation'))
+                ->disabled(fn (Participant $record): bool => $record->deletionBlockReason() !== null)
+                ->tooltip(fn (Participant $record): ?string => $record->deletionBlockReason()),
+        ]);
     }
 
     /**

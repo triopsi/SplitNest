@@ -26,6 +26,13 @@ return [
         'settlement_title' => 'Kostenanteil und Überweisungsbetrag sind verschieden',
         'settlement_text' => 'Die Monatsübersicht berücksichtigt sowohl eure Kostenanteile als auch die Rechnungen, die ihr laut Plan bezahlt. Daraus entsteht der Haushaltsausgleich. Deinen Kostenanteil deshalb nicht zusätzlich zum berechneten Ausgleich überweisen. Ausdrücklich eingeplante Zuschüsse und Beiträge werden dort gesondert aufgeschlüsselt. Die Beträge sind Planwerte; tatsächliche Bankzahlungen werden damit nicht als erledigt markiert.',
     ],
+    'prices' => [
+        'title' => 'Preisänderungen ab Monat',
+        'add' => 'Preisänderung hinzufügen',
+        'from' => 'Gültig ab Monat',
+        'help' => 'Der normale Betrag bleibt der Ausgangsbetrag. Hinterlege hier neue Beträge ab einem bestimmten Monat. Der zuletzt gültige Betrag wird bei jeder Fälligkeit verwendet; das Intervall bleibt erhalten. Frühere Monate behalten ihre früheren Beträge, gespeicherte Abschlüsse bleiben unverändert. Änderungen dürfen frühestens im Startmonat und spätestens im Endmonat gelten.',
+        'next' => 'Nächste Fälligkeit: :amount',
+    ],
     'sections' => [
         'what' => 'Was wird gezahlt?',
         'what_desc' => 'Wofür ist die Kostenposition und wer bezahlt die Rechnung?',
