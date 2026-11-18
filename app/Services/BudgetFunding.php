@@ -23,20 +23,71 @@ final class BudgetFunding
      */
     public function calculate(string $month, Collection $incomes, Collection $expenses): array
     {
+        $validatedSavings = [];
+
+        return $this->calculateWithRecords($month, $incomes, $expenses, Budget::orderBy('id')->get(),
+            MonthlyClosing::where('month', '<', $month)->whereNotNull('closed_at')->orderByDesc('month')->get(), null, $validatedSavings);
+    }
+
+    /** Calculate ordered months with one dataset and carry forward only successfully computed reserves.
+     * @param  list<string>  $months
+     * @param  Collection<int, Income>  $incomes
+     * @param  Collection<int, Expense>  $expenses
+     * @return array<string, array<string, mixed>|ValidationException>
+     */
+    public function calculateMany(array $months, Collection $incomes, Collection $expenses): array
+    {
+        if ($months === []) {
+            return [];
+        }
+        sort($months, SORT_STRING);
         $budgets = Budget::orderBy('id')->get();
+        $closings = MonthlyClosing::where('month', '<', max($months))->whereNotNull('closed_at')->orderByDesc('month')->get();
+        $results = $validatedSavings = [];
+        $carryover = null;
+        foreach ($months as $month) {
+            try {
+                $results[$month] = $this->calculateWithRecords($month, $incomes, $expenses, $budgets, $closings, $carryover, $validatedSavings);
+                $carryover = ['month' => $month, 'budgets' => $results[$month]['budgets']];
+            } catch (ValidationException $exception) {
+                $results[$month] = $exception;
+            }
+        }
+
+        return $results;
+    }
+
+    /** Replay only the months after the latest applicable frozen or calculated carryover.
+     * @param  Collection<int, Income>  $incomes
+     * @param  Collection<int, Expense>  $expenses
+     * @param  Collection<int, Budget>  $budgets
+     * @param  Collection<int, MonthlyClosing>  $closings
+     * @param  array{month: string, budgets: list<array<string, mixed>>}|null  $carryover
+     * @param  array<int, true>  $validatedSavings
+     * @return array{budgets: list<array<string, mixed>>, expenses: array<int, array<string, mixed>>}
+     */
+    private function calculateWithRecords(string $month, Collection $incomes, Collection $expenses, Collection $budgets, Collection $closings, ?array $carryover, array &$validatedSavings): array
+    {
         $balances = $budgets->mapWithKeys(fn (Budget $budget): array => [$budget->id => []])->all();
         $firstMonth = min($incomes->whereNotNull('budget_id')->min('start_month') ?? $month, $expenses->whereNotNull('savings_budget_id')->min('start_month') ?? $month);
         $firstMonth = min($month, $firstMonth);
-        $closings = MonthlyClosing::where('month', '<', $month)->whereNotNull('closed_at')->orderByDesc('month')->get();
+        $anchorMonth = null;
         foreach ($closings as $closing) {
-            if (! array_key_exists('budgets', $closing->snapshot)) {
+            if ($closing->month >= $month || ! array_key_exists('budgets', $closing->snapshot)) {
                 continue;
             }
+            $anchorMonth = $closing->month;
             foreach ($closing->snapshot['budgets'] as $budget) {
                 $balances[$budget['id']] = $budget['balances'];
             }
             $firstMonth = Carbon::createFromFormat('!Y-m', $closing->month)->addMonth()->format('Y-m');
             break;
+        }
+        if ($carryover !== null && $carryover['month'] < $month && ($anchorMonth === null || $carryover['month'] > $anchorMonth)) {
+            foreach ($carryover['budgets'] as $budget) {
+                $balances[$budget['id']] = $budget['balances'];
+            }
+            $firstMonth = Carbon::createFromFormat('!Y-m', $carryover['month'])->addMonth()->format('Y-m');
         }
         $calculator = new SettlementCalculator;
         $result = ['budgets' => [], 'expenses' => []];
@@ -70,7 +121,10 @@ final class BudgetFunding
             }
             foreach ($activeExpenses as $expense) {
                 if ($expense->savings_budget_id) {
-                    $expense->validateAllocation();
+                    if (! isset($validatedSavings[$expense->id])) {
+                        $expense->validateAllocation();
+                        $validatedSavings[$expense->id] = true;
+                    }
                     $amount = $expense->amountForMonth($currentMonth);
                     $balances[$expense->savings_budget_id][$expense->payer_id] = ($balances[$expense->savings_budget_id][$expense->payer_id] ?? 0) + $amount;
                     $receipts[$expense->savings_budget_id] = ($receipts[$expense->savings_budget_id] ?? 0) + $amount;

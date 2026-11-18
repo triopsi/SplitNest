@@ -31,6 +31,14 @@ final class AccountBalanceForecast
         }
         $firstMonth = $participants->min('account_balance_month');
         $closings = MonthlyClosing::whereBetween('month', [$firstMonth, $toMonth])->whereNotNull('closed_at')->get()->keyBy('month');
+        $months = [];
+        for ($cursor = Carbon::createFromFormat('!Y-m', $firstMonth); $cursor->format('Y-m') <= $toMonth; $cursor->addMonth()) {
+            $month = $cursor->format('Y-m');
+            if (! $closings->has($month)) {
+                $months[] = $month;
+            }
+        }
+        $reports = app(SettlementCalculator::class)->calculateMany($months);
         $balances = $recovered = $errors = $result = [];
         for ($cursor = Carbon::createFromFormat('!Y-m', $firstMonth); $cursor->format('Y-m') <= $toMonth; $cursor->addMonth()) {
             $month = $cursor->format('Y-m');
@@ -39,7 +47,10 @@ final class AccountBalanceForecast
                 continue;
             }
             try {
-                $report = $closings->get($month)?->snapshot ?? app(SettlementCalculator::class)->calculate($month);
+                $report = $closings->get($month)?->snapshot ?? $reports[$month];
+                if ($report instanceof ValidationException) {
+                    throw $report;
+                }
                 $people = collect($report['participants'])->keyBy('id');
                 $problem = null;
             } catch (ValidationException $exception) {

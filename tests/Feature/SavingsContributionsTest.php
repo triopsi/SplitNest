@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\CloseMonth;
 use App\Services\HouseholdBackup;
 use App\Services\SettlementCalculator;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -45,6 +46,44 @@ class SavingsContributionsTest extends TestCase
     private function expense(Participant $person, array $attributes = []): Expense
     {
         return Expense::create(['name' => 'Home savings', 'payer_id' => $person->id, 'amount_cents' => 20000, 'split_mode' => 'personal', 'shares' => [['participant_id' => $person->id]], 'start_month' => '2027-01', 'interval_months' => 1, ...$attributes]);
+    }
+
+    /** Converting an existing budget-funded bill persists the cleared source even when its selector is disabled. */
+    public function test_existing_budget_expense_can_be_converted_to_savings(): void
+    {
+        [$first] = $this->household();
+        $source = Budget::factory()->create();
+        $destination = Budget::factory()->create();
+        $expense = $this->expense($first, ['budget_id' => $source->id]);
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        $this->actingAs(User::factory()->create(['is_admin' => true]));
+
+        Livewire::test(ManageExpenses::class)->mountAction(TestAction::make('edit')->table($expense))
+            ->setActionData(['savings_budget_id' => $destination->id])
+            ->assertSchemaStateSet(['budget_id' => null])
+            ->callMountedAction()->assertHasNoFormErrors();
+
+        $this->assertNull($expense->fresh()->budget_id);
+        $this->assertSame($destination->id, $expense->fresh()->savings_budget_id);
+    }
+
+    /** Batched live reports match individual calculations across skipped months and authoritative frozen carryovers. */
+    public function test_sequential_reports_preserve_frozen_carryovers_and_live_prices(): void
+    {
+        [$first] = $this->household();
+        $pool = Budget::factory()->create();
+        $saving = $this->expense($first, ['savings_budget_id' => $pool->id, 'price_changes' => [['month' => '2027-05', 'amount' => '300']]]);
+        $this->expense($first, ['name' => 'Quarterly purchase', 'budget_id' => $pool->id, 'amount_cents' => 10000, 'interval_months' => 3]);
+        app(CloseMonth::class)->close('2027-03', User::factory()->create(['is_admin' => true])->id);
+        $saving->update(['amount_cents' => 25000]);
+        $months = ['2027-01', '2027-03', '2027-04', '2027-06'];
+
+        $reports = app(SettlementCalculator::class)->calculateMany($months);
+
+        foreach ($months as $month) {
+            $this->assertSame(app(SettlementCalculator::class)->calculate($month), $reports[$month], $month);
+        }
+        $this->assertSame(50000, $reports['2027-04']['budgets'][0]['opening_cents']);
     }
 
     /** Personal savings reduce the owner's available money exactly once and carry forward independently of salary. */

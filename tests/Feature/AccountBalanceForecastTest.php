@@ -18,6 +18,7 @@ use App\Services\SettlementCalculator;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -43,6 +44,28 @@ class AccountBalanceForecastTest extends TestCase
     private function expense(Participant $person, int $amount, array $attributes = []): Expense
     {
         return Expense::create(['name' => 'Rent', 'payer_id' => $person->id, 'amount_cents' => $amount, 'start_month' => '2027-01', 'interval_months' => 1, 'split_mode' => 'personal', 'shares' => [['participant_id' => $person->id]], ...$attributes]);
+    }
+
+    /** Long savings forecasts reuse loaded records and prior balances instead of repeating historical validation queries. */
+    public function test_multi_year_savings_forecast_keeps_database_work_bounded(): void
+    {
+        $person = $this->participant();
+        $this->expense($person, 20000, ['savings_budget_id' => Budget::factory()->create()->id]);
+        DB::enableQueryLog();
+        try {
+            app(AccountBalanceForecast::class)->between('2027-01', '2027-12');
+            $shortQueryCount = count(DB::getQueryLog());
+            DB::flushQueryLog();
+            $forecast = app(AccountBalanceForecast::class)->between('2031-12', '2031-12');
+            $longQueryCount = count(DB::getQueryLog());
+        } finally {
+            DB::disableQueryLog();
+            DB::flushQueryLog();
+        }
+
+        $this->assertSame(5950000, $forecast['2031-12'][$person->id]['balance_cents']);
+        $this->assertSame(4750000, $forecast['2031-12'][$person->id]['available_cents']);
+        $this->assertLessThanOrEqual($shortQueryCount * 2 + 20, $longQueryCount);
     }
 
     /** A monthly surplus reduces debt cumulatively and records the first nonnegative month. */

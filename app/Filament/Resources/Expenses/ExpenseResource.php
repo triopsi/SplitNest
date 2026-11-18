@@ -98,7 +98,7 @@ class ExpenseResource extends Resource
                             })
                             ->createOptionForm([TextInput::make('name')->label(__('funding.name'))->required()->maxLength(255)]),
                         Select::make('budget_id')->label(__('funding.budget'))->relationship('budget', 'name')->preload()->searchable()
-                            ->disabled(fn (Get $get): bool => (bool) $get('savings_budget_id'))
+                            ->disabled(fn (Get $get): bool => (bool) $get('savings_budget_id'))->saved()
                             ->helperText(__('funding.budget_expense_help'))
                             ->createOptionForm([TextInput::make('name')->label(__('funding.name'))->required()->maxLength(255)]),
                     ]),

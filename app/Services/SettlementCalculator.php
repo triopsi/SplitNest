@@ -7,6 +7,7 @@ use App\Models\Income;
 use App\Models\Participant;
 use App\Support\Money;
 use Brick\Math\BigInteger;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -31,7 +32,55 @@ final class SettlementCalculator
     public function calculate(string $month): array
     {
         Validator::make(['month' => $month], ['month' => ['required', 'date_format:Y-m']])->validate();
-        $people = Participant::activeInMonth($month)->orderBy('id')->get()->mapWithKeys(fn ($p) => [$p->id => [
+        $incomes = Income::with(['budget', 'expense', 'sender'])->orderBy('id')->get();
+        $expenses = Expense::with('savingsBudget')->orderBy('id')->get();
+        $funding = app(BudgetFunding::class)->calculate($month, $incomes, $expenses);
+        $validatedExpenses = [];
+
+        return $this->calculateWithRecords($month, Participant::orderBy('id')->get(), $incomes, $expenses, $funding, $validatedExpenses);
+    }
+
+    /** Calculate several live reports using one set of records and sequential budget carryovers.
+     * @param  list<string>  $months
+     * @return array<string, array<string, mixed>|ValidationException>
+     */
+    public function calculateMany(array $months): array
+    {
+        Validator::make(['months' => $months], ['months' => ['array', 'list'], 'months.*' => ['required', 'date_format:Y-m', 'distinct']])->validate();
+        if ($months === []) {
+            return [];
+        }
+        sort($months, SORT_STRING);
+        $participants = Participant::orderBy('id')->get();
+        $incomes = Income::with(['budget', 'expense', 'sender'])->orderBy('id')->get();
+        $expenses = Expense::with('savingsBudget')->orderBy('id')->get();
+        $funding = app(BudgetFunding::class)->calculateMany($months, $incomes, $expenses);
+        $results = $validatedExpenses = [];
+        foreach ($months as $month) {
+            try {
+                if ($funding[$month] instanceof ValidationException) {
+                    throw $funding[$month];
+                }
+                $results[$month] = $this->calculateWithRecords($month, $participants, $incomes, $expenses, $funding[$month], $validatedExpenses);
+            } catch (ValidationException $exception) {
+                $results[$month] = $exception;
+            }
+        }
+
+        return $results;
+    }
+
+    /** Allocate one month's costs using preloaded records and already computed funding.
+     * @param  Collection<int, Participant>  $participants
+     * @param  Collection<int, Income>  $incomes
+     * @param  Collection<int, Expense>  $expenses
+     * @param  array{budgets: list<array<string, mixed>>, expenses: array<int, array<string, mixed>>}  $funding
+     * @param  array<int, true>  $validatedExpenses
+     * @return array<string, mixed>
+     */
+    private function calculateWithRecords(string $month, Collection $participants, Collection $incomes, Collection $expenses, array $funding, array &$validatedExpenses): array
+    {
+        $people = $participants->filter(fn (Participant $participant): bool => $participant->archived_from_month === null || $participant->archived_from_month > $month)->mapWithKeys(fn ($p) => [$p->id => [
             'id' => $p->id, 'name' => $p->name, 'income_cents' => 0, 'paid_cents' => 0,
             'share_cents' => 0, 'balance_cents' => 0, 'remaining_cents' => 0,
             'savings_deposited_cents' => 0, 'allocation_income_cents' => 0, 'other_income_cents' => 0, 'reserved_cents' => 0, 'opening_reserved_cents' => 0,
@@ -40,22 +89,19 @@ final class SettlementCalculator
             throw ValidationException::withMessages(['month' => __('settlement.calculator.no_participants')]);
         }
         $incomeLines = [];
-        $incomes = Income::with(['budget', 'expense', 'sender'])->orderBy('id')->get();
-        $expenses = Expense::with('savingsBudget')->orderBy('id')->get();
-        $funding = app(BudgetFunding::class)->calculate($month, $incomes, $expenses);
         foreach ($funding['budgets'] as $budget) {
             foreach ($budget['balances'] as $participantId => $cents) {
                 if (isset($people[$participantId])) {
                     $people[$participantId]['reserved_cents'] += $cents;
                 } elseif ($cents > 0) {
-                    throw ValidationException::withMessages(['month' => __('participants.archive.has_reserves', ['name' => Participant::find($participantId)?->name])]);
+                    throw ValidationException::withMessages(['month' => __('participants.archive.has_reserves', ['name' => $participants->find($participantId)?->name])]);
                 }
             }
             foreach ($budget['opening_balances'] as $participantId => $cents) {
                 if (isset($people[$participantId])) {
                     $people[$participantId]['opening_reserved_cents'] += $cents;
                 } elseif ($cents > 0) {
-                    throw ValidationException::withMessages(['month' => __('participants.archive.has_reserves', ['name' => Participant::find($participantId)?->name])]);
+                    throw ValidationException::withMessages(['month' => __('participants.archive.has_reserves', ['name' => $participants->find($participantId)?->name])]);
                 }
             }
         }
@@ -75,7 +121,10 @@ final class SettlementCalculator
             if (! $expense->appliesTo($month)) {
                 continue;
             }
-            $expense->validateAllocation();
+            if (! $expense->savings_budget_id && ! isset($validatedExpenses[$expense->id])) {
+                $expense->validateAllocation();
+                $validatedExpenses[$expense->id] = true;
+            }
             $weights = [];
             foreach ($expense->shares as $share) {
                 $id = (int) $share['participant_id'];
