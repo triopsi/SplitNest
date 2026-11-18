@@ -222,6 +222,13 @@ final class HouseholdBackup
             if ($table === 'participants' && ($row['archived_from_month'] ?? null) !== null && (! is_string($row['archived_from_month']) || preg_match('/^\d{4}-(0[1-9]|1[0-2])$/D', $row['archived_from_month']) !== 1)) {
                 throw ValidationException::withMessages(['file' => __('backup.errors.invalid_rows', ['table' => $table])]);
             }
+            if ($table === 'participants' && is_array($row)) {
+                try {
+                    (new Participant)->setRawAttributes($row)->validateAccountBalance();
+                } catch (ValidationException) {
+                    throw ValidationException::withMessages(['file' => __('backup.errors.invalid_rows', ['table' => $table])]);
+                }
+            }
             $id = is_array($row) ? ($row[$key] ?? null) : null;
             if (! is_array($row) || ($key === 'id' ? (! is_int($id) || $id < 1) : (! is_string($id) || $id === '')) || isset($seen[$id]) || array_diff(array_keys($row), $columns)) {
                 throw ValidationException::withMessages(['file' => __('backup.errors.invalid_rows', ['table' => $table])]);
@@ -266,7 +273,7 @@ final class HouseholdBackup
             $ids[$table] = array_column($rows, 'id');
         }
         $relations = [
-            'expenses' => ['payer_id' => 'participants', 'budget_id' => 'budgets'],
+            'expenses' => ['payer_id' => 'participants', 'budget_id' => 'budgets', 'savings_budget_id' => 'budgets'],
             'incomes' => ['participant_id' => 'participants', 'sender_id' => 'participants', 'budget_id' => 'budgets', 'expense_id' => 'expenses'],
         ];
         if ($complete) {
@@ -285,6 +292,9 @@ final class HouseholdBackup
             }
         }
         foreach ($data['expenses'] as $row) {
+            if (($row['savings_budget_id'] ?? null) !== null && (($row['budget_id'] ?? null) !== null || collect($data['incomes'])->contains(fn (array $income): bool => ($income['expense_id'] ?? null) === $row['id']))) {
+                throw ValidationException::withMessages(['file' => __('backup.errors.invalid_rows', ['table' => 'expenses'])]);
+            }
             $shares = $this->decode($row['shares'] ?? '', 'expenses');
             foreach ($shares as $share) {
                 if (! is_array($share) || ! in_array((int) ($share['participant_id'] ?? 0), $ids['participants'], true)) {

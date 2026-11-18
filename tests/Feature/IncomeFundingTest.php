@@ -433,7 +433,7 @@ class IncomeFundingTest extends TestCase
         $this->get(ParticipantMonth::getUrl(['participant' => $first->id, 'month' => '2027-01']))->assertOk()->assertSee(__('funding.not_relevant'));
         $closing = app(CloseMonth::class)->close('2027-01', $admin->id);
         $html = view('pdf.closing', ['closing' => $closing, 'report' => $closing->snapshot])->render();
-        $this->assertStringContainsString(__('funding.budget_summary'), $html);
+        $this->assertStringContainsString(e(__('funding.budget_summary')), $html);
         $this->assertStringContainsString('29,00 €', $html);
     }
 
@@ -536,7 +536,7 @@ class IncomeFundingTest extends TestCase
         $this->get(route('closings.pdf', $closing))->assertOk()->assertHeader('content-type', 'application/pdf');
         $html = view('pdf.closing', ['closing' => $closing, 'report' => $report])->render();
         $this->assertStringContainsString('50,00 %', $html);
-        $this->assertStringNotContainsString(__('funding.budget_summary'), $html);
+        $this->assertStringNotContainsString(e(__('funding.budget_summary')), $html);
     }
 
     /** User-provided pool names are escaped in the dashboard and statement HTML. */

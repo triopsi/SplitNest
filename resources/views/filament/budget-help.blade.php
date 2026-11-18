@@ -3,7 +3,7 @@
     <x-slot name="description">{{ __('funding.help.intro') }}</x-slot>
 
     <div class="hh-stack">
-        @foreach(['purpose', 'assign', 'example', 'remainder'] as $topic)
+        @foreach(['purpose', 'assign', 'savings', 'example', 'remainder'] as $topic)
             <div>
                 <h3><strong>{{ __('funding.help.'.$topic.'_title') }}</strong></h3>
                 <p class="hh-muted">{{ __('funding.help.'.$topic.'_text') }}</p>

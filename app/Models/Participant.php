@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use App\Services\ArchiveParticipant;
+use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -18,16 +21,38 @@ use Illuminate\Validation\ValidationException;
  */
 class Participant extends Model
 {
-    protected $fillable = ['name', 'email', 'notes', 'only_own_report'];
+    protected $fillable = ['name', 'email', 'notes', 'only_own_report', 'account_balance', 'account_balance_month', 'account_balance_cents'];
 
     protected $attributes = ['only_own_report' => false];
+
+    protected $appends = ['account_balance'];
 
     /** Cast the recipient's statement visibility preference.
      * @return array<string, string>
      */
     protected function casts(): array
     {
-        return ['only_own_report' => 'boolean'];
+        return ['only_own_report' => 'boolean', 'account_balance_cents' => 'integer'];
+    }
+
+    /** Convert signed decimal input without allowing floating point rounding.
+     * @return Attribute<string|null, mixed>
+     */
+    protected function accountBalance(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): ?string => $this->account_balance_cents === null ? null : ($this->account_balance_cents < 0 ? '-' : '').Money::decimal(abs($this->account_balance_cents)),
+            set: fn (mixed $value): array => ['account_balance_cents' => $value === null || $value === '' ? null : (str_starts_with(trim((string) $value), '-') ? -1 : 1) * Money::cents(preg_replace('/^-/', '', trim((string) $value)), 'account_balance')],
+        );
+    }
+
+    /** Validate paired reference values, including zero and negative balances. */
+    public function validateAccountBalance(): void
+    {
+        Validator::make($this->getAttributes(), [
+            'account_balance_month' => ['nullable', 'required_with:account_balance_cents', 'date_format:Y-m', 'after_or_equal:2000-01', 'before_or_equal:2100-12'],
+            'account_balance_cents' => ['nullable', 'required_with:account_balance_month', 'integer', 'between:-999999999,999999999'],
+        ])->validate();
     }
 
     /**
@@ -44,6 +69,7 @@ class Participant extends Model
     protected static function booted(): void
     {
         static::saving(function (self $participant): void {
+            $participant->validateAccountBalance();
             if ($participant->isDirty('archived_from_month') && $participant->archived_from_month !== null) {
                 app(ArchiveParticipant::class)->validate($participant, $participant->archived_from_month);
             }

@@ -4,6 +4,21 @@
  * Participant resource, model protection and the participant detail page.
  */
 return [
+    'account' => [
+        'title' => 'Account balance forecast',
+        'month' => 'Balance at the end of this month',
+        'balance' => 'Recorded account balance',
+        'month_placeholder' => 'YYYY-MM, e.g. :month',
+        'month_help' => 'Enter the month as YYYY-MM, e.g. 2026-11 for November 2026. Choose a month whose closing balance you know. Forecasting starts the following month; this month is not counted again.',
+        'input_help' => 'Negative values are allowed, e.g. -500.00. Include any savings pools held in this balance. Do not add another income. Updating this value replaces the previous forecast starting point.',
+        'as_of' => 'As of end of :month',
+        'projected' => 'Account balance at month end',
+        'available' => 'Available after savings pools',
+        'forecast_help' => 'Projected from the recorded month-end balance using all recorded incomes, costs and balancing transfers. Savings pools remain part of the account balance; available money excludes reserved pools. Assumes planned payments take place. Unplanned spending and interest are not included. Even for closed months, the forecast is derived from the current starting point.',
+        'setup' => 'Under Participants → Edit, enter an account balance and its reference month end. Example: -€500 at the end of January and a €200 monthly surplus give -€300 in February, -€100 in March and +€100 in April.',
+        'recovered' => 'Overdraft first cleared',
+        'missing_month' => 'A previous monthly settlement is missing; a reliable projection is not possible.',
+    ],
     'label' => 'Participant',
     'help' => [
         'title' => 'How to manage your participants',
@@ -64,7 +79,7 @@ return [
         'paid_hint' => 'Bills :name has paid.',
         'balance' => 'Balance',
         'balance_hint' => 'Positive = receives money, negative = pays money.',
-        'left' => 'Left',
+        'left' => 'Monthly remainder before account balance',
         'left_hint' => 'Income minus own cost share.',
         'costs_title' => 'Costs in :month',
         'costs_count' => ':count items affect :name',

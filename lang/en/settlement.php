@@ -38,7 +38,7 @@ return [
         'income_hint' => 'All incomes planned for this month.',
         'costs' => 'Costs combined',
         'costs_hint' => 'All cost items due in this month.',
-        'left' => 'Left after all costs',
+        'left' => 'Monthly surplus / shortfall',
         'left_hint' => 'Incomes minus costs — your freely available remainder.',
     ],
     'transfers' => [
@@ -56,7 +56,7 @@ return [
         'share_pct' => 'Share of costs',
         'paid' => 'Bills paid*',
         'balance' => 'Balance**',
-        'left' => 'Left',
+        'left' => 'Monthly surplus / shortfall',
         'footnote' => 'Share of costs = percentage of the shared cost pool. * According to the planned payer. ** Positive = receives money, negative = pays money. Left = income minus own cost share.',
     ],
     'costs' => [

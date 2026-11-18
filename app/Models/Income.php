@@ -56,7 +56,7 @@ class Income extends Model
                 'participant_id' => ['required', 'exists:participants,id'],
                 'affects_allocation' => ['required', 'boolean'],
                 'budget_id' => ['nullable', 'exists:budgets,id', 'prohibits:expense_id'],
-                'expense_id' => ['nullable', 'exists:expenses,id'],
+                'expense_id' => ['nullable', Rule::exists('expenses', 'id')->whereNull('savings_budget_id')],
                 'sender_id' => [Rule::requiredIf($income->include_in_payment_plan && ! $income->sender_name), 'nullable', 'exists:participants,id', 'different:participant_id', 'prohibits:sender_name'],
                 'sender_name' => ['nullable', 'string', 'max:255'],
                 'include_in_payment_plan' => ['required', 'boolean'],

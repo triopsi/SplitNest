@@ -97,7 +97,7 @@ class IncomeResource extends Resource
                         $set('affects_allocation', false);
                     }
                 }),
-            Select::make('expense_id')->label(__('funding.refund_for'))->relationship('expense', 'name')->searchable()->preload()->live()
+            Select::make('expense_id')->label(__('funding.refund_for'))->relationship('expense', 'name', modifyQueryUsing: fn (Builder $query): Builder => $query->whereNull('savings_budget_id'))->searchable()->preload()->live()
                 ->helperText(__('funding.refund_help'))
                 ->afterStateUpdated(function (Set $set, mixed $state): void {
                     if ($state) {

@@ -36,6 +36,18 @@
                 </div>
             </div>
             <section class="hh-section">
+                <div class="hh-section-head"><h3>{{ __('participants.account.title') }}</h3></div>
+                @if($accountForecast && $accountForecast['balance_cents'] !== null)
+                    <p>{{ __('participants.account.projected') }}: <strong class="{{ $accountForecast['balance_cents'] < 0 ? 'hh-negative' : '' }}">{{ $money($accountForecast['balance_cents']) }}</strong></p>
+                    @if($accountForecast['available_cents'] !== null)<p>{{ __('participants.account.available') }}: <strong>{{ $money($accountForecast['available_cents']) }}</strong></p>@endif
+                    @if($accountForecast['recovered_month'])<p>{{ __('participants.account.recovered') }}: {{ \App\Support\Month::format($accountForecast['recovered_month']) }}</p>@endif
+                @else
+                    <p>{{ __('participants.account.setup') }}</p>
+                @endif
+                @if($accountForecast['error'] ?? null)<p class="hh-warning">{{ $accountForecast['error'] }}</p>@endif
+                <p class="hh-note">{{ __('participants.account.forecast_help') }}</p>
+            </section>
+            <section class="hh-section">
                 <div class="hh-section-head"><h3>{{ __('participants.detail.costs_title', ['month' => $monthName]) }}</h3><span class="hh-muted">{{ __('participants.detail.costs_count', ['count' => count($expenses), 'name' => $participant->name]) }}</span></div>
                 <div class="hh-scroll"><table class="hh-table">
                     <thead><tr><th>{{ __('participants.detail.item') }}</th><th>{{ __('participants.detail.payer') }}</th><th>{{ __('participants.detail.rule') }}</th><th class="num">{{ __('participants.detail.total') }}</th><th class="num">{{ __('participants.detail.share_of', ['name' => $participant->name]) }}</th></tr></thead>
