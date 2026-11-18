@@ -38,7 +38,7 @@ return [
         'income_hint' => 'Alle Einkünfte, die in diesem Monat geplant sind.',
         'costs' => 'Kosten zusammen',
         'costs_hint' => 'Alle Kostenpositionen, die in diesem Monat fällig werden.',
-        'left' => 'Nach allen Kosten übrig',
+        'left' => 'Monatlicher Überschuss / Fehlbetrag',
         'left_hint' => 'Einkünfte minus Kosten — euer frei verfügbarer Rest.',
     ],
     'transfers' => [
@@ -56,7 +56,7 @@ return [
         'share_pct' => 'Anteil an Kosten',
         'paid' => 'Rechnungen bezahlt*',
         'balance' => 'Ausgleich**',
-        'left' => 'Übrig',
+        'left' => 'Monatsrest ohne Kontostand',
         'footnote' => 'Anteil an Kosten = prozentualer Anteil am gemeinsamen Kostentopf. * Laut geplantem Bezahler. ** Positiv = erhält Geld, negativ = zahlt Geld. Übrig = Einkommen minus eigener Kostenanteil.',
     ],
     'costs' => [

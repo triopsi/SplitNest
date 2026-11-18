@@ -4,6 +4,21 @@
  * Teilnehmer-Ressource, Löschschutz und Teilnehmer-Detailseite.
  */
 return [
+    'account' => [
+        'title' => 'Kontostand-Prognose',
+        'month' => 'Kontostand am Ende dieses Monats',
+        'balance' => 'Erfasster Kontostand',
+        'month_placeholder' => 'JJJJ-MM, z. B. :month',
+        'month_help' => 'Monat als JJJJ-MM eingeben, z. B. 2026-11 für November 2026. Wähle den Monat, dessen Endstand du kennst. Die Fortschreibung beginnt im Folgemonat; dieser Monat wird nicht erneut verrechnet.',
+        'input_help' => 'Auch Minus ist erlaubt, z. B. -500,00. Gesamtes Guthaben inklusive darin enthaltener Spartöpfe eintragen. Keine zusätzliche Einnahme anlegen. Ein neuer Stand ersetzt den bisherigen Startpunkt der Prognose.',
+        'as_of' => 'Stand Ende :month',
+        'projected' => 'Kontostand am Monatsende',
+        'available' => 'Nach Spartöpfen verfügbar',
+        'forecast_help' => 'Prognose ab dem eingetragenen Monatsendstand mit allen erfassten Einnahmen, Kosten und Ausgleichszahlungen. Spartöpfe bleiben Teil des Kontostands; frei verfügbar ist der Betrag abzüglich der reservierten Töpfe. Vorausgesetzt sind die geplanten Zahlungen. Ungeplante Ausgaben und Zinsen sind nicht enthalten. Die Prognose wird auch bei abgeschlossenen Monaten aus dem aktuellen Startpunkt abgeleitet.',
+        'setup' => 'Unter Teilnehmer → Bearbeiten einen Kontostand und den zugehörigen Monatsendstand hinterlegen. Beispiel: -500 € Ende Januar und monatlich 200 € Überschuss ergeben -300 € Ende Februar, -100 € Ende März und +100 € Ende April.',
+        'recovered' => 'Minus erstmals ausgeglichen',
+        'missing_month' => 'Für einen vorherigen Monat fehlt die Abrechnung; eine verlässliche Fortschreibung ist nicht möglich.',
+    ],
     'label' => 'Teilnehmer',
     'help' => [
         'title' => 'So verwaltet ihr eure Teilnehmer',
@@ -64,7 +79,7 @@ return [
         'paid_hint' => 'Rechnungen, die :name bezahlt hat.',
         'balance' => 'Ausgleich',
         'balance_hint' => 'Positiv = erhält Geld, negativ = zahlt Geld.',
-        'left' => 'Übrig',
+        'left' => 'Monatsrest ohne Kontostand',
         'left_hint' => 'Einkommen minus eigener Kostenanteil.',
         'costs_title' => 'Kosten im :month',
         'costs_count' => ':count Posten betreffen :name',

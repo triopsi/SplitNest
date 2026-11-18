@@ -6,6 +6,31 @@
         @if(! $problem)
             @livewire(\App\Filament\Widgets\MonthlyCostsChart::class, ['year' => $year])
         @endif
+        <section class="hh-section">
+            <div class="hh-section-head"><h3>{{ __('participants.account.title') }}</h3></div>
+            <p class="hh-note">{{ __('participants.account.forecast_help') }}</p>
+            @if($accountParticipants->isEmpty())
+                <p>{{ __('participants.account.setup') }}</p>
+            @else
+                <div class="hh-scroll"><table class="hh-table">
+                    <thead><tr><th>{{ __('yearplan.table.month') }}</th>@foreach($accountParticipants as $accountParticipant)<th class="num">{{ $accountParticipant->name }}</th>@endforeach</tr></thead>
+                    <tbody>@foreach($rows as $row)<tr>
+                        <td>{{ \App\Support\Month::format($row['month']) }}</td>
+                        @foreach($accountParticipants as $accountParticipant)
+                            @php $forecast = $accountForecast[$row['month']][$accountParticipant->id] ?? null; @endphp
+                            <td class="num">
+                                @if($forecast && $forecast['balance_cents'] !== null)
+                                    <strong class="{{ $forecast['balance_cents'] < 0 ? 'hh-negative' : '' }}">{{ $money($forecast['balance_cents']) }}</strong>
+                                    @if($forecast['available_cents'] !== null)<div class="hh-muted">{{ __('participants.account.available') }}: {{ $money($forecast['available_cents']) }}</div>@endif
+                                    @if($forecast['recovered_month'] === $row['month'])<div>{{ __('participants.account.recovered') }}</div>@endif
+                                @else – @endif
+                                @if($forecast['error'] ?? null)<div class="hh-warning">{{ $forecast['error'] }}</div>@endif
+                            </td>
+                        @endforeach
+                    </tr>@endforeach</tbody>
+                </table></div>
+            @endif
+        </section>
         <section class="hh-section"><div class="hh-scroll"><table class="hh-table">
             <thead><tr><th>{{ __('yearplan.table.month') }}</th><th>{{ __('yearplan.table.status') }}</th><th class="num">{{ __('yearplan.table.incomes') }}</th><th class="num">{{ __('yearplan.table.costs') }}</th><th class="num">{{ __('yearplan.table.left') }}</th><th>{{ __('yearplan.table.transfers') }}</th></tr></thead>
             <tbody>@foreach($rows as $row)<tr>

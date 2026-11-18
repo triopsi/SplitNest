@@ -25,7 +25,7 @@ final class BudgetFunding
     {
         $budgets = Budget::orderBy('id')->get();
         $balances = $budgets->mapWithKeys(fn (Budget $budget): array => [$budget->id => []])->all();
-        $firstMonth = $incomes->whereNotNull('budget_id')->min('start_month') ?? $month;
+        $firstMonth = min($incomes->whereNotNull('budget_id')->min('start_month') ?? $month, $expenses->whereNotNull('savings_budget_id')->min('start_month') ?? $month);
         $firstMonth = min($month, $firstMonth);
         $closings = MonthlyClosing::where('month', '<', $month)->whereNotNull('closed_at')->orderByDesc('month')->get();
         foreach ($closings as $closing) {
@@ -66,6 +66,14 @@ final class BudgetFunding
                         throw ValidationException::withMessages(['month' => __('funding.refund_exceeds_cost', ['name' => $activeExpenses[$income->expense_id]->name])]);
                     }
                     $funding[$income->expense_id] = $line;
+                }
+            }
+            foreach ($activeExpenses as $expense) {
+                if ($expense->savings_budget_id) {
+                    $expense->validateAllocation();
+                    $amount = $expense->amountForMonth($currentMonth);
+                    $balances[$expense->savings_budget_id][$expense->payer_id] = ($balances[$expense->savings_budget_id][$expense->payer_id] ?? 0) + $amount;
+                    $receipts[$expense->savings_budget_id] = ($receipts[$expense->savings_budget_id] ?? 0) + $amount;
                 }
             }
             foreach ($activeExpenses as $expense) {

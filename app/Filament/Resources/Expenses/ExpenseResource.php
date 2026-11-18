@@ -87,7 +87,18 @@ class ExpenseResource extends Resource
                                 }
                             })
                             ->helperText(__('expenses.fields.payer_hint')),
+                        Select::make('savings_budget_id')->label(__('funding.savings_destination'))
+                            ->relationship('savingsBudget', 'name')->preload()->searchable()->live()
+                            ->placeholder(__('funding.normal_expense'))
+                            ->helperText(__('funding.savings_help'))
+                            ->afterStateUpdated(function (Set $set, mixed $state): void {
+                                if ($state) {
+                                    $set('budget_id', null);
+                                }
+                            })
+                            ->createOptionForm([TextInput::make('name')->label(__('funding.name'))->required()->maxLength(255)]),
                         Select::make('budget_id')->label(__('funding.budget'))->relationship('budget', 'name')->preload()->searchable()
+                            ->disabled(fn (Get $get): bool => (bool) $get('savings_budget_id'))
                             ->helperText(__('funding.budget_expense_help'))
                             ->createOptionForm([TextInput::make('name')->label(__('funding.name'))->required()->maxLength(255)]),
                     ]),
@@ -168,6 +179,7 @@ class ExpenseResource extends Resource
 
                     return $record->price_changes && $next !== null ? __('expenses.prices.next', ['amount' => Money::format($record->amountForMonth($next))]) : null;
                 }),
+            TextColumn::make('savingsBudget.name')->label(__('funding.savings_destination'))->placeholder(__('funding.normal_expense'))->toggleable(),
             TextColumn::make('budget.name')->label(__('funding.budget'))->placeholder('–')->toggleable(),
             TextColumn::make('next_billing')->label(__('expenses.table.next_billing'))->toggleable()
                 ->getStateUsing(fn (Expense $record): string => ($next = $record->nextBillingMonth(now()->format('Y-m')))

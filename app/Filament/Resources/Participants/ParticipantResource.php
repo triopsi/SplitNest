@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Participants;
 use App\Filament\Resources\Participants\Pages\ManageParticipants;
 use App\Models\Participant;
 use App\Services\ArchiveParticipant;
+use App\Support\Money;
 use App\Support\Month;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -71,6 +72,13 @@ class ParticipantResource extends Resource
             TextInput::make('email')->label(__('participants.fields.email'))->email()->maxLength(255),
             Toggle::make('only_own_report')->label(__('participants.fields.only_own_report'))->default(false)
                 ->helperText(__('participants.fields.only_own_report_hint'))->columnSpanFull(),
+            TextInput::make('account_balance_month')->label(__('participants.account.month'))
+                ->placeholder(__('participants.account.month_placeholder', ['month' => now()->format('Y-m')]))->maxLength(7)
+                ->requiredWith('account_balance')->rules(['nullable', 'date_format:Y-m', 'after_or_equal:2000-01', 'before_or_equal:2100-12'])
+                ->helperText(__('participants.account.month_help')),
+            TextInput::make('account_balance')->label(__('participants.account.balance'))->suffix('€')
+                ->requiredWith('account_balance_month')->rules(['nullable', 'regex:/^-?\d{1,7}([.,]\d{1,2})?$/D'])
+                ->placeholder('-500,00')->helperText(__('participants.account.input_help')),
             Textarea::make('notes')->label(__('participants.fields.notes'))->columnSpanFull(),
         ]);
     }
@@ -84,6 +92,9 @@ class ParticipantResource extends Resource
             TextColumn::make('name')->label(__('participants.table.name'))->searchable()->sortable()->html()
                 ->formatStateUsing(fn (Participant $record): string => view('components.person', ['name' => $record->name, 'email' => $record->email])->render()),
             TextColumn::make('email')->label(__('participants.table.email'))->placeholder(__('participants.table.no_email')),
+            TextColumn::make('account_balance_cents')->label(__('participants.account.balance'))->placeholder('–')
+                ->formatStateUsing(fn (int $state): string => Money::format($state))
+                ->description(fn (Participant $record): ?string => $record->account_balance_month ? __('participants.account.as_of', ['month' => Month::format($record->account_balance_month)]) : null),
             IconColumn::make('only_own_report')->label(__('participants.table.only_own_report'))->boolean(),
             TextColumn::make('archived_from_month')->label(__('participants.archive.from'))
                 ->formatStateUsing(fn (string $state): string => Month::format($state))

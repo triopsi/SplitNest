@@ -37,7 +37,7 @@ class MonthlyRemainingStat extends StatsOverviewWidget
 
         return [
             Stat::make(__('settlement.cards.left'), Money::format($amount))
-                ->description(isset($report['remaining_cents']) ? __('funding.remaining_help') : __('settlement.cards.left_hint'))
+                ->description(collect($report['participants'])->map(fn (array $person): string => $person['name'].': '.Money::format($person['remaining_cents']))->implode(' · '))
                 ->icon(Heroicon::OutlinedWallet)
                 ->color($amount < 0 ? 'danger' : 'primary'),
         ];

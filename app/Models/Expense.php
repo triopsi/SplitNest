@@ -17,6 +17,7 @@ use Illuminate\Validation\ValidationException;
  *
  * @property int $payer_id ID of the participant who pays the bill.
  * @property int|null $budget_id Pool used before splitting uncovered costs.
+ * @property int|null $savings_budget_id Pool receiving this savings contribution.
  * @property string $name
  * @property string $amount Decimal amount (mapped to cents on write).
  * @property int $amount_cents
@@ -33,7 +34,7 @@ class Expense extends Model
     /** Available cost-splitting strategies (keys, see {@see Expense::modeLabels()}). */
     public const MODE_KEYS = ['percentage', 'income', 'equal', 'personal'];
 
-    protected $fillable = ['payer_id', 'name', 'amount', 'amount_cents', 'split_mode', 'shares', 'start_month', 'end_month', 'interval_months', 'notes', 'budget_id', 'price_changes'];
+    protected $fillable = ['payer_id', 'name', 'amount', 'amount_cents', 'split_mode', 'shares', 'start_month', 'end_month', 'interval_months', 'notes', 'budget_id', 'savings_budget_id', 'price_changes'];
 
     protected $appends = ['amount'];
 
@@ -59,6 +60,12 @@ class Expense extends Model
     public function budget(): BelongsTo
     {
         return $this->belongsTo(Budget::class);
+    }
+
+    /** The pool receiving this savings contribution from existing household income. */
+    public function savingsBudget(): BelongsTo
+    {
+        return $this->belongsTo(Budget::class, 'savings_budget_id');
     }
 
     /**
@@ -92,13 +99,17 @@ class Expense extends Model
     public function validateAllocation(): void
     {
         $this->validatePriceChanges();
-        Validator::make(['payer_id' => $this->payer_id, 'split_mode' => $this->split_mode, 'shares' => $this->shares, 'budget_id' => $this->budget_id], [
-            'budget_id' => ['nullable', 'exists:budgets,id'],
+        Validator::make(['payer_id' => $this->payer_id, 'split_mode' => $this->split_mode, 'shares' => $this->shares, 'budget_id' => $this->budget_id, 'savings_budget_id' => $this->savings_budget_id], [
+            'budget_id' => ['nullable', 'exists:budgets,id', 'prohibits:savings_budget_id'],
+            'savings_budget_id' => ['nullable', 'exists:budgets,id'],
             'payer_id' => ['required', 'exists:participants,id'],
             'split_mode' => ['required', 'in:percentage,income,equal,personal'],
             'shares' => ['required', 'array', 'min:1'],
             'shares.*.participant_id' => ['required', 'integer', 'distinct', 'exists:participants,id'],
         ])->validate();
+        if ($this->savings_budget_id && $this->exists && Income::where('expense_id', $this->id)->exists()) {
+            throw ValidationException::withMessages(['savings_budget_id' => __('funding.savings_no_refund')]);
+        }
         foreach (Participant::whereIn('id', array_unique([$this->payer_id, ...array_column($this->shares, 'participant_id')]))->get() as $participant) {
             $participant->validateSchedule($this, 'shares');
         }

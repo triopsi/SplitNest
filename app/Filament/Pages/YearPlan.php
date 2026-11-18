@@ -3,10 +3,13 @@
 namespace App\Filament\Pages;
 
 use App\Models\MonthlyClosing;
+use App\Models\Participant;
+use App\Services\AccountBalanceForecast;
 use App\Services\SettlementCalculator;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -59,13 +62,13 @@ class YearPlan extends Page
     /**
      * Build one row per month for the selected year.
      *
-     * @return array{rows: list<array{month: string, closed: bool, report: array<string, mixed>|null, error: string|null}>, problem: string|null}
+     * @return array{rows: list<array{month: string, closed: bool, report: array<string, mixed>|null, error: string|null}>, problem: string|null, accountForecast: array<string, array<int, array<string, mixed>>>, accountParticipants: Collection<int, Participant>}
      */
     protected function getViewData(): array
     {
         $rows = [];
         if (! ctype_digit($this->year) || $this->year < 2000 || $this->year > 2100) {
-            return ['rows' => [], 'problem' => __('yearplan.invalid_year')];
+            return ['rows' => [], 'problem' => __('yearplan.invalid_year'), 'accountForecast' => [], 'accountParticipants' => collect()];
         }
         $closings = MonthlyClosing::where('month', 'like', $this->year.'-%')->whereNotNull('closed_at')->get()->keyBy('month');
         for ($m = 1; $m <= 12; $m++) {
@@ -77,6 +80,6 @@ class YearPlan extends Page
             }
         }
 
-        return ['rows' => $rows, 'problem' => null];
+        return ['rows' => $rows, 'problem' => null, 'accountForecast' => app(AccountBalanceForecast::class)->between($this->year.'-01', $this->year.'-12'), 'accountParticipants' => Participant::whereNotNull('account_balance_month')->orderBy('id')->get()];
     }
 }

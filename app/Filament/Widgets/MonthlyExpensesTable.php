@@ -43,7 +43,8 @@ class MonthlyExpensesTable extends TableWidget
                     ->url(ExpenseResource::getUrl()),
             ])
             ->columns([
-                TextColumn::make('name')->label(__('settlement.costs.item')),
+                TextColumn::make('name')->label(__('settlement.costs.item'))
+                    ->description(fn (array $record): ?string => ($record['savings_budget_name'] ?? null) ? __('funding.savings_destination').': '.$record['savings_budget_name'] : null),
                 TextColumn::make('payer_id')
                     ->label(__('settlement.costs.payer'))
                     ->formatStateUsing(fn (int $state): View => view('components.person', [
