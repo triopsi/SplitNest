@@ -82,6 +82,6 @@ class ParticipantMonth extends Page
         $incomes = array_values(array_filter($report['incomes'], fn (array $income): bool => $income['participant_id'] === $this->participant->id));
         $names = array_column($report['participants'], 'name', 'id');
 
-        return ['person' => $person, 'expenses' => $expenses, 'incomes' => $incomes, 'names' => $names, 'emails' => Participant::pluck('email', 'id'), 'problem' => null, 'accountForecast' => app(AccountBalanceForecast::class)->between($this->month, $this->month)[$this->month][$this->participant->id] ?? null];
+        return ['budgets' => $report['budgets'] ?? [], 'person' => $person, 'expenses' => $expenses, 'incomes' => $incomes, 'names' => $names, 'emails' => Participant::pluck('email', 'id'), 'problem' => null, 'accountForecast' => app(AccountBalanceForecast::class)->between($this->month, $this->month)[$this->month][$this->participant->id] ?? null];
     }
 }

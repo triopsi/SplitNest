@@ -96,4 +96,11 @@
 .hh-personal-footer { display: flex; flex-wrap: wrap; align-items: start; column-gap: 1.5rem; row-gap: .5rem; border-top: 1px solid #dbe5e4; padding-top: .75rem; }
 .hh-personal-footer > details[open] { flex-basis: 100%; }
 .dark .hh-personal-footer { border-color: #36383b; }
+.hh-calculation > .hh-reserve-item { padding-inline-start: 1rem; border-inline-start: 2px solid #dbe5e4; color: #697c80; }
+.hh-calculation > .hh-reserve-item dt, .hh-calculation > .hh-reserve-item dd { font-size: .8rem; font-weight: 400; overflow-wrap: anywhere; }
+.dark .hh-calculation > .hh-reserve-item { border-color: #34494b; color: #a4bcb7; }
+.hh-savings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:1rem;align-items:start}
+.hh-savings-holders{border-top:1px solid #dbe5e4;padding-top:1rem}.hh-savings-holders h4{font-size:.8rem;font-weight:600;margin-bottom:.75rem}
+.hh-savings-explanation{font-size:.85rem;line-height:1.7;margin-top:1rem}.hh-savings-explanation summary{cursor:pointer;color:#0c8276;width:fit-content}.hh-savings-explanation summary:focus-visible{outline:2px solid #14b8a6;outline-offset:4px}.hh-savings-explanation p{margin-top:.75rem;max-width:90ch}
+.dark .hh-savings-holders{border-color:#34494b}.dark .hh-savings-explanation summary{color:#66dac4}
 </style>
