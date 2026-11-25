@@ -17,7 +17,7 @@ final class AccountBalanceForecast
      * Frozen settlements supply historical changes. Missing months block later projections
      * instead of silently assuming zero. Changing the starting point never rewrites closings.
      *
-     * @return array<string, array<int, array{balance_cents: int|null, available_cents: int|null, recovered_month: string|null, error: string|null}>>
+     * @return array<string, array<int, array<string, mixed>>>
      */
     public function between(string $fromMonth, string $toMonth): array
     {
@@ -60,7 +60,9 @@ final class AccountBalanceForecast
             foreach ($active as $participant) {
                 $id = $participant->id;
                 $person = $people->get($id);
-                if ($month === $participant->account_balance_month) {
+                $openingBalance = $balances[$id] ?? $participant->account_balance_cents;
+                $isStartingMonth = $month === $participant->account_balance_month;
+                if ($isStartingMonth) {
                     $balances[$id] = $participant->account_balance_cents;
                 } elseif ($problem !== null || $person === null) {
                     $errors[$id] ??= $problem ?? __('participants.account.missing_month');
@@ -72,6 +74,14 @@ final class AccountBalanceForecast
                 }
                 if ($month >= $fromMonth) {
                     $result[$month][$id] = [
+                        'observed_balance_cents' => $participant->account_balance_cents,
+                        'observed_month' => $participant->account_balance_month,
+                        'opening_balance_cents' => $openingBalance,
+                        'is_starting_month' => $isStartingMonth,
+                        'income_cents' => $isStartingMonth ? 0 : ($person['income_cents'] ?? 0),
+                        'share_cents' => $isStartingMonth ? 0 : ($person['share_cents'] ?? 0),
+                        'savings_deposited_cents' => $isStartingMonth ? 0 : ($person['savings_deposited_cents'] ?? 0),
+                        'reserved_cents' => $person['reserved_cents'] ?? 0,
                         'balance_cents' => isset($errors[$id]) ? null : $balances[$id],
                         'available_cents' => isset($errors[$id]) || $person === null ? null : $balances[$id] - ($person['reserved_cents'] ?? 0),
                         'recovered_month' => $recovered[$id] ?? null,

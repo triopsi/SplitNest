@@ -5,6 +5,26 @@
  */
 return [
     'account' => [
+        'calculation_details' => 'Show calculation',
+        'more_figures' => 'All figures as a table',
+        'no_balance' => 'No account balance recorded yet',
+        'no_balance_help' => 'Add a starting balance to see your projected month-end balance or overdraft here.',
+        'edit_balance' => 'Add account balance',
+        'details' => 'Open monthly details',
+        'explanation' => 'How this is calculated',
+
+        'opening_reserves' => 'Reserved savings at start of month',
+        'opening' => 'Balance at start of month',
+        'observed' => 'Recorded starting balance',
+        'income' => 'Income',
+        'share' => 'Own cost share',
+        'savings' => 'Savings credited to this account',
+        'reserves' => 'Reserved savings pots',
+        'starting' => 'This is the recorded month-end balance. Income and costs for this month are not applied again.',
+        'monthly' => 'Monthly calculation',
+        'change' => 'Change since starting balance',
+        'savings_help' => 'Savings credits are included in the cost share and stay in this account, so they are added back here.',
+
         'title' => 'Account balance forecast',
         'month' => 'Balance at the end of this month',
         'balance' => 'Recorded account balance',

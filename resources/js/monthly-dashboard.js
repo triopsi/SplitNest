@@ -11,8 +11,8 @@ window.monthlyDashboard = (initialLayout, messages) => {
     let savedLayout = structuredClone(initialLayout);
     let media;
     let onBreakpoint;
-    let transferObserver;
-    let transferFrame;
+    let contentObserver;
+    let contentFrame;
 
     return {
         editing: false,
@@ -48,24 +48,24 @@ window.monthlyDashboard = (initialLayout, messages) => {
                 media.addEventListener('change', onBreakpoint);
                 onBreakpoint();
                 grid.on('resizestop dragstop', () => this.resizeCharts());
-                const transferElement = grid.getGridItems().find((item) => item.gridstackNode.id === 'transfers');
-                if (transferElement) {
-                    transferElement.gridstackNode.resizeToContentParent = '.hh-widget-body';
+                contentObserver = new ResizeObserver(() => this.fitContentWidgets());
+                for (const id of ['transfers', 'participants']) {
+                    const element = grid.getGridItems().find((item) => item.gridstackNode.id === id);
+                    if (element) {
+                        element.gridstackNode.resizeToContentParent = '.hh-widget-body';
+                    }
+                    const content = element?.querySelector('.hh-widget-body > .fi-wi-widget');
+                    if (content) contentObserver.observe(content);
                 }
-                const transferContent = transferElement?.querySelector('.hh-widget-body > .fi-wi-widget');
-                if (transferContent) {
-                    transferObserver = new ResizeObserver(() => this.fitTransfers());
-                    transferObserver.observe(transferContent);
-                }
-                this.fitTransfers();
+                this.fitContentWidgets();
             });
         },
 
         /** Remove library listeners when Livewire navigation destroys this dashboard. */
         destroy() {
             media?.removeEventListener('change', onBreakpoint);
-            transferObserver?.disconnect();
-            cancelAnimationFrame(transferFrame);
+            contentObserver?.disconnect();
+            cancelAnimationFrame(contentFrame);
             grid?.destroy(false);
         },
 
@@ -145,16 +145,18 @@ window.monthlyDashboard = (initialLayout, messages) => {
 
         /** Allow Filament's Chart.js canvases to refit after a widget or viewport changes size. */
         resizeCharts() {
-            this.fitTransfers();
+            this.fitContentWidgets();
             requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
         },
 
-        /** Fit payment cards after content, width or disclosure changes and push following widgets down. */
-        fitTransfers() {
-            cancelAnimationFrame(transferFrame);
-            transferFrame = requestAnimationFrame(() => {
-                const element = grid?.getGridItems().find((item) => item.gridstackNode.id === 'transfers');
-                if (element) grid.resizeToContent(element);
+        /** Fit payment and participant cards after content, width or disclosure changes and push following widgets down. */
+        fitContentWidgets() {
+            cancelAnimationFrame(contentFrame);
+            contentFrame = requestAnimationFrame(() => {
+                for (const id of ['transfers', 'participants']) {
+                    const element = grid?.getGridItems().find((item) => item.gridstackNode.id === id);
+                    if (element) grid.resizeToContent(element);
+                }
             });
         },
     };

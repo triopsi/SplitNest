@@ -36,15 +36,16 @@
                 </div>
             </div>
             <section class="hh-section">
+                <div class="hh-section-head"><h3>{{ __('participants.account.monthly') }}</h3></div>
+                <div class="hh-account-calculation"><x-monthly-calculation :person="$person" /></div>
+            </section>
+            <section class="hh-section">
                 <div class="hh-section-head"><h3>{{ __('participants.account.title') }}</h3></div>
-                @if($accountForecast && $accountForecast['balance_cents'] !== null)
-                    <p>{{ __('participants.account.projected') }}: <strong class="{{ $accountForecast['balance_cents'] < 0 ? 'hh-negative' : '' }}">{{ $money($accountForecast['balance_cents']) }}</strong></p>
-                    @if($accountForecast['available_cents'] !== null)<p>{{ __('participants.account.available') }}: <strong>{{ $money($accountForecast['available_cents']) }}</strong></p>@endif
-                    @if($accountForecast['recovered_month'])<p>{{ __('participants.account.recovered') }}: {{ \App\Support\Month::format($accountForecast['recovered_month']) }}</p>@endif
+                @if($accountForecast)
+                    <x-account-calculation :forecast="$accountForecast" />
                 @else
-                    <p>{{ __('participants.account.setup') }}</p>
+                    <p class="hh-note">{{ __('participants.account.setup') }}</p>
                 @endif
-                @if($accountForecast['error'] ?? null)<p class="hh-warning">{{ $accountForecast['error'] }}</p>@endif
                 <p class="hh-note">{{ __('participants.account.forecast_help') }}</p>
             </section>
             <section class="hh-section">

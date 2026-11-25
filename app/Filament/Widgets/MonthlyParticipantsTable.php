@@ -26,6 +26,8 @@ class MonthlyParticipantsTable extends TableWidget
 
     protected int|string|array $columnSpan = 'full';
 
+    protected string $view = 'filament.widgets.monthly-participants';
+
     /**
      * Configure participant rows, monthly detail links and cent-exact monetary columns.
      */
@@ -76,8 +78,7 @@ class MonthlyParticipantsTable extends TableWidget
                         : '–'),
                 $this->moneyColumn('paid_cents', 'paid'),
                 $this->moneyColumn('balance_cents', 'balance'),
-            ])
-            ->contentFooter(fn (): View => view('filament.widgets.monthly-participants-footer', ['report' => $this->settlementReport]));
+            ]);
     }
 
     /** Resolve the live cash forecast separately from the selected month's settlement snapshot.
