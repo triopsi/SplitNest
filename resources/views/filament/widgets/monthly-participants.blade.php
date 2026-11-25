@@ -16,7 +16,7 @@
                         </header>
                         <div class="hh-personal-month">
                             <h3>{{ __('participants.account.monthly') }}</h3>
-                            <x-monthly-calculation :person="$person" />
+                            <x-monthly-calculation :person="$person" :budgets="$report['budgets'] ?? []" />
                         </div>
                         <div class="hh-personal-account">
                             @if($forecast)

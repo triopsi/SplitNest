@@ -66,6 +66,45 @@ class IncomeFundingTest extends TestCase
         ], ...$attributes]);
     }
 
+    /** Reserve details show only this person's nonzero pots and retain the frozen names after closing. */
+    public function test_monthly_calculation_explains_personal_reserves_from_the_report(): void
+    {
+        [$first, $second] = $this->household();
+        $holiday = Budget::factory()->create(['name' => 'Holiday reserve']);
+        $repairs = Budget::factory()->create(['name' => 'Repair reserve']);
+        $other = Budget::factory()->create(['name' => 'Other person reserve']);
+        $this->income($first, 150, ['budget_id' => $holiday->id]);
+        $this->income($first, 250, ['budget_id' => $repairs->id]);
+        $this->income($second, 700, ['budget_id' => $other->id]);
+        $report = app(SettlementCalculator::class)->calculate('2027-01');
+        $person = collect($report['participants'])->firstWhere('id', $first->id);
+
+        $this->assertSame(400, $person['reserved_cents']);
+        $this->view('components.monthly-calculation', ['person' => $person, 'budgets' => $report['budgets']])
+            ->assertSeeInOrder(['-4,00 €', 'Holiday reserve', '-1,50 €', 'Repair reserve', '-2,50 €'])
+            ->assertDontSee('Other person reserve');
+
+        $admin = User::factory()->create(['is_admin' => true]);
+        app(CloseMonth::class)->close('2027-01', $admin->id);
+        $holiday->update(['name' => 'Renamed pot']);
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        $this->actingAs($admin);
+        Livewire::test(ParticipantMonth::class, ['participant' => $first, 'month' => '2027-01'])
+            ->assertSee('Holiday reserve')->assertSee('-1,50 €')->assertDontSee('Renamed pot');
+    }
+
+    /** Reports without budget details still display their original reserve total. */
+    public function test_monthly_calculation_accepts_legacy_reports_without_budget_details(): void
+    {
+        [$first] = $this->household();
+        $report = app(SettlementCalculator::class)->calculate('2027-01');
+        $person = collect($report['participants'])->firstWhere('id', $first->id);
+        $person['reserved_cents'] = 400;
+
+        $this->view('components.monthly-calculation', ['person' => $person])
+            ->assertSee('-4,00 €');
+    }
+
     /** Non-salary receipts increase cash but leave the cost ratio at 50/50. */
     public function test_other_receipts_do_not_change_salary_weighting(): void
     {

@@ -2,6 +2,24 @@
 
 /** Zweckgebundene Einnahmen, Erstattungen und Verteilungseinkommen. */
 return [
+    'savings' => [
+        'title' => 'Spartopf-Übersicht',
+        'hero' => 'Eure Rücklagen auf einen Blick',
+        'intro' => 'Alle Budgets und Spartöpfe mit ihrem angesammelten Guthaben zum Ende des ausgewählten Monats.',
+        'month' => 'Monat',
+        'total' => 'Insgesamt reserviert',
+        'closed' => 'Gespeicherter Stand des abgeschlossenen Monats.',
+        'planned' => 'Geplanter Monatsendstand auf Basis eurer erfassten Einnahmen und Kosten; kein bestätigter Bankkontostand.',
+        'holders' => 'Auf wessen Konto ist das Geld reserviert?',
+        'empty_pot' => 'In diesem Topf ist noch kein Guthaben übrig.',
+        'manage' => 'Budgets & Spartöpfe verwalten',
+        'invalid_month' => 'Bitte einen gültigen Monat auswählen.',
+        'no_snapshot' => 'Für diesen alten Monatsabschluss wurden noch keine Topfstände gespeichert.',
+        'what' => 'Was sind Spartöpfe und reservierte Beträge?',
+        'meaning' => 'Ein Spartopf ist eine virtuelle Rücklage für einen bestimmten Zweck, zum Beispiel Urlaub oder Reparaturen. Das Geld bleibt auf dem Konto der zugeordneten Person, ist aber nicht mehr frei verfügbar. Ein Topf ist kein zusätzliches Bankkonto.',
+        'example' => 'Beispiel: Im Urlaubstopf liegen 1,50 € und im Reparaturtopf 2,50 € für dich. „Reservierte Spartöpfe: −4,00 €“ zieht diese insgesamt 4,00 € vom frei verfügbaren Geld ab. Das Geld ist dadurch nicht ausgegeben. Reserven zu Monatsbeginn werden in der Monatsrechnung zuerst wieder hinzugerechnet, damit alte Rücklagen nicht doppelt abgezogen werden.',
+        'setup' => 'Befüllen: Einnahmen einem Budget zuordnen oder unter Kosten eine Sparrate mit „Sparen / zurücklegen in Topf“ anlegen. Verwenden: Eine Ausgabe diesem Budget zuordnen. Was übrig bleibt, wird in den Folgemonat übertragen.',
+    ],
     'savings_destination' => 'Sparen / zurücklegen in Topf',
     'normal_expense' => 'Normale Ausgabe (keine Sparrate)',
     'savings_help' => 'Zum Beispiel Bauspartopf oder Essenstopf. Der Betrag wird aus eurem vorhandenen Einkommen zurückgelegt und nach der gewählten Regel aufgeteilt. Bezahler ist die Person, die den Topf verwaltet. Keine zusätzliche Einnahme erfassen. Der frei verfügbare Monatsrest sinkt um den Sparanteil.',

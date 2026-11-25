@@ -37,7 +37,7 @@
             </div>
             <section class="hh-section">
                 <div class="hh-section-head"><h3>{{ __('participants.account.monthly') }}</h3></div>
-                <div class="hh-account-calculation"><x-monthly-calculation :person="$person" /></div>
+                <div class="hh-account-calculation"><x-monthly-calculation :person="$person" :budgets="$budgets" /></div>
             </section>
             <section class="hh-section">
                 <div class="hh-section-head"><h3>{{ __('participants.account.title') }}</h3></div>

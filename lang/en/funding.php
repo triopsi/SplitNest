@@ -2,6 +2,24 @@
 
 /** Earmarked funding, reimbursements and salary-only allocation labels. */
 return [
+    'savings' => [
+        'title' => 'Savings overview',
+        'hero' => 'Your reserves at a glance',
+        'intro' => 'All budgets and savings pots with their accumulated balance at the end of the selected month.',
+        'month' => 'Month',
+        'total' => 'Total reserved',
+        'closed' => 'Saved balances from the closed month.',
+        'planned' => 'Projected month-end balances based on recorded income and costs; not confirmed bank balances.',
+        'holders' => 'Whose account holds these reserves?',
+        'empty_pot' => 'No funds remain in this pot yet.',
+        'manage' => 'Manage budgets & savings pots',
+        'invalid_month' => 'Please select a valid month.',
+        'no_snapshot' => 'This older monthly closing does not contain saved pot balances.',
+        'what' => 'What are savings pots and reserved amounts?',
+        'meaning' => 'A savings pot is a virtual reserve for a purpose such as holidays or repairs. The money stays in the assigned person’s account but is no longer freely available. A pot is not an additional bank account.',
+        'example' => 'Example: Your holiday pot holds €1.50 and your repair pot holds €2.50. “Reserved savings pots: −€4.00” deducts the total €4.00 from freely available money. It has not been spent. Opening reserves are added back first in the monthly calculation so existing reserves are not deducted twice.',
+        'setup' => 'Add funds by assigning income to a budget or creating a savings contribution under Costs. Use funds by assigning an expense to the budget. Remaining balances carry over to the next month.',
+    ],
     'savings_destination' => 'Save / set aside in pool',
     'normal_expense' => 'Regular expense (no savings contribution)',
     'savings_help' => 'For example a home savings or food pool. This amount is set aside from existing income and split using the selected rule. The payer holds the pool funds. Do not record another income. Each participant’s available remainder decreases by their savings share.',
