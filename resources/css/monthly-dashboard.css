@@ -31,3 +31,6 @@
 .hh-dashboard [x-cloak] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .hh-dashboard .grid-stack-item { transition: none !important; } }
 @media (max-width: 767px) { .hh-dashboard .hh-widget-drag { display: none; } }
+
+/* Personal overview follows its content rather than a fixed table viewport. */
+.hh-dashboard [gs-id="participants"] .hh-widget-body > .fi-wi-widget { height: auto; flex: none; }

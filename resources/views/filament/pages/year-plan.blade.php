@@ -12,6 +12,14 @@
             @if($accountParticipants->isEmpty())
                 <p>{{ __('participants.account.setup') }}</p>
             @else
+                <div class="hh-account-grid">
+                    @foreach($accountParticipants as $accountParticipant)
+                        <div class="hh-account-origin">
+                            <span>{{ $accountParticipant->name }} · {{ __('participants.account.observed') }} · {{ \App\Support\Month::format($accountParticipant->account_balance_month) }}</span>
+                            <strong class="{{ $accountParticipant->account_balance_cents < 0 ? 'hh-negative' : '' }}">{{ $accountParticipant->account_balance_cents > 0 ? '+' : '' }}{{ $money($accountParticipant->account_balance_cents) }}</strong>
+                        </div>
+                    @endforeach
+                </div>
                 <div class="hh-scroll"><table class="hh-table">
                     <thead><tr><th>{{ __('yearplan.table.month') }}</th>@foreach($accountParticipants as $accountParticipant)<th class="num">{{ $accountParticipant->name }}</th>@endforeach</tr></thead>
                     <tbody>@foreach($rows as $row)<tr>

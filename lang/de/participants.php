@@ -5,6 +5,26 @@
  */
 return [
     'account' => [
+        'calculation_details' => 'Rechenweg anzeigen',
+        'more_figures' => 'Alle Kennzahlen als Tabelle',
+        'no_balance' => 'Noch kein Kontostand hinterlegt',
+        'no_balance_help' => 'Mit einem Ausgangsstand siehst du hier auch dein Guthaben oder Minus am Monatsende.',
+        'edit_balance' => 'Kontostand hinterlegen',
+        'details' => 'Monatsdetails öffnen',
+        'explanation' => 'So wird gerechnet',
+
+        'opening_reserves' => 'Reservierte Spartöpfe zu Monatsbeginn',
+        'opening' => 'Kontostand zu Monatsbeginn',
+        'observed' => 'Eingetragener Ausgangsstand',
+        'income' => 'Einnahmen',
+        'share' => 'Eigener Kostenanteil',
+        'savings' => 'Spargutschriften auf diesem Konto',
+        'reserves' => 'Reservierte Spartöpfe',
+        'starting' => 'Dies ist der eingetragene Monatsendstand. Einnahmen und Kosten dieses Monats werden nicht erneut verrechnet.',
+        'monthly' => 'Monatsrechnung',
+        'change' => 'Veränderung seit Ausgangsstand',
+        'savings_help' => 'Spargutschriften sind im Kostenanteil enthalten und bleiben auf diesem Konto. Deshalb werden sie hier wieder hinzugerechnet.',
+
         'title' => 'Kontostand-Prognose',
         'month' => 'Kontostand am Ende dieses Monats',
         'balance' => 'Erfasster Kontostand',

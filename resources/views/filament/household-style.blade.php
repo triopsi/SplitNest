@@ -41,4 +41,59 @@
 .dark .hh-payment-card{background:#1c1c1f;border-color:#36383b;border-top-color:#2dd4bf}.dark .hh-payment-breakdown{border-color:#36383b}.dark .hh-payment-reference{background:#232729}.dark .hh-payment-label,.dark .hh-payment-help{color:#a4bcb7}.dark .hh-payment-equation-total{border-color:#36383b}.dark .hh-payment-equation-total strong,.dark .hh-payment-sign,.dark .hh-payment-arrow{color:#5eead4}.dark .hh-payment-empty{border-color:#34494b}
 
 .hh-cost-share{display:flex;flex-direction:column;gap:.3rem;min-width:12rem;white-space:normal;font-variant-numeric:tabular-nums}.hh-cost-share>strong{font-size:1.1rem;color:#0f766e}.hh-cost-funded,.hh-cost-assigned,.hh-cost-funding>div{display:flex;justify-content:space-between;gap:1rem;font-size:.8rem}.hh-cost-funded{margin-top:.4rem;color:#697c80}.hh-cost-assigned{border-top:1px solid #dbe5e4;padding-top:.4rem}.hh-cost-funding{display:grid;gap:.5rem;min-width:11rem;font-variant-numeric:tabular-nums}.hh-cost-funding>div{color:#697c80}.hh-cost-funding .hh-cost-remainder{color:#0f766e;border-top:1px solid #dbe5e4;padding-top:.5rem}.dark .hh-cost-share>strong,.dark .hh-cost-funding .hh-cost-remainder{color:#5eead4}.dark .hh-cost-funded,.dark .hh-cost-funding>div{color:#a4bcb7}.dark .hh-cost-assigned,.dark .hh-cost-funding .hh-cost-remainder{border-color:#36383b}
+
+.hh-account-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:1rem;padding:0 1.5rem 1.5rem}.hh-account-panel{border:1px solid #dbe5e4;border-radius:.75rem;overflow:hidden;min-width:0}.hh-account-panel>h3{padding:1rem 1.25rem;background:#f3f7f6;font-weight:650}.hh-account-panel>.hh-calculation{padding:1rem 1.25rem}.hh-account-panel>p{padding:1rem 1.25rem}.hh-account-calculation{padding:1.25rem 1.5rem;display:grid;gap:1rem}.hh-account-origin{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;padding:.85rem 1rem;border-radius:.5rem;background:#f3f7f6;font-size:.85rem}.hh-account-origin strong{font-variant-numeric:tabular-nums;white-space:nowrap}.hh-calculation{margin:0;display:grid;gap:.65rem}.hh-calculation>div{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:1rem}.hh-calculation dt{font-size:.875rem}.hh-calculation dd{margin:0;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:600}.hh-calculation-total{border-top:1px solid #9bb3af;padding-top:.85rem;font-weight:700}.hh-calculation-total dd{border-bottom:3px double #9bb3af;padding-bottom:.35rem}.hh-calculation-final{background:#edf7f3;padding:.85rem;border-radius:.5rem}.hh-table tfoot th{border-top:1px solid #9bb3af;border-bottom:3px double #9bb3af;font-weight:700}.dark .hh-account-panel{border-color:#34494b}.dark .hh-account-origin,.dark .hh-account-panel>h3{background:#213738;color:#c0d9d5}.dark .hh-calculation-final{background:#213738}
+
+/* Let the section wrap its cards even inside a fixed-height dashboard cell. */
+.hh-dashboard .hh-widget-body > .fi-wi-widget.hh-personal-widget { height: auto; flex: none; }
+.hh-dashboard .fi-wi-widget.hh-personal-widget > .fi-section { flex: none; min-height: auto; height: auto; }
+.hh-personal-overview { container-type: inline-size; display: grid; gap: 1.5rem; min-width: 0; }
+.hh-personal-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr)); align-items: stretch; gap: 1.25rem; }
+.hh-personal-card { min-width: 0; border: 1px solid #dbe5e4; border-radius: 1rem; background: #fff; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgb(15 23 42 / .03); }
+.hh-personal-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; padding: 1.25rem; border-bottom: 1px solid #dbe5e4; background: #f6f9f8; }
+.hh-personal-head .hh-person { font-size: 1.05rem; gap: .75rem; }
+.hh-personal-head .hh-avatar { width: 2.5rem; height: 2.5rem; }
+.hh-personal-head .hh-link { text-decoration: none; }
+.hh-personal-period { padding: .3rem .65rem; border: 1px solid #dbe5e4; border-radius: 99px; font-size: .75rem; color: #5b7074; white-space: nowrap; }
+.hh-personal-month, .hh-personal-account { padding: 1.25rem; }
+.hh-personal-card h3 { margin: 0 0 1.25rem; font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; color: #5b7074; }
+.hh-personal-card .hh-calculation { gap: 1rem; }
+.hh-personal-card .hh-calculation > div { gap: 1.5rem; }
+.hh-personal-card .hh-calculation dt { line-height: 1.6; }
+.hh-personal-card .hh-calculation-total { margin-top: .25rem; padding-top: 1.25rem; }
+.hh-personal-card .hh-calculation-total dd { font-size: 1.15rem; }
+.hh-personal-account { border-top: 1px solid #dbe5e4; background: #f6f9f8; flex: 1; }
+.hh-personal-start { display: flex; justify-content: space-between; align-items: center; gap: 1rem; font-size: .85rem; }
+.hh-personal-start small { display: block; margin-top: .35rem; color: #697c80; }
+.hh-personal-start strong { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.hh-personal-result { display: grid; gap: .5rem; padding: 1.1rem 1.25rem; margin: 1.25rem 0 .75rem; border: 1px solid #cce8df; border-radius: .75rem; background: #eaf6f0; }
+.hh-personal-result > span { font-size: .85rem; color: #5b7074; }
+.hh-personal-result > strong { width: fit-content; font-size: 1.85rem; line-height: 1.3; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.035em; color: #0f766e; }
+.hh-personal-disclosure { min-width: 0; font-size: .85rem; }
+.hh-personal-disclosure > summary { width: fit-content; cursor: pointer; color: #0c8276; padding: .5rem 0; font-weight: 500; }
+.hh-personal-disclosure > summary:focus-visible { outline: 2px solid #14b8a6; outline-offset: 4px; border-radius: .25rem; }
+.hh-personal-disclosure > .hh-account-calculation { padding: 1.25rem 0 0; }
+.hh-personal-empty { display: flex; align-items: start; gap: 1rem; }
+.hh-personal-empty h3 { margin-bottom: .5rem; }
+.hh-personal-empty p { color: #697c80; font-size: .85rem; line-height: 1.7; margin-bottom: 1rem; }
+.hh-personal-empty .hh-icon { margin-top: .15rem; }
+.hh-personal-help p { margin-top: .75rem; line-height: 1.7; max-width: 75ch; }
+.hh-personal-table > .fi-ta { margin-top: 1rem; }
+.dark .hh-personal-card { background: #18181b; border-color: #36383b; }
+.dark .hh-personal-head, .dark .hh-personal-account { border-color: #36383b; background: #202425; }
+.dark .hh-personal-period { border-color: #3a4645; color: #a4bcb7; }
+.dark .hh-personal-result { background: #193b34; border-color: #2b554a; }
+.dark .hh-personal-result > strong { color: #5eead4; }
+.dark .hh-personal-account { background: #202425; }
+.dark .hh-personal-card h3, .dark .hh-personal-start small, .dark .hh-personal-result > span, .dark .hh-personal-empty p { color: #a4bcb7; }
+.dark .hh-personal-disclosure > summary { color: #66dac4; }
+@container (max-width: 380px) {
+    .hh-personal-head, .hh-personal-month, .hh-personal-account { padding: 1rem; }
+    .hh-personal-card .hh-calculation > div { gap: .75rem; }
+    .hh-personal-card .hh-calculation-total dd { font-size: 1rem; }
+}
+
+.hh-personal-footer { display: flex; flex-wrap: wrap; align-items: start; column-gap: 1.5rem; row-gap: .5rem; border-top: 1px solid #dbe5e4; padding-top: .75rem; }
+.hh-personal-footer > details[open] { flex-basis: 100%; }
+.dark .hh-personal-footer { border-color: #36383b; }
 </style>
