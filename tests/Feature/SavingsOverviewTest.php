@@ -10,7 +10,9 @@ use App\Models\User;
 use App\Services\CloseMonth;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /** Verify accumulated reserves, historical snapshots and explanatory navigation. */
@@ -66,5 +68,36 @@ class SavingsOverviewTest extends TestCase
     {
         Livewire::test(SavingsOverview::class)->assertViewHas('total', 0)->assertSee(__('funding.no_budgets'))
             ->set('month', '2027-13')->assertSee(__('funding.savings.invalid_month'));
+    }
+
+    /**
+     * Reject out-of-range months before they can trigger a long historical budget replay.
+     */
+    #[DataProvider('outOfRangeMonths')]
+    public function test_out_of_range_months_do_not_start_budget_calculation(string $month): void
+    {
+        DB::enableQueryLog();
+        try {
+            Livewire::test(SavingsOverview::class, ['month' => $month])
+                ->assertSee(__('funding.savings.invalid_month'));
+            $queries = DB::getQueryLog();
+        } finally {
+            DB::disableQueryLog();
+            DB::flushQueryLog();
+        }
+
+        $this->assertFalse(collect($queries)->contains(fn (array $query): bool => str_contains($query['query'], 'budgets')));
+    }
+
+    /** Months before or after the supported replay window must be rejected.
+     * @return array<string, array{string}>
+     */
+    public static function outOfRangeMonths(): array
+    {
+        return [
+            'before lower bound' => ['1999-12'],
+            'after upper bound' => ['2101-01'],
+            'far future' => ['9998-12'],
+        ];
     }
 }

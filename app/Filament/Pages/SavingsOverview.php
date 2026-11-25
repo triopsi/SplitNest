@@ -56,7 +56,7 @@ class SavingsOverview extends Page
     protected function getViewData(): array
     {
         $data = ['budgets' => [], 'names' => [], 'total' => 0, 'closed' => false, 'problem' => null];
-        if (preg_match('/^\d{4}-(0[1-9]|1[0-2])$/D', $this->month) !== 1) {
+        if (preg_match('/^\d{4}-(0[1-9]|1[0-2])$/D', $this->month) !== 1 || $this->month < '2000-01' || $this->month > '2100-12') {
             return [...$data, 'problem' => __('funding.savings.invalid_month')];
         }
         $closing = MonthlyClosing::where('month', $this->month)->whereNotNull('closed_at')->first();
