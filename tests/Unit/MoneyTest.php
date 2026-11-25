@@ -93,6 +93,8 @@ class MoneyTest extends TestCase
         $this->assertSame('1701.25', Money::decimal(170125));
         $this->assertSame('0.00', Money::decimal(0));
         $this->assertSame('0.05', Money::decimal(5));
+        $this->assertSame('-0.05', Money::decimal(-5));
+        $this->assertSame('-10.50', Money::decimal(-1050));
     }
 
     /**
@@ -105,5 +107,6 @@ class MoneyTest extends TestCase
         $this->assertSame('1.701,25 €', Money::format(170125));
         $this->assertSame('0,00 €', Money::format(0));
         $this->assertSame('0,05 €', Money::format(5));
+        $this->assertSame('-0,05 €', Money::format(-5));
     }
 }

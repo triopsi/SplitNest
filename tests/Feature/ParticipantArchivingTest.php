@@ -45,6 +45,48 @@ class ParticipantArchivingTest extends TestCase
         $this->actingAs($admin)->get(route('closings.pdf', $closing))->assertOk();
     }
 
+    /** An invalid archive month is rejected before it can be stored on the participant. */
+    #[DataProvider('invalidArchiveMonths')]
+    public function test_invalid_archive_months_are_rejected(string $month): void
+    {
+        $person = Participant::create(['name' => 'Participant']);
+
+        try {
+            app(ArchiveParticipant::class)->archive($person, $month);
+            $this->fail('Invalid archive month was accepted');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('archived_from_month', $exception->errors());
+        }
+
+        $this->assertNull($person->fresh()->archived_from_month);
+    }
+
+    /** Supply malformed month values that must fail the archive boundary validator.
+     * @return array<string, array{string}>
+     */
+    public static function invalidArchiveMonths(): array
+    {
+        return [
+            'empty' => [''],
+            'wrong order' => ['02-2027'],
+            'invalid month' => ['2027-13'],
+        ];
+    }
+
+    /** A completed one-off assignment before the archive boundary does not block retirement. */
+    public function test_completed_assignments_before_the_archive_month_are_allowed(): void
+    {
+        $person = Participant::create(['name' => 'Participant']);
+        Income::create([
+            'name' => 'One-off receipt', 'participant_id' => $person->id, 'amount_cents' => 100,
+            'start_month' => '2027-01', 'interval_months' => 0,
+        ]);
+
+        app(ArchiveParticipant::class)->archive($person, '2027-02');
+
+        $this->assertSame('2027-02', $person->fresh()->archived_from_month);
+    }
+
     /** Active income recipients, senders and expense shares require explicit reassignment first. */
     #[DataProvider('blockingAssignments')]
     public function test_archiving_with_future_assignments_is_rejected(string $assignment, string $message): void

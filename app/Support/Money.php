@@ -34,7 +34,10 @@ final class Money
      */
     public static function decimal(int $cents): string
     {
-        return sprintf('%d.%02d', intdiv($cents, 100), $cents % 100);
+        $euros = intdiv($cents, 100);
+        $remainder = abs($cents % 100);
+
+        return ($cents < 0 ? '-' : '').sprintf('%d.%02d', abs($euros), $remainder);
     }
 
     /**
